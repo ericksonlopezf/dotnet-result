@@ -1,0 +1,22 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/EricksonLopez.Result.Analyzers/EricksonLopez.Result.Analyzers.csproj" />
+    <Project Path="src/EricksonLopez.Result.AspNetCore/EricksonLopez.Result.AspNetCore.csproj" />
+    <Project Path="src/EricksonLopez.Result.FluentValidation/EricksonLopez.Result.FluentValidation.csproj" />
+    <Project Path="src/EricksonLopez.Result.MediatR/EricksonLopez.Result.MediatR.csproj" />
+    <Project Path="src/EricksonLopez.Result.OpenTelemetry/EricksonLopez.Result.OpenTelemetry.csproj" />
+    <Project Path="src/EricksonLopez.Result.Serialization/EricksonLopez.Result.Serialization.csproj" />
+    <Project Path="src/EricksonLopez.Result.Serialization.Generators/EricksonLopez.Result.Serialization.Generators.csproj" />
+    <Project Path="src/EricksonLopez.Result.Testing/EricksonLopez.Result.Testing.csproj" />
+    <Project Path="src/EricksonLopez.Result.Testing.NUnit/EricksonLopez.Result.Testing.NUnit.csproj" />
+    <Project Path="src/EricksonLopez.Result.Testing.XUnit/EricksonLopez.Result.Testing.XUnit.csproj" />
+    <Project Path="src/EricksonLopez.Result/EricksonLopez.Result.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/EricksonLopez.Result.Tests/EricksonLopez.Result.Tests.csproj" />
+    <Project Path="tests/EricksonLopez.Result.AotSmokeTest/EricksonLopez.Result.AotSmokeTest.csproj" />
+  </Folder>
+  <Folder Name="/benchmarks/">
+    <Project Path="benchmarks/EricksonLopez.Result.Benchmarks/EricksonLopez.Result.Benchmarks.csproj" />
+  </Folder>
+</Solution>

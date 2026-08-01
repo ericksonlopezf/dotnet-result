@@ -1,0 +1,31 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFrameworks>net8.0;net9.0;net10.0</TargetFrameworks>
+    <LangVersion>latest</LangVersion>
+    <AssemblyName>EricksonLopez.Result.AspNetCore</AssemblyName>
+    <RootNamespace>EricksonLopez.Result.AspNetCore</RootNamespace>
+    <IsPackable>true</IsPackable>
+    <PackageId>EricksonLopez.Result.AspNetCore</PackageId>
+    <Authors>Erickson Lopez</Authors>
+    <Company>Erickson Lopez</Company>
+    <Copyright>Copyright © 2026 Erickson Lopez</Copyright>
+    <Description>ASP.NET Core integration for EricksonLopez.Result providing ProblemDetails RFC 9457 formatting and Minimal API endpoint filters.</Description>
+    <PackageProjectUrl>https://github.com/ericksonlopez/dotnet-result</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/ericksonlopez/dotnet-result</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <IsAotCompatible>true</IsAotCompatible>
+    <EnableTrimAnalyzer>true</EnableTrimAnalyzer>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\EricksonLopez.Result\EricksonLopez.Result.csproj" />
+  </ItemGroup>
+</Project>

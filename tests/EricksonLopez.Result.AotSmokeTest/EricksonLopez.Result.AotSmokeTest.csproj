@@ -1,0 +1,32 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <!-- Smoke test targets net8.0 (LTS) for broadest compatibility.
+         The CI workflow uses .NET 9 SDK which includes the NativeAOT ILC for both TFMs. -->
+    <TargetFramework>net8.0</TargetFramework>
+    <OutputType>Exe</OutputType>
+    <LangVersion>latest</LangVersion>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+
+    <!-- NativeAOT publish settings -->
+    <PublishAot>true</PublishAot>
+    <IsAotCompatible>true</IsAotCompatible>
+    <EnableTrimAnalyzer>true</EnableTrimAnalyzer>
+
+    <!-- Reduce binary size for CI speed — correctness over performance -->
+    <OptimizationPreference>Size</OptimizationPreference>
+
+    <!-- Do NOT include in NuGet packaging -->
+    <IsPackable>false</IsPackable>
+
+    <!-- Exclude from the main test/coverage runs (this is a publish-only validation) -->
+    <IsTestProject>false</IsTestProject>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\EricksonLopez.Result\EricksonLopez.Result.csproj" />
+    <ProjectReference Include="..\..\src\EricksonLopez.Result.AspNetCore\EricksonLopez.Result.AspNetCore.csproj" />
+  </ItemGroup>
+
+</Project>

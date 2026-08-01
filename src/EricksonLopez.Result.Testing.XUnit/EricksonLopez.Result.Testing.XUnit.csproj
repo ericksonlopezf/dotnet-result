@@ -1,0 +1,38 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFrameworks>net8.0;net9.0;net10.0</TargetFrameworks>
+    <LangVersion>latest</LangVersion>
+    <AssemblyName>EricksonLopez.Result.Testing.XUnit</AssemblyName>
+    <RootNamespace>EricksonLopez.Result.Testing.XUnit</RootNamespace>
+    <IsPackable>true</IsPackable>
+    <PackageId>EricksonLopez.Result.Testing.XUnit</PackageId>
+    <Authors>Erickson Lopez</Authors>
+    <Company>Erickson Lopez</Company>
+    <Copyright>Copyright © 2026 Erickson Lopez</Copyright>
+    <Description>
+      xUnit-specific testing helpers for EricksonLopez.Result.
+      Provides ResultAssertionXUnitException which inherits from Xunit.Sdk.XunitException
+      so failed assertions appear as "Failure" (not "Error") in xUnit's test output,
+      producing cleaner assertion messages without unnecessary stack traces.
+    </Description>
+    <PackageProjectUrl>https://github.com/ericksonlopez/dotnet-result</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/ericksonlopez/dotnet-result</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <IsAotCompatible>false</IsAotCompatible>
+    <!-- xUnit.core is not AOT-compatible; test packages are never deployed in AOT production code -->
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <PackageTags>result;testing;xunit;assertions;dotnet</PackageTags>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- xunit.v3.assert ships XunitException in Xunit.Sdk; compatible with xUnit 3.x test projects. -->
+    <PackageReference Include="xunit.v3.assert" Version="1.0.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\EricksonLopez.Result.Testing\EricksonLopez.Result.Testing.csproj" />
+  </ItemGroup>
+</Project>

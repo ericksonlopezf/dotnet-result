@@ -1,0 +1,67 @@
+<Project>
+
+  <PropertyGroup>
+    <!-- Versioning — bump this single file for all packages.
+         This is the AUTHORITATIVE source of truth for the version number.
+         Update any documentation (AUDITORIA.md, ADRs, README badges) to match this value
+         whenever VersionPrefix or VersionSuffix changes. -->
+    <VersionPrefix>1.0.0</VersionPrefix>
+    <VersionSuffix></VersionSuffix>
+
+    <!-- NuGet package metadata -->
+    <Authors>Erickson López</Authors>
+    <Company>EricksonLopez</Company>
+    <Copyright>Copyright © 2026 Erickson López</Copyright>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageProjectUrl>https://github.com/ericksonlopez/dotnet-result</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/ericksonlopez/dotnet-result</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <PackageIcon>icon.png</PackageIcon>
+    <PackageTags>result;result-pattern;error-handling;railway-oriented;opentelemetry;problem-details;dotnet;aot</PackageTags>
+
+    <!-- Build settings -->
+    <LangVersion>latest</LangVersion>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <WarningLevel>5</WarningLevel>
+    <AnalysisLevel>latest-recommended</AnalysisLevel>
+    <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
+
+    <!-- Strong Naming -->
+    <SignAssembly Condition="Exists('$(MSBuildThisFileDirectory)EricksonLopez.Result.snk')">true</SignAssembly>
+    <AssemblyOriginatorKeyFile Condition="Exists('$(MSBuildThisFileDirectory)EricksonLopez.Result.snk')">$(MSBuildThisFileDirectory)EricksonLopez.Result.snk</AssemblyOriginatorKeyFile>
+    <PublicKey Condition="'$(SignAssembly)' == 'true'">002400000480000094000000060200000024000052534131000400000100010049a0b724bbec6319927f0b2db4ebe25419122ff56e798388f74284e72d0a9cec321c736a83506073d826e75eee7acc71177469726fccab8bba2cecadc9ce634c9858f67548e79f4b1b71bd498c2f167b5e0c5e3bc23f55d0dbbf9c935afb08644f27089e94de106576580d800964c63918703405aec1caaf29724d17df8677dd</PublicKey>
+    <DefineConstants Condition="'$(SignAssembly)' == 'true'">$(DefineConstants);SIGN_ASSEMBLY</DefineConstants>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+
+    <!-- Deterministic builds (important for NuGet reproducibility) -->
+    <Deterministic>true</Deterministic>
+    <ContinuousIntegrationBuild Condition="'$(CI)' == 'true'">true</ContinuousIntegrationBuild>
+
+    <!-- SourceLink -->
+    <PublishRepositoryUrl>true</PublishRepositoryUrl>
+    <EmbedUntrackedSources>true</EmbedUntrackedSources>
+    <IncludeSymbols>true</IncludeSymbols>
+    <SymbolPackageFormat>snupkg</SymbolPackageFormat>
+
+    <!-- Security -->
+    <NuGetAudit>true</NuGetAudit>
+    <NuGetAuditMode>all</NuGetAuditMode>
+    <NuGetAuditLevel>low</NuGetAuditLevel>
+
+    <NoWarn>$(NoWarn);CA1716;CA1000;CA1510;1591;CS1591;CS0419</NoWarn>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Include="$(MSBuildThisFileDirectory)README.md" Pack="true" PackagePath="\" Visible="false" />
+    <None Include="$(MSBuildThisFileDirectory)icon.png" Pack="true" PackagePath="\" Visible="false" />
+    <PackageReference Include="Microsoft.SourceLink.GitHub" Version="8.0.0" PrivateAssets="All" />
+  </ItemGroup>
+
+<PropertyGroup Condition="$(CollectCoverage) == 'true'"><Optimize>false</Optimize></PropertyGroup>
+<PropertyGroup Condition="$(DisableOptimization) == 'true'"><Optimize>false</Optimize></PropertyGroup>
+</Project>
+
+

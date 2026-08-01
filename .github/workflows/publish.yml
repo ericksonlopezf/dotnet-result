@@ -1,0 +1,216 @@
+name: Publish NuGet
+
+# ─── Triggers ─────────────────────────────────────────────────────────────────
+# 1. Automatic: Triggered by Release Please when a release PR is merged.
+#    The workflow_dispatch input 'version' will be set to the new SemVer.
+# 2. Manual: Also triggered by pushing a 'v*.*.*' tag manually (legacy support).
+# 3. Manual dispatch: Via GitHub UI for debugging.
+#
+# Automatic versioning flow:
+#   Commit with Conventional prefix (e.g. 'feat:') →
+#   release-please.yml creates/updates Release PR →
+#   Maintainer merges Release PR →
+#   release-please creates GitHub Release + tag vX.Y.Z →
+#   release-please triggers this workflow via workflow_dispatch →
+#   Pack → Sign → Attest → Publish to NuGet.org
+# ─────────────────────────────────────────────────────────────────────────────────
+
+on:
+  push:
+    tags:
+      - "v*.*.*"           # Legacy: manual tag push still works
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Version to publish (e.g. 1.2.3 — without 'v' prefix)"
+        required: false
+        type: string
+
+env:
+  DOTNET_NOLOGO: true
+  DOTNET_SKIP_FIRST_TIME_EXPERIENCE: true
+
+jobs:
+  publish:
+    name: Pack & Publish
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write        # Required for Sigstore OIDC attestation
+      contents: write        # Required for GitHub Release creation
+      attestations: write    # Required for actions/attest-build-provenance
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          # Full history required for MinVer and Release Please commit analysis
+          fetch-depth: 0
+
+      # ─── Resolve version ──────────────────────────────────────────────────────
+      # Priority: workflow_dispatch input → git tag → fallback to Directory.Build.props
+      - name: Resolve version
+        id: version
+        run: |
+          if [ -n "${{ inputs.version }}" ]; then
+            # Triggered by Release Please via workflow_dispatch
+            echo "VERSION=${{ inputs.version }}" >> $GITHUB_OUTPUT
+            echo "Resolved version from workflow_dispatch input: ${{ inputs.version }}"
+          elif [[ "$GITHUB_REF" == refs/tags/v* ]]; then
+            # Triggered by a git tag push (strip 'v' prefix)
+            VERSION="${GITHUB_REF_NAME#v}"
+            echo "VERSION=$VERSION" >> $GITHUB_OUTPUT
+            echo "Resolved version from git tag: $VERSION"
+          else
+            # Fallback: read from Directory.Build.props
+            VERSION=$(grep -oP '(?<=<VersionPrefix>)[^<]+' Directory.Build.props)
+            echo "VERSION=$VERSION" >> $GITHUB_OUTPUT
+            echo "Resolved version from Directory.Build.props: $VERSION"
+          fi
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "10.0.x"
+
+      # ─── Strong Name key ──────────────────────────────────────────────────────
+      # The private .snk is stored as a base64-encoded GitHub Secret (SNK_KEY).
+      # The public key is committed as public.snk. If SNK_KEY is not set (e.g.,
+      # in a fork), the build succeeds without signing (conditional in Directory.Build.props).
+      - name: Restore Strong Name key
+        env:
+          SNK_KEY: ${{ secrets.SNK_KEY }}
+        run: |
+          if [ -n "$SNK_KEY" ]; then
+            echo "$SNK_KEY" | tr -d '\n\r ' | base64 --decode > EricksonLopez.Result.snk
+            echo "Strong Name key restored from secret."
+          else
+            echo "SNK_KEY secret not set — building without strong name signing."
+          fi
+
+      - name: Restore
+        run: dotnet restore EricksonLopez.Result.slnx
+
+      - name: Build (Release)
+        run: dotnet build EricksonLopez.Result.slnx --no-restore --configuration Release
+
+      # ─── Full test suite before publish ──────────────────────────────────────
+      # Never publish without a passing test suite.
+      - name: Run tests before publish
+        run: |
+          dotnet test EricksonLopez.Result.slnx \
+            --no-build \
+            --configuration Release \
+            --logger "trx;LogFileName=test-results.trx" \
+            --results-directory ./test-results \
+            --collect:"XPlat Code Coverage" \
+            -- DataCollectionRunSettings.DataCollectors.DataCollector.Configuration.Format=opencover
+
+      - name: Upload coverage to Codecov (publish gate)
+        uses: codecov/codecov-action@v5
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          files: "**/coverage.opencover.xml"
+          fail_ci_if_error: false
+          flags: publish-gate
+          name: codecov-publish
+
+      # ─── Pack all packages ────────────────────────────────────────────────────
+      - name: Pack All Packages
+        run: |
+          VERSION="${{ steps.version.outputs.VERSION }}"
+          PACK_ARGS="--no-build --configuration Release --output ./nupkgs -p:VersionPrefix=$VERSION"
+          dotnet pack src/EricksonLopez.Result/EricksonLopez.Result.csproj $PACK_ARGS
+          dotnet pack src/EricksonLopez.Result.AspNetCore/EricksonLopez.Result.AspNetCore.csproj $PACK_ARGS
+          dotnet pack src/EricksonLopez.Result.OpenTelemetry/EricksonLopez.Result.OpenTelemetry.csproj $PACK_ARGS
+          dotnet pack src/EricksonLopez.Result.Serialization/EricksonLopez.Result.Serialization.csproj $PACK_ARGS
+          dotnet pack src/EricksonLopez.Result.Serialization.Generators/EricksonLopez.Result.Serialization.Generators.csproj $PACK_ARGS
+          dotnet pack src/EricksonLopez.Result.FluentValidation/EricksonLopez.Result.FluentValidation.csproj $PACK_ARGS
+          dotnet pack src/EricksonLopez.Result.MediatR/EricksonLopez.Result.MediatR.csproj $PACK_ARGS
+          dotnet pack src/EricksonLopez.Result.Testing/EricksonLopez.Result.Testing.csproj $PACK_ARGS
+          dotnet pack src/EricksonLopez.Result.Testing.XUnit/EricksonLopez.Result.Testing.XUnit.csproj $PACK_ARGS
+          dotnet pack src/EricksonLopez.Result.Testing.NUnit/EricksonLopez.Result.Testing.NUnit.csproj $PACK_ARGS
+          dotnet pack src/EricksonLopez.Result.Analyzers/EricksonLopez.Result.Analyzers.csproj $PACK_ARGS
+          echo "Packed packages:"
+          ls -la ./nupkgs/
+
+      # ─── Sigstore Provenance Attestation ─────────────────────────────────────
+      # Generates a cryptographically signed provenance attestation for every .nupkg
+      # using Sigstore's keyless signing via GitHub's OIDC token. The attestation
+      # proves that the packages were built from THIS repository's workflow and not
+      # tampered with after the build. Consumers can verify via:
+      #   gh attestation verify <package.nupkg> --repo ericksonlopez/dotnet-result
+      #
+      # Why v2: attest-build-provenance@v2 uses the SLSA v1.0 predicate format
+      # (vs v0.2 in v1), which is the current standard for SLSA Build L2/L3
+      # provenance and is supported by NuGet.org's new provenance verification.
+      - name: Generate Sigstore Provenance Attestation
+        uses: actions/attest-build-provenance@v2
+        with:
+          subject-path: './nupkgs/*.nupkg'
+
+      # ─── NuGet.org publish via OIDC ──────────────────────────────────────────
+      # Uses NuGet Trusted Publishing (OIDC) — no long-lived API keys stored.
+      # The NuGet/login action exchanges GitHub's OIDC token for a short-lived
+      # NuGet API token scoped to this specific repository and workflow.
+      - name: NuGet login (OIDC)
+        uses: NuGet/login@v1
+        id: login
+        with:
+          user: ericksonlopezf
+
+      - name: Push to NuGet.org
+        run: >
+          dotnet nuget push ./nupkgs/*.nupkg
+          --api-key ${{ steps.login.outputs.NUGET_API_KEY }}
+          --source https://api.nuget.org/v3/index.json
+          --skip-duplicate
+
+      # ─── GitHub Release ───────────────────────────────────────────────────────
+      # When triggered by a tag push, create the GitHub Release with assets.
+      # When triggered by Release Please workflow_dispatch, the release is already
+      # created by release-please-action — this step is skipped.
+      - name: Create GitHub Release (tag-triggered only)
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v${{ steps.version.outputs.VERSION }}
+          name: Release ${{ steps.version.outputs.VERSION }}
+          generate_release_notes: false
+          body: |
+            ## Ecosystem Packages in this release
+
+            | Package | Version |
+            |---------|---------|
+            | `EricksonLopez.Result` | `${{ steps.version.outputs.VERSION }}` |
+            | `EricksonLopez.Result.AspNetCore` | `${{ steps.version.outputs.VERSION }}` |
+            | `EricksonLopez.Result.OpenTelemetry` | `${{ steps.version.outputs.VERSION }}` |
+            | `EricksonLopez.Result.Serialization` | `${{ steps.version.outputs.VERSION }}` |
+            | `EricksonLopez.Result.Serialization.Generators` | `${{ steps.version.outputs.VERSION }}` |
+            | `EricksonLopez.Result.FluentValidation` | `${{ steps.version.outputs.VERSION }}` |
+            | `EricksonLopez.Result.MediatR` | `${{ steps.version.outputs.VERSION }}` |
+            | `EricksonLopez.Result.Testing` | `${{ steps.version.outputs.VERSION }}` |
+            | `EricksonLopez.Result.Testing.XUnit` | `${{ steps.version.outputs.VERSION }}` |
+            | `EricksonLopez.Result.Testing.NUnit` | `${{ steps.version.outputs.VERSION }}` |
+            | `EricksonLopez.Result.Analyzers` | `${{ steps.version.outputs.VERSION }}` |
+
+            ---
+
+            For detailed changes, see [CHANGELOG.md](https://github.com/ericksonlopez/dotnet-result/blob/${{ github.ref_name }}/CHANGELOG.md).
+
+            ### Installation
+
+            ```bash
+            dotnet add package EricksonLopez.Result --version ${{ steps.version.outputs.VERSION }}
+            dotnet add package EricksonLopez.Result.AspNetCore --version ${{ steps.version.outputs.VERSION }}
+            dotnet add package EricksonLopez.Result.OpenTelemetry --version ${{ steps.version.outputs.VERSION }}
+            dotnet add package EricksonLopez.Result.Serialization --version ${{ steps.version.outputs.VERSION }}
+            dotnet add package EricksonLopez.Result.FluentValidation --version ${{ steps.version.outputs.VERSION }}
+            dotnet add package EricksonLopez.Result.MediatR --version ${{ steps.version.outputs.VERSION }}
+            dotnet add package EricksonLopez.Result.Testing --version ${{ steps.version.outputs.VERSION }}
+            dotnet add package EricksonLopez.Result.Testing.XUnit --version ${{ steps.version.outputs.VERSION }}
+            dotnet add package EricksonLopez.Result.Testing.NUnit --version ${{ steps.version.outputs.VERSION }}
+            dotnet add package EricksonLopez.Result.Analyzers --version ${{ steps.version.outputs.VERSION }}
+            ```
+          files: ./nupkgs/*.nupkg
+          draft: false
+          prerelease: ${{ contains(steps.version.outputs.VERSION, '-') }}

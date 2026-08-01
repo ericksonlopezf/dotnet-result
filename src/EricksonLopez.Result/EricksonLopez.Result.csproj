@@ -1,0 +1,59 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFrameworks>net8.0;net9.0;net10.0</TargetFrameworks>
+    <LangVersion>latest</LangVersion>
+    <AssemblyName>EricksonLopez.Result</AssemblyName>
+    <RootNamespace>EricksonLopez.Result</RootNamespace>
+    <IsPackable>true</IsPackable>
+    <PackageId>EricksonLopez.Result</PackageId>
+    <Authors>Erickson Lopez</Authors>
+    <Company>Erickson Lopez</Company>
+    <Copyright>Copyright © 2026 Erickson Lopez</Copyright>
+    <Description>An ultra-high performance, struct-based, enterprise-grade Result pattern implementation for modern .NET.</Description>
+    <PackageProjectUrl>https://github.com/ericksonlopez/dotnet-result</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/ericksonlopez/dotnet-result</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageTags>result;functional;monad;railway-oriented-programming;csharp;performance;struct;dotnet10;enterprise;aot</PackageTags>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <IsAotCompatible>true</IsAotCompatible>
+    <EnableTrimAnalyzer>true</EnableTrimAnalyzer>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <!-- RS0016/RS0017/RS0026 suppression rationale (ARB-04 resolution):
+         RS0016 (undeclared public API) and RS0017 (removed public API) are suppressed here
+         because PublicAPI.Shipped.txt and PublicAPI.Unshipped.txt track only incremental API
+         changes relative to the last shipped version — they do NOT contain the full API surface.
+         Enforcing RS0016 globally would require declaring every existing public symbol in those
+         files, which is not the intended usage pattern for PublicApiAnalyzers in an pre-v1.0 library.
+         RS0016/RS0017 enforcement for NEW public APIs is enforced by keeping PublicAPI.Unshipped.txt
+         accurate and reviewed on each PR.
+         RS0026 is suppressed to avoid false-positive "optional parameter" warnings from InternalsVisibleTo
+         relationships (see https://github.com/dotnet/roslyn-analyzers/issues/3876). -->
+    <NoWarn>$(NoWarn);RS0016;RS0017;RS0026</NoWarn>
+    
+    <!-- SourceLink and Symbol Packaging -->
+    <PublishRepositoryUrl>true</PublishRepositoryUrl>
+    <EmbedUntrackedSources>true</EmbedUntrackedSources>
+    <IncludeSymbols>true</IncludeSymbols>
+    <SymbolPackageFormat>snupkg</SymbolPackageFormat>
+    <ContinuousIntegrationBuild Condition="'$(CI)' == 'true'">true</ContinuousIntegrationBuild>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.CodeAnalysis.PublicApiAnalyzers" Version="3.3.4" PrivateAssets="All" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\EricksonLopez.Result.Analyzers\EricksonLopez.Result.Analyzers.csproj"
+                      OutputItemType="Analyzer"
+                      ReferenceOutputAssembly="false"
+                      GlobalPropertiesToRemove="PublishAot;IsAotCompatible;PublishTrimmed;EnableTrimAnalyzer" />
+  </ItemGroup>
+  <ItemGroup>
+    <InternalsVisibleTo Include="EricksonLopez.Result.Serialization" Key="$(PublicKey)" />
+    <InternalsVisibleTo Include="EricksonLopez.Result.AspNetCore" Key="$(PublicKey)" />
+    <InternalsVisibleTo Include="EricksonLopez.Result.OpenTelemetry" Key="$(PublicKey)" />
+    <InternalsVisibleTo Include="EricksonLopez.Result.Tests" Key="$(PublicKey)" />
+  </ItemGroup>
+</Project>

@@ -1,0 +1,94 @@
+#nullable enable
+static EricksonLopez.Result.Result.TryAsync(System.Func<System.Threading.CancellationToken, System.Threading.Tasks.Task>, System.Func<System.Exception, EricksonLopez.Result.Error>, System.Threading.CancellationToken cancellationToken = default) -> System.Threading.Tasks.Task<EricksonLopez.Result.Result>
+static EricksonLopez.Result.Result.TryAsync<T>(System.Func<System.Threading.CancellationToken, System.Threading.Tasks.Task<T>>, System.Func<System.Exception, EricksonLopez.Result.Error>, System.Threading.CancellationToken cancellationToken = default) -> System.Threading.Tasks.Task<EricksonLopez.Result.Result<T>>
+EricksonLopez.Result.Result.TryGetError(out EricksonLopez.Result.Error? error, out bool isUninitialized) -> bool
+EricksonLopez.Result.Result<TValue>.TryGetError(out EricksonLopez.Result.Error? error, out bool isUninitialized) -> bool
+EricksonLopez.Result.Result<TValue>.Deconstruct(out bool isSuccess, out EricksonLopez.Result.Error? error) -> void
+EricksonLopez.Result.Result<TValue>.WithoutValue() -> EricksonLopez.Result.Result
+EricksonLopez.Result.Result<TValue>.DiscardValue() -> EricksonLopez.Result.Result
+static EricksonLopez.Result.Error.Create(string! code, string! description) -> EricksonLopez.Result.ErrorBuilder
+EricksonLopez.Result.ErrorBuilder
+EricksonLopez.Result.ErrorBuilder.ErrorBuilder() -> void
+EricksonLopez.Result.ErrorBuilder.Build() -> EricksonLopez.Result.Error!
+EricksonLopez.Result.ErrorBuilder.WithCorrelationId(string? correlationId) -> EricksonLopez.Result.ErrorBuilder
+EricksonLopez.Result.ErrorBuilder.WithDescriptionKey(string? descriptionKey) -> EricksonLopez.Result.ErrorBuilder
+EricksonLopez.Result.ErrorBuilder.WithInnerError(EricksonLopez.Result.Error! innerError) -> EricksonLopez.Result.ErrorBuilder
+EricksonLopez.Result.ErrorBuilder.WithInnerErrors(System.Collections.Generic.IEnumerable<EricksonLopez.Result.Error!>! innerErrors) -> EricksonLopez.Result.ErrorBuilder
+EricksonLopez.Result.ErrorBuilder.WithMetadata(string! key, object! value) -> EricksonLopez.Result.ErrorBuilder
+EricksonLopez.Result.ErrorBuilder.WithMetadata(System.Collections.Generic.IEnumerable<System.Collections.Generic.KeyValuePair<string!, object!>>! entries) -> EricksonLopez.Result.ErrorBuilder
+EricksonLopez.Result.ErrorBuilder.WithRetryability(EricksonLopez.Result.ErrorRetryability retryability) -> EricksonLopez.Result.ErrorBuilder
+EricksonLopez.Result.ErrorBuilder.WithSeverity(EricksonLopez.Result.ErrorSeverity severity) -> EricksonLopez.Result.ErrorBuilder
+EricksonLopez.Result.ErrorBuilder.WithTraceId(string? traceId) -> EricksonLopez.Result.ErrorBuilder
+EricksonLopez.Result.ErrorBuilder.WithType(EricksonLopez.Result.ErrorType type) -> EricksonLopez.Result.ErrorBuilder
+EricksonLopez.Result.Error.ToBuilder() -> EricksonLopez.Result.ErrorBuilder
+EricksonLopez.Result.Error.WithMetadata(System.Collections.Generic.IEnumerable<System.Collections.Generic.KeyValuePair<string!, object!>>! metadata) -> EricksonLopez.Result.Error!
+EricksonLopez.Result.Result<TValue>.GetValueOrFallback(System.Func<EricksonLopez.Result.Error!, TValue>! fallback) -> TValue
+EricksonLopez.Result.Result<TValue>.GetValueOrFallback<TState>(TState state, System.Func<TState, EricksonLopez.Result.Error!, TValue>! fallback) -> TValue
+static EricksonLopez.Result.Result.Combine<T1, T2, T3, T4>(in EricksonLopez.Result.Result<T1> r1, in EricksonLopez.Result.Result<T2> r2, in EricksonLopez.Result.Result<T3> r3, in EricksonLopez.Result.Result<T4> r4) -> EricksonLopez.Result.Result<(T1, T2, T3, T4)>
+static EricksonLopez.Result.Result.Combine<T1, T2, T3, T4, T5>(in EricksonLopez.Result.Result<T1> r1, in EricksonLopez.Result.Result<T2> r2, in EricksonLopez.Result.Result<T3> r3, in EricksonLopez.Result.Result<T4> r4, in EricksonLopez.Result.Result<T5> r5) -> EricksonLopez.Result.Result<(T1, T2, T3, T4, T5)>
+EricksonLopez.Result.ErrorEqualityComparer
+static EricksonLopez.Result.ErrorEqualityComparer.Default.get -> System.Collections.Generic.IEqualityComparer<EricksonLopez.Result.Error!>!
+static EricksonLopez.Result.ErrorEqualityComparer.Strict.get -> System.Collections.Generic.IEqualityComparer<EricksonLopez.Result.Error!>!
+static EricksonLopez.Result.ResultExtensions.Bind(this System.Threading.Tasks.Task<EricksonLopez.Result.Result>! resultTask, System.Func<System.Threading.CancellationToken, System.Threading.Tasks.Task<EricksonLopez.Result.Result>>! bind, System.Threading.CancellationToken cancellationToken = default) -> System.Threading.Tasks.Task<EricksonLopez.Result.Result>!
+static EricksonLopez.Result.ResultExtensions.Bind<TNext>(this System.Threading.Tasks.Task<EricksonLopez.Result.Result>! resultTask, System.Func<System.Threading.CancellationToken, System.Threading.Tasks.Task<EricksonLopez.Result.Result<TNext>>>! bind, System.Threading.CancellationToken cancellationToken = default) -> System.Threading.Tasks.Task<EricksonLopez.Result.Result<TNext>>!
+static EricksonLopez.Result.ResultExtensions.Map<TNext>(this System.Threading.Tasks.Task<EricksonLopez.Result.Result>! resultTask, System.Func<System.Threading.CancellationToken, System.Threading.Tasks.Task<TNext>>! mapper, System.Threading.CancellationToken cancellationToken = default) -> System.Threading.Tasks.Task<EricksonLopez.Result.Result<TNext>>!
+EricksonLopez.Result.Result.Ensure(System.Func<bool>! predicate, System.Func<EricksonLopez.Result.Error!>! errorFactory) -> EricksonLopez.Result.Result
+EricksonLopez.Result.Result.Ensure<TState>(TState state, System.Func<TState, bool>! predicate, System.Func<EricksonLopez.Result.Error!>! errorFactory) -> EricksonLopez.Result.Result
+EricksonLopez.Result.Result<TValue>.Ensure(System.Func<TValue, bool>! predicate, System.Func<EricksonLopez.Result.Error!>! errorFactory) -> EricksonLopez.Result.Result<TValue>
+EricksonLopez.Result.Result<TValue>.Ensure<TState>(TState state, System.Func<TState, TValue, bool>! predicate, System.Func<EricksonLopez.Result.Error!>! errorFactory) -> EricksonLopez.Result.Result<TValue>
+EricksonLopez.Result.Result<TValue>.Ensure(System.Func<TValue, bool>! predicate, System.Func<TValue, EricksonLopez.Result.Error!>! errorFactory) -> EricksonLopez.Result.Result<TValue>
+EricksonLopez.Result.Result<TValue>.Ensure<TState>(TState state, System.Func<TState, TValue, bool>! predicate, System.Func<TState, TValue, EricksonLopez.Result.Error!>! errorFactory) -> EricksonLopez.Result.Result<TValue>
+EricksonLopez.Result.Result.MatchError<TOut>(System.Func<EricksonLopez.Result.Error!, TOut>! onFailure, TOut successDefault) -> TOut
+EricksonLopez.Result.Result.MatchError<TState, TOut>(TState state, System.Func<TState, EricksonLopez.Result.Error!, TOut>! onFailure, TOut successDefault) -> TOut
+EricksonLopez.Result.Result<TValue>.MatchError<TOut>(System.Func<EricksonLopez.Result.Error!, TOut>! onFailure, TOut successDefault) -> TOut
+EricksonLopez.Result.Result<TValue>.MatchError<TState, TOut>(TState state, System.Func<TState, EricksonLopez.Result.Error!, TOut>! onFailure, TOut successDefault) -> TOut
+static EricksonLopez.Result.ResultExtensions.MatchError<TOut>(this System.Threading.Tasks.Task<EricksonLopez.Result.Result>! resultTask, System.Func<EricksonLopez.Result.Error!, TOut>! onFailure, TOut successDefault, System.Threading.CancellationToken cancellationToken = default) -> System.Threading.Tasks.Task<TOut>!
+static EricksonLopez.Result.ResultExtensions.MatchError<TState, TOut>(this System.Threading.Tasks.Task<EricksonLopez.Result.Result>! resultTask, TState state, System.Func<TState, EricksonLopez.Result.Error!, TOut>! onFailure, TOut successDefault, System.Threading.CancellationToken cancellationToken = default) -> System.Threading.Tasks.Task<TOut>!
+static EricksonLopez.Result.ResultExtensions.MatchError<T, TOut>(this System.Threading.Tasks.Task<EricksonLopez.Result.Result<T>!>! resultTask, System.Func<EricksonLopez.Result.Error!, TOut>! onFailure, TOut successDefault, System.Threading.CancellationToken cancellationToken = default) -> System.Threading.Tasks.Task<TOut>!
+static EricksonLopez.Result.ResultExtensions.MatchError<TState, T, TOut>(this System.Threading.Tasks.Task<EricksonLopez.Result.Result<T>!>! resultTask, TState state, System.Func<TState, EricksonLopez.Result.Error!, TOut>! onFailure, TOut successDefault, System.Threading.CancellationToken cancellationToken = default) -> System.Threading.Tasks.Task<TOut>!
+EricksonLopez.Result.Error.Error(string! code, string! description, EricksonLopez.Result.ErrorType type = EricksonLopez.Result.ErrorType.Failure, EricksonLopez.Result.ErrorSeverity severity = EricksonLopez.Result.ErrorSeverity.Error, EricksonLopez.Result.ErrorRetryability retryability = EricksonLopez.Result.ErrorRetryability.NotApplicable, string? descriptionKey = null, string? traceId = null, string? correlationId = null, System.Collections.Generic.IReadOnlyList<EricksonLopez.Result.Error!>? innerErrors = null, System.Collections.Generic.IReadOnlyDictionary<string!, object!>? metadata = null) -> void
+static EricksonLopez.Result.Result.TryAsync(System.Func<System.Threading.Tasks.ValueTask>! action, System.Func<System.Exception!, EricksonLopez.Result.Error!>! errorHandler) -> System.Threading.Tasks.Task<EricksonLopez.Result.Result>!
+static EricksonLopez.Result.Result.TryAsync(System.Func<System.Threading.CancellationToken, System.Threading.Tasks.ValueTask>! action, System.Func<System.Exception!, EricksonLopez.Result.Error!>! errorHandler, System.Threading.CancellationToken cancellationToken = default) -> System.Threading.Tasks.Task<EricksonLopez.Result.Result>!
+static EricksonLopez.Result.Result.TryAsync<T>(System.Func<System.Threading.Tasks.ValueTask<T>>! func, System.Func<System.Exception!, EricksonLopez.Result.Error!>! errorHandler) -> System.Threading.Tasks.Task<EricksonLopez.Result.Result<T>>!
+static EricksonLopez.Result.Result.TryAsync<T>(System.Func<System.Threading.CancellationToken, System.Threading.Tasks.ValueTask<T>>! func, System.Func<System.Exception!, EricksonLopez.Result.Error!>! errorHandler, System.Threading.CancellationToken cancellationToken = default) -> System.Threading.Tasks.Task<EricksonLopez.Result.Result<T>>!
+EricksonLopez.Result.Result.TapOnSuccess(System.Action! onSuccess) -> EricksonLopez.Result.Result
+EricksonLopez.Result.Result.TapOnSuccess<TState>(TState state, System.Action<TState>! onSuccess) -> EricksonLopez.Result.Result
+EricksonLopez.Result.Result.Tap(System.Action! onSuccess) -> EricksonLopez.Result.Result
+EricksonLopez.Result.Result.Tap<TState>(TState state, System.Action<TState>! onSuccess) -> EricksonLopez.Result.Result
+EricksonLopez.Result.Result<TValue>.TapOnSuccess(System.Action<TValue>! action) -> EricksonLopez.Result.Result<TValue>
+EricksonLopez.Result.Result<TValue>.TapOnSuccess<TState>(TState state, System.Action<TState, TValue>! action) -> EricksonLopez.Result.Result<TValue>
+EricksonLopez.Result.Result<TValue>.Tap(System.Action<TValue>! action) -> EricksonLopez.Result.Result<TValue>
+EricksonLopez.Result.Result<TValue>.Tap<TState>(TState state, System.Action<TState, TValue>! action) -> EricksonLopez.Result.Result<TValue>
+EricksonLopez.Result.Error.WithTraceId(System.Diagnostics.ActivityTraceId traceId) -> EricksonLopez.Result.Error!
+EricksonLopez.Result.Error.ClearTraceId() -> EricksonLopez.Result.Error!
+static EricksonLopez.Result.ResultExtensions.TapOnSuccess<T>(this System.Threading.Tasks.Task<EricksonLopez.Result.Result<T>!>! resultTask, System.Action<T>! action, System.Threading.CancellationToken cancellationToken = default) -> System.Threading.Tasks.Task<EricksonLopez.Result.Result<T>!>!
+static EricksonLopez.Result.ResultExtensions.TapOnSuccess<TState, T>(this System.Threading.Tasks.Task<EricksonLopez.Result.Result<T>!>! resultTask, TState state, System.Action<TState, T>! action, System.Threading.CancellationToken cancellationToken = default) -> System.Threading.Tasks.Task<EricksonLopez.Result.Result<T>!>!
+static EricksonLopez.Result.ResultExtensions.TapOnSuccess<T>(this System.Threading.Tasks.Task<EricksonLopez.Result.Result<T>!>! resultTask, System.Func<T, System.Threading.Tasks.Task!>! action, System.Threading.CancellationToken cancellationToken = default) -> System.Threading.Tasks.Task<EricksonLopez.Result.Result<T>!>!
+static EricksonLopez.Result.ResultExtensions.TapOnSuccess(this System.Threading.Tasks.Task<EricksonLopez.Result.Result!>! resultTask, System.Action! action, System.Threading.CancellationToken cancellationToken = default) -> System.Threading.Tasks.Task<EricksonLopez.Result.Result!>!
+static EricksonLopez.Result.ResultExtensions.TapOnSuccess<TState>(this System.Threading.Tasks.Task<EricksonLopez.Result.Result!>! resultTask, TState state, System.Action<TState>! action, System.Threading.CancellationToken cancellationToken = default) -> System.Threading.Tasks.Task<EricksonLopez.Result.Result!>!
+static EricksonLopez.Result.ResultExtensions.TapOnSuccess(this System.Threading.Tasks.Task<EricksonLopez.Result.Result!>! resultTask, System.Func<System.Threading.Tasks.Task!>! action, System.Threading.CancellationToken cancellationToken = default) -> System.Threading.Tasks.Task<EricksonLopez.Result.Result!>!
+EricksonLopez.Result.ErrorBuilder.WithTraceId(System.Diagnostics.ActivityTraceId traceId) -> EricksonLopez.Result.ErrorBuilder
+EricksonLopez.Result.Result<TValue>.Equals(in EricksonLopez.Result.Result<TValue> other) -> bool
+EricksonLopez.Result.Result.MapFailure<TOut>(System.Func<EricksonLopez.Result.Error!, TOut>! onFailure, TOut successDefault) -> TOut
+EricksonLopez.Result.Result.MapFailure<TState, TOut>(TState state, System.Func<TState, EricksonLopez.Result.Error!, TOut>! onFailure, TOut successDefault) -> TOut
+EricksonLopez.Result.Result<TValue>.MapFailure<TOut>(System.Func<EricksonLopez.Result.Error!, TOut>! onFailure, TOut successDefault) -> TOut
+EricksonLopez.Result.Result<TValue>.MapFailure<TState, TOut>(TState state, System.Func<TState, EricksonLopez.Result.Error!, TOut>! onFailure, TOut successDefault) -> TOut
+EricksonLopez.Result.IResultOutcome.IsUninitialized.get -> bool
+static EricksonLopez.Result.ResultExtensions.MapFailure<TOut>(this System.Threading.Tasks.Task<EricksonLopez.Result.Result!>! resultTask, System.Func<EricksonLopez.Result.Error!, TOut>! onFailure, TOut successDefault, System.Threading.CancellationToken cancellationToken = default) -> System.Threading.Tasks.Task<TOut>!
+static EricksonLopez.Result.ResultExtensions.MapFailure<TState, TOut>(this System.Threading.Tasks.Task<EricksonLopez.Result.Result!>! resultTask, TState state, System.Func<TState, EricksonLopez.Result.Error!, TOut>! onFailure, TOut successDefault, System.Threading.CancellationToken cancellationToken = default) -> System.Threading.Tasks.Task<TOut>!
+static EricksonLopez.Result.ResultExtensions.MapFailure<T, TOut>(this System.Threading.Tasks.Task<EricksonLopez.Result.Result<T>!>! resultTask, System.Func<EricksonLopez.Result.Error!, TOut>! onFailure, TOut successDefault, System.Threading.CancellationToken cancellationToken = default) -> System.Threading.Tasks.Task<TOut>!
+static EricksonLopez.Result.ResultExtensions.MapFailure<TState, T, TOut>(this System.Threading.Tasks.Task<EricksonLopez.Result.Result<T>!>! resultTask, TState state, System.Func<TState, EricksonLopez.Result.Error!, TOut>! onFailure, TOut successDefault, System.Threading.CancellationToken cancellationToken = default) -> System.Threading.Tasks.Task<TOut>!
+static EricksonLopez.Result.ResultSyncExtensions.Map<TValue, TNext>(this in EricksonLopez.Result.Result<TValue> result, System.Func<TValue, TNext>! mapper) -> EricksonLopez.Result.Result<TNext>
+static EricksonLopez.Result.ResultSyncExtensions.Map<TValue, TState, TNext>(this in EricksonLopez.Result.Result<TValue> result, TState state, System.Func<TState, TValue, TNext>! mapper) -> EricksonLopez.Result.Result<TNext>
+static EricksonLopez.Result.ResultSyncExtensions.Bind<TValue, TNext>(this in EricksonLopez.Result.Result<TValue> result, System.Func<TValue, EricksonLopez.Result.Result<TNext>>! bind) -> EricksonLopez.Result.Result<TNext>
+static EricksonLopez.Result.ResultSyncExtensions.Bind<TValue, TState, TNext>(this in EricksonLopez.Result.Result<TValue> result, TState state, System.Func<TState, TValue, EricksonLopez.Result.Result<TNext>>! bind) -> EricksonLopez.Result.Result<TNext>
+static EricksonLopez.Result.ResultSyncExtensions.Ensure<TValue>(this in EricksonLopez.Result.Result<TValue> result, System.Func<TValue, bool>! predicate, EricksonLopez.Result.Error! error) -> EricksonLopez.Result.Result<TValue>
+static EricksonLopez.Result.ResultSyncExtensions.Ensure<TValue>(this in EricksonLopez.Result.Result<TValue> result, System.Func<TValue, bool>! predicate, System.Func<EricksonLopez.Result.Error!>! errorFactory) -> EricksonLopez.Result.Result<TValue>
+static EricksonLopez.Result.ResultSyncExtensions.Ensure<TValue>(this in EricksonLopez.Result.Result<TValue> result, System.Func<TValue, bool>! predicate, System.Func<TValue, EricksonLopez.Result.Error!>! errorFactory) -> EricksonLopez.Result.Result<TValue>
+static EricksonLopez.Result.ResultSyncExtensions.Ensure<TValue, TState>(this in EricksonLopez.Result.Result<TValue> result, TState state, System.Func<TState, TValue, bool>! predicate, EricksonLopez.Result.Error! error) -> EricksonLopez.Result.Result<TValue>
+static EricksonLopez.Result.ResultSyncExtensions.Ensure<TValue, TState>(this in EricksonLopez.Result.Result<TValue> result, TState state, System.Func<TState, TValue, bool>! predicate, System.Func<TState, EricksonLopez.Result.Error!>! errorFactory) -> EricksonLopez.Result.Result<TValue>
+static EricksonLopez.Result.ResultSyncExtensions.Ensure<TValue, TState>(this in EricksonLopez.Result.Result<TValue> result, TState state, System.Func<TState, TValue, bool>! predicate, System.Func<TState, TValue, EricksonLopez.Result.Error!>! errorFactory) -> EricksonLopez.Result.Result<TValue>
+static EricksonLopez.Result.ResultSyncExtensions.Match<TValue, TOut>(this in EricksonLopez.Result.Result<TValue> result, System.Func<TValue, TOut>! onSuccess, System.Func<EricksonLopez.Result.Error!, TOut>! onFailure) -> TOut
+static EricksonLopez.Result.ResultSyncExtensions.Match<TValue, TState, TOut>(this in EricksonLopez.Result.Result<TValue> result, TState state, System.Func<TState, TValue, TOut>! onSuccess, System.Func<TState, EricksonLopez.Result.Error!, TOut>! onFailure) -> TOut
+static EricksonLopez.Result.ResultSyncExtensions.TryGetValue<TValue>(this in EricksonLopez.Result.Result<TValue> result, out TValue value) -> bool
+static EricksonLopez.Result.ResultSyncExtensions.GetValueOrDefault<TValue>(this in EricksonLopez.Result.Result<TValue> result, TValue defaultValue) -> TValue

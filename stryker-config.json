@@ -1,0 +1,63 @@
+{
+    "stryker-config": {
+        "thresholds": {
+            "high": 100,
+            "low": 98,
+            "break": 95
+        },
+        "reporters": [
+            "html",
+            "cleartext",
+            "progress",
+            "json"
+        ],
+        "ignore-methods": [
+            "Build",
+            "ShouldUseTraceIdValue",
+            "GetInternalFrozenStatusCodeMap",
+            "MapCore",
+            "MapStateCore",
+            "MapAsyncCore",
+            "MapFullAsync",
+            "MapStateFullAsync",
+            "MapCtFullAsync",
+            "BindCore",
+            "BindAsyncCore",
+            "BindStateCore",
+            "BindAsyncStateCore",
+            "TapCore",
+            "TapStateCore",
+            "TapFullAsync",
+            "TapOnFailureCore",
+            "TapOnFailureStateCore",
+            "TapOnFailureFullAsync",
+            "EnsureCore",
+            "EnsureStateCore",
+            "EnsureFullAsync",
+            "EnsureStateFullAsync",
+            "MatchCore",
+            "MatchStateCore",
+            "ExecuteCore",
+            "ExecuteStateCore",
+            "RecoverCore",
+            "RecoverStateCore",
+            "MapErrorCore",
+            "MapErrorStateCore",
+            "InspectCore",
+            "InspectStateCore",
+            "CombineCore",
+            "AwaitMapValue",
+            "AwaitCompletedTask",
+            "AwaitCompletedValueTask",
+            "ConfigureAwait",
+            "TraceOutcomeCore",
+            "TraceOnFailureCore",
+            "TraceOnSuccessCore",
+            "Dispose",
+            "EnsureStaticMeterInitialized"
+        ],
+        "ignore-mutations": [
+            "string"
+        ]
+    }
+}
