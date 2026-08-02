@@ -117,12 +117,10 @@ jobs:
 
       - name: Upload coverage to Codecov
         if: always() && inputs.upload-coverage
-        uses: codecov/codecov-action@v5
+        uses: codecov/codecov-action@v4
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
-          # Upload both formats: Codecov prefers OpenCover; SonarCloud uses the
-          # opencover path configured in the Begin Sonar Analysis step above.
-          files: "**/coverage.opencover.xml,**/coverage.cobertura.xml"
+          files: "**/coverage.cobertura.xml"
           fail_ci_if_error: false
           flags: unittests
           name: codecov-${{ inputs.artifact-name }}

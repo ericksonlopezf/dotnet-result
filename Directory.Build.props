@@ -13,8 +13,8 @@
     <Company>EricksonLopez</Company>
     <Copyright>Copyright © 2026 Erickson López</Copyright>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
-    <PackageProjectUrl>https://github.com/ericksonlopez/dotnet-result</PackageProjectUrl>
-    <RepositoryUrl>https://github.com/ericksonlopez/dotnet-result</RepositoryUrl>
+    <PackageProjectUrl>https://github.com/ericksonlopezf/dotnet-result</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/ericksonlopezf/dotnet-result</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
     <PackageReadmeFile>README.md</PackageReadmeFile>
     <PackageIcon>icon.png</PackageIcon>

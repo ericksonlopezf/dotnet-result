@@ -6,6 +6,7 @@
 codecov:
   # Notify Codecov of the CI result after tests complete
   require_ci_to_pass: true
+  max_report_age: off
 
 coverage:
   precision: 2
@@ -50,14 +51,3 @@ ignore:
   - "**/GeneratedFiles/**"   # Roslyn generator output directories
   - "**/*JsonSerializerContext*"
 
-# ─── Flags ────────────────────────────────────────────────────────────────────
-# Flags allow tracking coverage by component separately in the Codecov dashboard.
-flags:
-  unittests:
-    paths:
-      - src/
-    carryforward: true
-  publish-gate:
-    paths:
-      - src/
-    carryforward: false

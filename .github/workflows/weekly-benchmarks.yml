@@ -1,14 +1,15 @@
-name: Benchmarks (Baseline Capture)
+name: Weekly Benchmarks (Deep Review)
 
 # ─── Purpose ─────────────────────────────────────────────────────────────────
-# Runs BenchmarkDotNet benchmarks and commits the resulting markdown reports
-# to benchmarks/results/ to establish a regression baseline.
-#
-# Results are committed back to the triggering branch so that the repo always
-# has an up-to-date performance baseline for comparison.
+# Runs a deep BenchmarkDotNet review across multiple frameworks (.NET 8, 9, and 10)
+# every week. This runs the Default Job configuration (not 'short') to get 
+# statistically rigorous results without blocking the developer's day-to-day PRs.
 # ─────────────────────────────────────────────────────────────────────────────
 
 on:
+  schedule:
+    # Runs every Sunday at 2:00 AM UTC
+    - cron: '0 2 * * 0'
   workflow_dispatch:
     inputs:
       benchmark-filter:
@@ -16,18 +17,6 @@ on:
         required: false
         default: "*"
         type: string
-      commit-results:
-        description: "Commit benchmark results back to the branch"
-        required: false
-        default: "true"
-        type: choice
-        options:
-          - "true"
-          - "false"
-  # Capture baseline on every release tag to detect regressions between versions
-  push:
-    tags:
-      - "v*"
 
 env:
   DOTNET_NOLOGO: true
@@ -35,11 +24,11 @@ env:
 
 jobs:
   benchmark:
-    name: Performance Benchmarks
+    name: Weekly Performance Benchmarks
     runs-on: ubuntu-latest
-    # BenchmarkDotNet requires Release mode and exclusive CPU time.
-    # Adjust timeout if running all benchmarks across both runtimes.
-    timeout-minutes: 60
+    # Deep review across multiple frameworks takes time. 
+    # Giving it 5 hours to be safe.
+    timeout-minutes: 300
 
     steps:
       - uses: actions/checkout@v4
@@ -50,10 +39,9 @@ jobs:
       - name: Setup .NET (multi-version for cross-TFM benchmarks)
         uses: actions/setup-dotnet@v4
         with:
-          # Install both .NET 8 (LTS) and .NET 10 to support cross-TFM comparisons.
-          # BDN requires each target SDK to be installed to spawn worker processes.
           dotnet-version: |
             8.0.x
+            9.0.x
             10.0.x
 
       - name: Restore Strong Name key
@@ -71,10 +59,8 @@ jobs:
         run: dotnet build EricksonLopez.Result.slnx --no-restore --configuration Release
 
       # ─── Run BenchmarkDotNet ─────────────────────────────────────────────
-      # --runtimes net8.0 net10.0: runs each benchmark on both .NET 8 and .NET 10
-      # --job short: 3 warmup + 3 measurement iterations for fast CI runs
-      # --exporters json markdown: exports both machine-readable and human-readable results
-      # --artifacts ./benchmarks/results: writes reports directly to the tracked directory
+      # --runtimes net8.0 net9.0 net10.0: runs each benchmark on .NET 8, 9, and 10
+      # NOTICE: '--job short' is REMOVED to perform the Default Job (Deep Review)
       - name: Run benchmarks
         run: >
           dotnet run
@@ -83,8 +69,7 @@ jobs:
           --framework net10.0
           --
           --filter "${{ inputs.benchmark-filter || '*' }}"
-          --job short
-          --runtimes net8.0 net10.0
+          --runtimes net8.0 net9.0 net10.0
           --exporters json markdown
           --artifacts ./benchmarks/results
 
@@ -92,15 +77,13 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: benchmark-results-${{ github.run_id }}
+          name: weekly-benchmark-results-${{ github.run_id }}
           path: benchmarks/results/
           retention-days: 90
 
       # ─── Commit results back to the branch ───────────────────────────────
-      # Commits the markdown results to benchmarks/results/ so they are
-      # tracked in version control and visible without downloading artifacts.
       - name: Commit benchmark results
-        if: ${{ inputs.commit-results != 'false' && success() }}
+        if: success()
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
@@ -108,12 +91,11 @@ jobs:
           if git diff --staged --quiet; then
             echo "No benchmark result changes to commit."
           else
-            git commit -m "chore(benchmarks): update performance baseline [skip ci]
+            git commit -m "chore(benchmarks): update weekly performance baseline [skip ci]
 
           Run: ${{ github.run_id }}
-          Trigger: ${{ github.event_name }}
-          Runtime: .NET 8.0 + .NET 10.0
-          Filter: ${{ inputs.benchmark-filter || '*' }}
+          Trigger: Weekly Schedule
+          Runtime: .NET 8.0 + .NET 9.0 + .NET 10.0 (Deep Review)
           "
             git push
           fi
@@ -121,7 +103,6 @@ jobs:
       - name: Post benchmark summary to Step Summary
         if: always()
         run: |
-          # Find and concatenate all markdown result files
           FOUND=0
           for SUMMARY in $(find benchmarks/results -name "*.md" 2>/dev/null | sort); do
             echo "## $(basename $SUMMARY)" >> "$GITHUB_STEP_SUMMARY"

@@ -12,8 +12,7 @@ namespace EricksonLopez.Result.Benchmarks;
 [MemoryDiagnoser]
 [Orderer(SummaryOrderPolicy.FastestToSlowest)]
 [HideColumns(Column.Error, Column.StdDev, Column.RatioSD)]
-[SimpleJob(RuntimeMoniker.Net80)]
-[SimpleJob(RuntimeMoniker.Net10_0)]
+
 public class ResultCombineBenchmarks
 {
     private Result[] _allSuccess = null!;

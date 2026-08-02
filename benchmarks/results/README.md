@@ -80,7 +80,7 @@ Or locally (requires .NET 8 and .NET 10 SDKs):
 ```bash
 dotnet run --project benchmarks/EricksonLopez.Result.Benchmarks/EricksonLopez.Result.Benchmarks.csproj \
   --configuration Release --framework net10.0 -- \
-  --filter "*" --job short --runtimes net80 net10_0 \
+  --filter "*" --job short --runtimes net8.0 net10.0 \
   --exporters markdown json --artifacts ./benchmarks/results
 ```
 
