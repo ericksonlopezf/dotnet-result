@@ -4,6 +4,13 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.0.1](https://github.com/ericksonlopezf/dotnet-result/compare/v1.0.0...v1.0.1) (2026-08-03)
+
+
+### ♻️ Refactoring
+
+* modularize test and sample projects for 1:1 symmetry ([5a62376](https://github.com/ericksonlopezf/dotnet-result/commit/5a6237677327c91f9f3e959672dfb126a2df0009))
+
 ## [Unreleased]
 
 ## [1.0.0-stable] - 2026-08-01
