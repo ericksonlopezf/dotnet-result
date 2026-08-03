@@ -1,0 +1,7 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\EricksonLopez.Result.Serialization.Generators\EricksonLopez.Result.Serialization.Generators.csproj" />
+    <ProjectReference Include="..\..\src\EricksonLopez.Result\EricksonLopez.Result.csproj" />
+    <ProjectReference Include="..\..\src\EricksonLopez.Result.Testing\EricksonLopez.Result.Testing.csproj" />
+  </ItemGroup>
+</Project>

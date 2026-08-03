@@ -11,6 +11,12 @@
             "progress",
             "json"
         ],
+        "mutate": [
+            "**/*.cs",
+            "!**/*Analyzer.cs",
+            "!**/*CodeFix.cs",
+            "!**/*Generator.cs"
+        ],
         "ignore-methods": [
             "Build",
             "ShouldUseTraceIdValue",

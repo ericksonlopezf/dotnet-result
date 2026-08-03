@@ -1,0 +1,15 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  
+
+  
+
+  <ItemGroup>
+    <Using Include="Xunit" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\EricksonLopez.Result.Testing.NUnit\EricksonLopez.Result.Testing.NUnit.csproj" />
+  </ItemGroup>
+
+</Project>

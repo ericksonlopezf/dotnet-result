@@ -1,0 +1,12 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\EricksonLopez.Result.Analyzers\EricksonLopez.Result.Analyzers.csproj" />
+    <ProjectReference Include="..\..\src\EricksonLopez.Result\EricksonLopez.Result.csproj" />
+    <ProjectReference Include="..\..\src\EricksonLopez.Result.AspNetCore\EricksonLopez.Result.AspNetCore.csproj" />
+    <ProjectReference Include="..\..\src\EricksonLopez.Result.OpenTelemetry\EricksonLopez.Result.OpenTelemetry.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+  </ItemGroup>
+</Project>
+

@@ -18,7 +18,7 @@
     <RepositoryType>git</RepositoryType>
     <PackageReadmeFile>README.md</PackageReadmeFile>
     <PackageIcon>icon.png</PackageIcon>
-    <PackageTags>result;result-pattern;error-handling;railway-oriented;opentelemetry;problem-details;dotnet;aot</PackageTags>
+    <PackageTags>dotnet;csharp;result-pattern;error-handling;railway-oriented-programming;functional-programming;native-aot;zero-allocation;high-performance;clean-architecture;ddd;aspnetcore;opentelemetry;problem-details</PackageTags>
 
     <!-- Build settings -->
     <LangVersion>latest</LangVersion>

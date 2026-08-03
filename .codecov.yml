@@ -6,7 +6,7 @@
 codecov:
   # Notify Codecov of the CI result after tests complete
   require_ci_to_pass: true
-  max_report_age: off
+  max_report_age: on
 
 coverage:
   precision: 2

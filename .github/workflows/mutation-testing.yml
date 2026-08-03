@@ -101,8 +101,17 @@ jobs:
               data = json.load(f)
 
           files = data.get('files', {})
-          total  = sum(f.get('mutants', {}).get('total',  0) for f in files.values() if 'mutants' in f)
-          killed = sum(f.get('mutants', {}).get('killed', 0) for f in files.values() if 'mutants' in f)
+          total = 0
+          killed = 0
+          for f in files.values():
+              for m in f.get('mutants', []):
+                  status = m.get('status')
+                  # Exclude CompileError and Ignored from total
+                  if status in ('Killed', 'Survived', 'Timeout', 'NoCoverage'):
+                      total += 1
+                      if status in ('Killed', 'Timeout'):
+                          killed += 1
+                          
           score  = round(killed / total * 100, 1) if total > 0 else 0.0
 
           # Thresholds — MUST match stryker-config.json (high=100, low=98, break=95)

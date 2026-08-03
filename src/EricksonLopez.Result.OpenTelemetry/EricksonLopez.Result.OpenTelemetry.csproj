@@ -35,7 +35,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <InternalsVisibleTo Include="EricksonLopez.Result.Tests" Key="$(PublicKey)" />
+    <InternalsVisibleTo Include="EricksonLopez.Result.OpenTelemetry.Tests" Key="$(PublicKey)" />
   </ItemGroup>
 </Project>
 

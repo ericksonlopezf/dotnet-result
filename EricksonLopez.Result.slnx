@@ -1,4 +1,12 @@
 <Solution>
+  <Folder Name="/samples/">
+    <Project Path="samples/EricksonLopez.Result.AspNetCore.Sample/EricksonLopez.Result.AspNetCore.Sample.csproj" />
+    <Project Path="samples/EricksonLopez.Result.FluentValidation.Sample/EricksonLopez.Result.FluentValidation.Sample.csproj" />
+    <Project Path="samples/EricksonLopez.Result.MediatR.Sample/EricksonLopez.Result.MediatR.Sample.csproj" />
+    <Project Path="samples/EricksonLopez.Result.OpenTelemetry.Sample/EricksonLopez.Result.OpenTelemetry.Sample.csproj" />
+    <Project Path="samples/EricksonLopez.Result.Sample/EricksonLopez.Result.Sample.csproj" />
+    <Project Path="samples/EricksonLopez.Result.Serialization.Sample/EricksonLopez.Result.Serialization.Sample.csproj" />
+  </Folder>
   <Folder Name="/src/">
     <Project Path="src/EricksonLopez.Result.Analyzers/EricksonLopez.Result.Analyzers.csproj" />
     <Project Path="src/EricksonLopez.Result.AspNetCore/EricksonLopez.Result.AspNetCore.csproj" />
@@ -13,6 +21,16 @@
     <Project Path="src/EricksonLopez.Result/EricksonLopez.Result.csproj" />
   </Folder>
   <Folder Name="/tests/">
+    <Project Path="tests/EricksonLopez.Result.Analyzers.Tests/EricksonLopez.Result.Analyzers.Tests.csproj" />
+    <Project Path="tests/EricksonLopez.Result.AspNetCore.Tests/EricksonLopez.Result.AspNetCore.Tests.csproj" />
+    <Project Path="tests/EricksonLopez.Result.FluentValidation.Tests/EricksonLopez.Result.FluentValidation.Tests.csproj" />
+    <Project Path="tests/EricksonLopez.Result.MediatR.Tests/EricksonLopez.Result.MediatR.Tests.csproj" />
+    <Project Path="tests/EricksonLopez.Result.OpenTelemetry.Tests/EricksonLopez.Result.OpenTelemetry.Tests.csproj" />
+    <Project Path="tests/EricksonLopez.Result.Serialization.Generators.Tests/EricksonLopez.Result.Serialization.Generators.Tests.csproj" />
+    <Project Path="tests/EricksonLopez.Result.Serialization.Tests/EricksonLopez.Result.Serialization.Tests.csproj" />
+    <Project Path="tests/EricksonLopez.Result.Testing.NUnit.Tests/EricksonLopez.Result.Testing.NUnit.Tests.csproj" />
+    <Project Path="tests/EricksonLopez.Result.Testing.Tests/EricksonLopez.Result.Testing.Tests.csproj" />
+    <Project Path="tests/EricksonLopez.Result.Testing.XUnit.Tests/EricksonLopez.Result.Testing.XUnit.Tests.csproj" />
     <Project Path="tests/EricksonLopez.Result.Tests/EricksonLopez.Result.Tests.csproj" />
     <Project Path="tests/EricksonLopez.Result.AotSmokeTest/EricksonLopez.Result.AotSmokeTest.csproj" />
   </Folder>
