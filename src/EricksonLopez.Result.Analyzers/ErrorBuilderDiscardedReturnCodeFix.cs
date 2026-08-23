@@ -1,8 +1,11 @@
+// Copyright © Erickson Lopez. MIT License.
+using System;
 using System.Collections.Immutable;
 using System.Composition;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using EricksonLopez.Result;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
@@ -46,28 +49,23 @@ namespace EricksonLopez.Result.Analyzers;
 [ExportCodeFixProvider(LanguageNames.CSharp, Name = nameof(ErrorBuilderDiscardedReturnCodeFix)), Shared]
 public sealed class ErrorBuilderDiscardedReturnCodeFix : CodeFixProvider
 {
-    // Must match the diagnostic ID emitted by ErrorBuilderDiscardedReturnAnalyzer.
+    /// <inheritdoc/>
     public override ImmutableArray<string> FixableDiagnosticIds
         => ImmutableArray.Create(ErrorBuilderDiscardedReturnAnalyzer.DiagnosticId);
 
-    // Use the BatchFixer equivalence key so the IDE can apply all instances at once.
+    /// <inheritdoc/>
     public override FixAllProvider GetFixAllProvider()
         => WellKnownFixAllProviders.BatchFixer;
 
+    /// <inheritdoc/>
     public override async Task RegisterCodeFixesAsync(CodeFixContext context)
     {
-        var root = await context.Document.GetSyntaxRootAsync(context.CancellationToken).ConfigureAwait(false);
-        if (root is null) return;
-
-        var diagnostic = context.Diagnostics.First();
+        var root = (await context.Document.GetSyntaxRootAsync(context.CancellationToken).ConfigureAwait(false))!;
+        var diagnostic = context.Diagnostics[0];
         var diagnosticSpan = diagnostic.Location.SourceSpan;
 
         // Locate the invocation expression (ErrorBuilder.WithXxx(...)) at the diagnostic location.
-        var invocation = root.FindNode(diagnosticSpan)
-            .AncestorsAndSelf()
-            .OfType<InvocationExpressionSyntax>()
-            .FirstOrDefault();
-
+        var invocation = root.FindNode(diagnosticSpan).FirstAncestorOrSelf<InvocationExpressionSyntax>();
         if (invocation is null) return;
 
         // The parent is guaranteed to be ExpressionStatementSyntax (that's what the analyzer checks).
@@ -140,13 +138,7 @@ public sealed class ErrorBuilderDiscardedReturnCodeFix : CodeFixProvider
         // Build: var builder = GetBuilder().WithXxx(...)
         var varDeclaration = SyntaxFactory.LocalDeclarationStatement(
             SyntaxFactory.VariableDeclaration(
-                SyntaxFactory.IdentifierName(
-                    SyntaxFactory.Identifier(
-                        SyntaxFactory.TriviaList(),
-                        SyntaxKind.VarKeyword,
-                        "var",
-                        "var",
-                        SyntaxFactory.TriviaList(SyntaxFactory.Space))))
+                SyntaxFactory.IdentifierName("var").WithTrailingTrivia(SyntaxFactory.Space))
             .WithVariables(
                 SyntaxFactory.SingletonSeparatedList(
                     SyntaxFactory.VariableDeclarator(
@@ -176,12 +168,16 @@ public sealed class ErrorBuilderDiscardedReturnCodeFix : CodeFixProvider
     /// </remarks>
     private static string? TryGetReceiverIdentifierName(InvocationExpressionSyntax invocation)
     {
-        // The invocation expression is typically a MemberAccessExpression: receiver.Method(args)
-        if (invocation.Expression is not MemberAccessExpressionSyntax memberAccess) return null;
+        var memberAccess = (MemberAccessExpressionSyntax)invocation.Expression;
+        if (memberAccess.Expression is IdentifierNameSyntax identifierName)
+        {
+            return identifierName.Identifier.Text;
+        }
 
-        // The receiver (left side of the dot) must be a simple identifier.
-        return memberAccess.Expression is IdentifierNameSyntax identifierName
-            ? identifierName.Identifier.Text
-            : null;
+        return null;
     }
 }
+
+
+
+

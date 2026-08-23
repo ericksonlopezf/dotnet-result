@@ -1,0 +1,39 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!-- Copyright © Erickson Lopez. MIT License. -->
+
+  <PropertyGroup>
+    <TargetFrameworks>net8.0;net9.0;net10.0</TargetFrameworks>
+    <LangVersion>latest</LangVersion>
+    <AssemblyName>EricksonLopez.Result.OpenApi</AssemblyName>
+    <RootNamespace>EricksonLopez.Result.OpenApi</RootNamespace>
+    <IsPackable>true</IsPackable>
+    <PackageId>EricksonLopez.Result.OpenApi</PackageId>
+    <Authors>Erickson Lopez</Authors>
+    <Company>Erickson Lopez</Company>
+    <Copyright>Copyright © 2026 Erickson Lopez</Copyright>
+    <Description>OpenAPI / Swagger schema generators and response transformers for EricksonLopez.Result and RFC 9457 ProblemDetails.</Description>
+    <PackageProjectUrl>https://github.com/ericksonlopezf/dotnet-result</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/ericksonlopezf/dotnet-result</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageTags>$(CommonPackageTags);openapi;swagger;api-documentation;schema-generation;aspnetcore;minimal-apis;problem-details;rfc9457;native-aot</PackageTags>
+    <ImplicitUsings>disable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <IsAotCompatible>true</IsAotCompatible>
+    <EnableTrimAnalyzer>true</EnableTrimAnalyzer>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\EricksonLopez.Result\EricksonLopez.Result.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="EricksonLopez.Result.OpenApi.Tests" Key="$(PublicKey)" />
+  </ItemGroup>
+
+</Project>

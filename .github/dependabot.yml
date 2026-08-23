@@ -1,3 +1,4 @@
+# Copyright © Erickson Lopez. MIT License.
 # ─── Dependabot Automatic Dependency Updates ───────────────────────────────────
 # Automatically creates PRs for outdated NuGet packages and GitHub Actions.
 #

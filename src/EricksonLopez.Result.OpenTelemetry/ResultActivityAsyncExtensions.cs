@@ -1,5 +1,10 @@
-﻿using System.Diagnostics;
+// Copyright © Erickson Lopez. MIT License.
+// Stryker disable Boolean : ConfigureAwait(false) equivalent mutation
+using System;
+using System.Diagnostics;
+using System.Threading;
 using System.Threading.Tasks;
+using EricksonLopez.Result;
 
 namespace EricksonLopez.Result.OpenTelemetry;
 
@@ -25,15 +30,11 @@ public static class ResultActivityAsyncExtensions
         Activity? targetActivity = null,
         ResultMetrics? metrics = null)
     {
-        // Stryker disable all : Fast path optimization
         if (resultTask.IsCompletedSuccessfully)
             return Task.FromResult(resultTask.Result.TraceOutcome(operationName, targetActivity, metrics));
         return TraceOutcomeCore(resultTask, operationName, targetActivity, metrics);
-        // Stryker restore all
-        // Stryker disable all : Excluded from coverage
-        [System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage] static async Task<Result> TraceOutcomeCore(Task<Result> t, string op, Activity? act, ResultMetrics? m)
+        static async Task<Result> TraceOutcomeCore(Task<Result> t, string op, Activity? act, ResultMetrics? m)
             => (await t.ConfigureAwait(false)).TraceOutcome(op, act, m);
-        // Stryker restore all
     }
 
     /// <inheritdoc cref="ResultActivityExtensions.TraceOnFailure(in Result, string, Activity?, ResultMetrics?)"/>
@@ -43,15 +44,11 @@ public static class ResultActivityAsyncExtensions
         Activity? targetActivity = null,
         ResultMetrics? metrics = null)
     {
-        // Stryker disable all : Fast path optimization
         if (resultTask.IsCompletedSuccessfully)
             return Task.FromResult(resultTask.Result.TraceOnFailure(operationName, targetActivity, metrics));
         return TraceOnFailureCore(resultTask, operationName, targetActivity, metrics);
-        // Stryker restore all
-        // Stryker disable all : Excluded from coverage
-        [System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage] static async Task<Result> TraceOnFailureCore(Task<Result> t, string op, Activity? act, ResultMetrics? m)
+        static async Task<Result> TraceOnFailureCore(Task<Result> t, string op, Activity? act, ResultMetrics? m)
             => (await t.ConfigureAwait(false)).TraceOnFailure(op, act, m);
-        // Stryker restore all
     }
 
     /// <inheritdoc cref="ResultActivityExtensions.TraceOnSuccess(in Result, string, Activity?, ResultMetrics?)"/>
@@ -61,15 +58,11 @@ public static class ResultActivityAsyncExtensions
         Activity? targetActivity = null,
         ResultMetrics? metrics = null)
     {
-        // Stryker disable all : Fast path optimization
         if (resultTask.IsCompletedSuccessfully)
             return Task.FromResult(resultTask.Result.TraceOnSuccess(operationName, targetActivity, metrics));
         return TraceOnSuccessCore(resultTask, operationName, targetActivity, metrics);
-        // Stryker restore all
-        // Stryker disable all : Excluded from coverage
-        [System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage] static async Task<Result> TraceOnSuccessCore(Task<Result> t, string op, Activity? act, ResultMetrics? m)
+        static async Task<Result> TraceOnSuccessCore(Task<Result> t, string op, Activity? act, ResultMetrics? m)
             => (await t.ConfigureAwait(false)).TraceOnSuccess(op, act, m);
-        // Stryker restore all
     }
 
     // ─── Task<Result<T>> (generic) ────────────────────────────────────────────
@@ -81,11 +74,9 @@ public static class ResultActivityAsyncExtensions
         Activity? targetActivity = null,
         ResultMetrics? metrics = null)
     {
-        // Stryker disable all : Fast path optimization
         if (resultTask.IsCompletedSuccessfully)
             return Task.FromResult(resultTask.Result.TraceOutcome(operationName, targetActivity, metrics));
         return TraceOutcomeCore(resultTask, operationName, targetActivity, metrics);
-        // Stryker restore all
         static async Task<Result<T>> TraceOutcomeCore(Task<Result<T>> t, string op, Activity? act, ResultMetrics? m)
             => (await t.ConfigureAwait(false)).TraceOutcome(op, act, m);
     }
@@ -97,11 +88,9 @@ public static class ResultActivityAsyncExtensions
         Activity? targetActivity = null,
         ResultMetrics? metrics = null)
     {
-        // Stryker disable all : Fast path optimization
         if (resultTask.IsCompletedSuccessfully)
             return Task.FromResult(resultTask.Result.TraceOnFailure(operationName, targetActivity, metrics));
         return TraceOnFailureCore(resultTask, operationName, targetActivity, metrics);
-        // Stryker restore all
         static async Task<Result<T>> TraceOnFailureCore(Task<Result<T>> t, string op, Activity? act, ResultMetrics? m)
             => (await t.ConfigureAwait(false)).TraceOnFailure(op, act, m);
     }
@@ -113,11 +102,9 @@ public static class ResultActivityAsyncExtensions
         Activity? targetActivity = null,
         ResultMetrics? metrics = null)
     {
-        // Stryker disable all : Fast path optimization
         if (resultTask.IsCompletedSuccessfully)
             return Task.FromResult(resultTask.Result.TraceOnSuccess(operationName, targetActivity, metrics));
         return TraceOnSuccessCore(resultTask, operationName, targetActivity, metrics);
-        // Stryker restore all
         static async Task<Result<T>> TraceOnSuccessCore(Task<Result<T>> t, string op, Activity? act, ResultMetrics? m)
             => (await t.ConfigureAwait(false)).TraceOnSuccess(op, act, m);
     }
@@ -131,15 +118,11 @@ public static class ResultActivityAsyncExtensions
         Activity? targetActivity = null,
         ResultMetrics? metrics = null)
     {
-        // Stryker disable all : Fast path optimization
         if (resultTask.IsCompletedSuccessfully)
             return new ValueTask<Result>(resultTask.Result.TraceOutcome(operationName, targetActivity, metrics));
         return new ValueTask<Result>(TraceOutcomeCore(resultTask, operationName, targetActivity, metrics));
-        // Stryker restore all
-        // Stryker disable all : Excluded from coverage
-        [System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage] static async Task<Result> TraceOutcomeCore(ValueTask<Result> t, string op, Activity? act, ResultMetrics? m)
+        static async Task<Result> TraceOutcomeCore(ValueTask<Result> t, string op, Activity? act, ResultMetrics? m)
             => (await t.ConfigureAwait(false)).TraceOutcome(op, act, m);
-        // Stryker restore all
     }
 
     /// <inheritdoc cref="ResultActivityExtensions.TraceOnFailure(in Result, string, Activity?, ResultMetrics?)"/>
@@ -149,15 +132,11 @@ public static class ResultActivityAsyncExtensions
         Activity? targetActivity = null,
         ResultMetrics? metrics = null)
     {
-        // Stryker disable all : Fast path optimization
         if (resultTask.IsCompletedSuccessfully)
             return new ValueTask<Result>(resultTask.Result.TraceOnFailure(operationName, targetActivity, metrics));
         return new ValueTask<Result>(TraceOnFailureCore(resultTask, operationName, targetActivity, metrics));
-        // Stryker restore all
-        // Stryker disable all : Excluded from coverage
-        [System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage] static async Task<Result> TraceOnFailureCore(ValueTask<Result> t, string op, Activity? act, ResultMetrics? m)
+        static async Task<Result> TraceOnFailureCore(ValueTask<Result> t, string op, Activity? act, ResultMetrics? m)
             => (await t.ConfigureAwait(false)).TraceOnFailure(op, act, m);
-        // Stryker restore all
     }
 
     /// <inheritdoc cref="ResultActivityExtensions.TraceOnSuccess(in Result, string, Activity?, ResultMetrics?)"/>
@@ -167,15 +146,11 @@ public static class ResultActivityAsyncExtensions
         Activity? targetActivity = null,
         ResultMetrics? metrics = null)
     {
-        // Stryker disable all : Fast path optimization
         if (resultTask.IsCompletedSuccessfully)
             return new ValueTask<Result>(resultTask.Result.TraceOnSuccess(operationName, targetActivity, metrics));
         return new ValueTask<Result>(TraceOnSuccessCore(resultTask, operationName, targetActivity, metrics));
-        // Stryker restore all
-        // Stryker disable all : Excluded from coverage
-        [System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage] static async Task<Result> TraceOnSuccessCore(ValueTask<Result> t, string op, Activity? act, ResultMetrics? m)
+        static async Task<Result> TraceOnSuccessCore(ValueTask<Result> t, string op, Activity? act, ResultMetrics? m)
             => (await t.ConfigureAwait(false)).TraceOnSuccess(op, act, m);
-        // Stryker restore all
     }
 
     // ─── ValueTask<Result<T>> (generic) ──────────────────────────────────────
@@ -187,11 +162,9 @@ public static class ResultActivityAsyncExtensions
         Activity? targetActivity = null,
         ResultMetrics? metrics = null)
     {
-        // Stryker disable all : Fast path optimization
         if (resultTask.IsCompletedSuccessfully)
             return new ValueTask<Result<T>>(resultTask.Result.TraceOutcome(operationName, targetActivity, metrics));
         return new ValueTask<Result<T>>(TraceOutcomeCore(resultTask, operationName, targetActivity, metrics));
-        // Stryker restore all
         static async Task<Result<T>> TraceOutcomeCore(ValueTask<Result<T>> t, string op, Activity? act, ResultMetrics? m)
             => (await t.ConfigureAwait(false)).TraceOutcome(op, act, m);
     }
@@ -203,11 +176,9 @@ public static class ResultActivityAsyncExtensions
         Activity? targetActivity = null,
         ResultMetrics? metrics = null)
     {
-        // Stryker disable all : Fast path optimization
         if (resultTask.IsCompletedSuccessfully)
             return new ValueTask<Result<T>>(resultTask.Result.TraceOnFailure(operationName, targetActivity, metrics));
         return new ValueTask<Result<T>>(TraceOnFailureCore(resultTask, operationName, targetActivity, metrics));
-        // Stryker restore all
         static async Task<Result<T>> TraceOnFailureCore(ValueTask<Result<T>> t, string op, Activity? act, ResultMetrics? m)
             => (await t.ConfigureAwait(false)).TraceOnFailure(op, act, m);
     }
@@ -219,14 +190,16 @@ public static class ResultActivityAsyncExtensions
         Activity? targetActivity = null,
         ResultMetrics? metrics = null)
     {
-        // Stryker disable all : Fast path optimization
         if (resultTask.IsCompletedSuccessfully)
             return new ValueTask<Result<T>>(resultTask.Result.TraceOnSuccess(operationName, targetActivity, metrics));
         return new ValueTask<Result<T>>(TraceOnSuccessCore(resultTask, operationName, targetActivity, metrics));
-        // Stryker restore all
         static async Task<Result<T>> TraceOnSuccessCore(ValueTask<Result<T>> t, string op, Activity? act, ResultMetrics? m)
             => (await t.ConfigureAwait(false)).TraceOnSuccess(op, act, m);
     }
 }
+
+
+
+
 
 

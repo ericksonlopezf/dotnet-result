@@ -1,3 +1,6 @@
+// Copyright © Erickson Lopez. MIT License.
+using System;
+
 namespace EricksonLopez.Result;
 
 /// <summary>
@@ -25,3 +28,4 @@ public static class WellKnownErrors
         ErrorSeverity.Critical,
         ErrorRetryability.NotApplicable);
 }
+

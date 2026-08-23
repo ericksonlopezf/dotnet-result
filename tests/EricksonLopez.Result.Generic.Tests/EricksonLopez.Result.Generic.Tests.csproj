@@ -1,0 +1,7 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!-- Copyright © Erickson Lopez. MIT License. -->
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\EricksonLopez.Result.Generic\EricksonLopez.Result.Generic.csproj" />
+    <ProjectReference Include="..\..\src\EricksonLopez.Result\EricksonLopez.Result.csproj" />
+  </ItemGroup>
+</Project>

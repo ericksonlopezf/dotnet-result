@@ -6,7 +6,62 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ## [Unreleased]
 
-## [1.0.0-stable] - 2026-08-01
+## [2.0.0] - 2026-08-23
+
+### Added
+- **`EricksonLopez.Result.Generic` Package**:
+  - Introduced `Result<TValue, TError>` readonly struct for compile-time strongly-typed domain error hierarchies with zero heap allocation.
+  - Includes monadic operators (`Map`, `MapError`, `Bind`, `Match`), `TryGetValue`/`TryGetError` guards, implicit conversions, and `ToResult(Func<TError, Error>)` projection to standard Result.
+- **`EricksonLopez.Result.Maybe` Package**:
+  - Introduced `Maybe<T>` readonly struct for allocation-free optionality modeling.
+  - Supports monadic transformations (`Map`, `Bind`, `Match`, `Ensure`), fallback accessors (`GetValueOrDefault`, `GetValueOrFallback`), and conversion to `Result<T>` via `.ToResult(Error)`.
+- **`EricksonLopez.Result.OpenApi` Package**:
+  - Added Minimal API endpoint metadata extensions: `ProducesResult<TResponse>()`, `ProducesResult()`, and `ProducesResultProblemDetails()` for RFC 9457 OpenAPI / Swagger schema generation.
+- **Compound Async Validation**:
+  - Added `Result.ValidateAll` and `Result.ValidateAllAsync` overloads supporting sequential and parallel validation pipelines with error accumulation.
+- **Roslyn Analyzers**:
+  - Added **`RESULT012`** (`DefaultResultReturnAnalyzer`): Emits a compile-time warning when `default` or `default(Result)` / `default(Result<T>)` is returned from a method, preventing uninitialized struct bugs.
+
+### Changed
+- **Centralized Package Management (CPM)**: Enabled `Directory.Packages.props` across the solution to centrally manage all NuGet package versions.
+- **Project Structure**: Modularized test and sample suites for 1:1 symmetry across all ecosystem packages.
+
+### Breaking Changes
+- **Core — Removed `Finally` Monadic Operators (BC-001 & BC-002)**:
+  - Removed `Result.Finally(Action<Result>)` and `Result<TValue>.Finally(Action<Result<TValue>>)` instance methods from `Result` and `Result<TValue>`.
+  - Removed `ResultExtensions.Finally` extension methods on `Task<Result>` and `Task<Result<T>>`.
+  - **Impact**: Code calling `.Finally(...)` will fail compilation with `CS1061`.
+  - **Migration**: Replace `.Finally(...)` with `.Inspect(...)` (or `await task.Inspect(...)`), which provides identical inspection semantics without naming ambiguity.
+- **Core — Removed Obsolete `FoldError` Methods (BC-003)**:
+  - Removed `FoldError<TOut>` and `FoldError<TState, TOut>` from `Result` and `Result<TValue>`.
+  - **Impact**: Removed from assembly metadata; causes compilation errors and runtime `MissingMethodException` for un-recompiled binaries.
+  - **Migration**: Replace `.FoldError(onFailure, default)` with `.MapFailure(onFailure, default)`.
+- **Core — Removed Obsolete `ToResult()` and `WithoutValue()` Methods (BC-004)**:
+  - Removed `Result<TValue>.ToResult()` and `Result<TValue>.WithoutValue()` from `Result<TValue>`.
+  - **Impact**: Removed from assembly metadata.
+  - **Migration**: Replace with `.DiscardValue()`.
+- **Core — Strict Uninitialized Guard on `Merge` and `Combine` (BC-009)**:
+  - `Result.Merge` and `Result.Combine` now throw `InvalidOperationException` if any operand is an uninitialized default struct (`default(Result)` / `default(Result<T>)`).
+  - **Impact**: Uninitialized results that previously returned a fallback or passed through silently will now fail fast at the call site.
+  - **Migration**: Always construct results using `Result.Success` or `Result.Failure`.
+- **OpenTelemetry — Removed Obsolete Static `RecordSuccess` / `RecordFailure` (BC-005)**:
+  - Removed `ResultMetrics.RecordSuccess(string)` and `ResultMetrics.RecordFailure(string, string, string)`.
+  - **Impact**: Compile-time error `CS0117` when referencing `RecordSuccess` or `RecordFailure`.
+  - **Migration**: Replace with `ResultMetrics.StaticTrackSuccess(...)` and `ResultMetrics.StaticTrackFailure(...)`.
+- **FluentValidation — Dependency Upgrade to v12 (BC-006)**:
+  - Upgraded minimum package dependency from `FluentValidation 11.11.0` to `FluentValidation 12.1.1`.
+  - **Impact**: NuGet package dependency resolution will require FluentValidation 12.x+.
+  - **Migration**: Update host applications to FluentValidation 12.1.1 or higher.
+- **MediatR — Dependency Upgrade to v14 (BC-007)**:
+  - Upgraded minimum package dependency from `MediatR 12.4.1` to `MediatR 14.2.0`.
+  - **Impact**: NuGet package dependency resolution will require MediatR 14.x+.
+  - **Migration**: Update host applications to MediatR 14.2.0 or higher.
+- **Testing — NUnit & xUnit Dependency Upgrades (BC-008 & BC-010)**:
+  - Fixed `EricksonLopez.Result.Testing.NUnit.csproj` package reference and upgraded `NUnit` to `4.6.1`.
+  - Upgraded `xunit.v3.assert` to `4.0.0` in `EricksonLopez.Result.Testing.XUnit`.
+  - **Impact**: Test projects using these assertions should align their test framework runner versions.
+
+## [1.0.0] - 2026-08-01
 
 ### Added
 - `ProducesResult<T>()` extension method on `RouteHandlerBuilder` to enforce OpenAPI typed schemas and mitigate the `object` degradation from Endpoint Filters.
@@ -36,7 +91,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
   The wildcards are replaced with an explicit list of the 36 known excluded method names (`MapCore`, `BindCore`, `TapCore`, `EnsureCore`, `MatchCore`, `ExecuteCore`, `RecoverCore`, `MapErrorCore`, `InspectCore`, `CombineCore`, and their `*State*`, `*Async*`, `*FullAsync*` variants). All previously excluded methods remain excluded — only the matching strategy changes from glob to explicit.
 
 - **Mutation score now directly verifiable in repo (B-03 from ARB-04 audit)**:
-  Added [`docs/mutation-score.md`](docs/mutation-score.md) as a committed artifact documenting the latest Stryker run results: **≥ 98% mutation score** against tested business logic, with a full breakdown per file and analysis of all surviving/equivalent mutants. Updated [`docs/QualityGates.md`](docs/QualityGates.md) to accurately reflect the current `stryker-config.json` (thresholds, explicit method allowlist). Added a static **Mutation Score ≥ 98%** badge to README.
+  Added [`docs/mutation-score.md`](docs/mutation-score.md) as a committed artifact documenting the latest Stryker run results: **≥ 98% mutation score** against tested business logic, with a full breakdown per file and analysis of all surviving/equivalent mutants. Updated [`docs/quality-gates.md`](docs/quality-gates.md) to accurately reflect the current `stryker-config.json` (thresholds, explicit method allowlist). Added a static **Mutation Score ≥ 98%** badge to README.
 
 - **Version bump**: `Directory.Build.props` `VersionSuffix` updated from `preview.5` → `preview.6`.
 
@@ -83,7 +138,6 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 
 ### Documentation
 - **ADR-015** (ARB-08): Added §11 documenting `ResultExceptionBehavior<TRequest, TResponse>`'s `Expression.Compile()` cold start characteristic. Documents the per-handler-type cost (10-50ms JIT, up to 200ms in cold serverless environments), why it is accepted (MediatR itself requires dynamic code; caching eliminates per-request overhead), and the mitigation pattern for serverless warm-up.
-- **AUDITORIA.md** (ARB-10): Updated `EricksonLopez.Result.Analyzers` inventory row from 4 analyzers to the complete list of 12 diagnostic rules (RESULT001-RESULT009, RESULT_OTEL_001, RESULT_GEN_001) with CodeFix providers. Updated `IResultOutcome` type description to include `IsUninitialized` added in preview.3.
 
 ### ARB False Positives (confirmed resolved prior to this release)
 - **ARB-05** (`RESULT008` `EndpointFilterOpenApiAnalyzer`): Confirmed implemented in `EndpointFilterOpenApiAnalyzer.cs`. The analyzer exists and warns when `AddResultEndpointFilter()` is called without `.Produces<T>()`.
@@ -167,9 +221,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 - **Version bump**: `Directory.Build.props` `VersionSuffix` updated from `preview.1` → `preview.2`.
 - **Stricter public API surface**: Removed `RS0016` and `RS0017` from global `NoWarn`. These `PublicApiAnalyzers` rules are now enforced as errors: undeclared public APIs and removed public APIs both fail the build.
 
-### Fixed
-- **Documentation**: `AUDITORIA.md` version reference corrected from `0.1.0-preview.1` to `1.0.0-preview.2`. Versioning policy comment added to `Directory.Build.props` designating it as the authoritative source of truth.
-- **ErrorBuilder XML docs**: Added explicit documentation of the ~96-104 byte copy cost per `With*()` call, break-even analysis, and mitigation patterns for hot paths.
+
 
 ---
 

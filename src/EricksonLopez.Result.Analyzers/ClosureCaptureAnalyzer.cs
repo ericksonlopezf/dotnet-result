@@ -1,6 +1,10 @@
+// Copyright © Erickson Lopez. MIT License.
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
+using System.Threading;
+using EricksonLopez.Result;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -47,6 +51,7 @@ namespace EricksonLopez.Result.Analyzers;
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
 public sealed class ClosureCaptureAnalyzer : DiagnosticAnalyzer
 {
+    /// <summary>The diagnostic identifier for this analyzer rule.</summary>
     public const string DiagnosticId = "RESULT004";
 
     // Methods on Result / Result<T> that have TState overloads and should be checked.
@@ -81,11 +86,13 @@ public sealed class ClosureCaptureAnalyzer : DiagnosticAnalyzer
             "allocates a closure object on every invocation. Pass captured values as the TState parameter " +
             "instead. Example: change 'result.Map(x => Process(id, x))' to 'result.Map(id, (i, x) => Process(i, x))'. " +
             "For 'this' captures, pass the relevant member or 'this' as state: 'result.Map(this, (self, x) => self.Process(x))'.",
-        helpLinkUri: "https://github.com/ericksonlopez/dotnet-result/blob/main/docs/performance.md#closure-free-pipelines");
+        helpLinkUri: "https://github.com/ericksonlopezf/dotnet-result/blob/main/docs/performance.md#closure-free-pipelines");
 
+    /// <inheritdoc/>
     public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
         => ImmutableArray.Create(Rule);
 
+    /// <inheritdoc/>
     public override void Initialize(AnalysisContext context)
     {
         context.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.None);
@@ -101,13 +108,10 @@ public sealed class ClosureCaptureAnalyzer : DiagnosticAnalyzer
         // Only check the tracked method names
         if (!TrackedMethods.Contains(method.Name)) return;
 
-        // Only check methods on Result or Result<T>
         var containingType = method.ContainingType;
-        if (containingType is null) return;
+        if (containingType.ContainingNamespace.ToDisplayString() != "EricksonLopez.Result") return;
 
         var metadataName = containingType.OriginalDefinition.MetadataName;
-        var ns = containingType.ContainingNamespace?.ToDisplayString();
-        if (ns != "EricksonLopez.Result") return;
         if (metadataName != "Result" && metadataName != "Result`1") return;
 
         // Only report if the method is NOT already using the TState overload
@@ -123,13 +127,14 @@ public sealed class ClosureCaptureAnalyzer : DiagnosticAnalyzer
 
         if (allCapturedNames.Count == 0) return;
 
-        var captureList = string.Join(", ", allCapturedNames);
+        // Report diagnostic at the invocation expression span
         var diagnostic = Diagnostic.Create(
             Rule,
             invocation.Syntax.GetLocation(),
             method.Name,
             allCapturedNames.Count,
-            captureList);
+            string.Join(", ", allCapturedNames));
+
         context.ReportDiagnostic(diagnostic);
     }
 
@@ -137,7 +142,7 @@ public sealed class ClosureCaptureAnalyzer : DiagnosticAnalyzer
     /// Returns the distinct names of local variables and 'this' captured by a lambda or anonymous
     /// method expression. Returns an empty list for non-lambda operations.
     /// </summary>
-    private static List<string> GetCapturedNames(IOperation operation, System.Threading.CancellationToken ct)
+    internal static List<string> GetCapturedNames(IOperation operation, CancellationToken ct)
     {
         var result = new List<string>();
         var syntax = operation.Syntax;
@@ -150,8 +155,7 @@ public sealed class ClosureCaptureAnalyzer : DiagnosticAnalyzer
             && lambdaSyntaxCheck.Modifiers.Any(SyntaxKind.StaticKeyword))
             return result;
 
-        var semanticModel = operation.SemanticModel;
-        if (semanticModel is null) return result;
+        var semanticModel = operation.SemanticModel!;
 
         // Lambda's own parameters — these are NOT captures from the enclosing scope
         var lambdaParameters = GetLambdaParameters(syntax);
@@ -162,16 +166,8 @@ public sealed class ClosureCaptureAnalyzer : DiagnosticAnalyzer
 
         foreach (var identifier in syntax.DescendantNodes().OfType<IdentifierNameSyntax>())
         {
-            if (ct.IsCancellationRequested) break;
-
             var symbol = semanticModel.GetSymbolInfo(identifier, ct).Symbol;
-            if (symbol is null) continue;
-
-            // Skip the lambda's own parameters
-            if (lambdaParameters.Contains(symbol.Name)) continue;
-
-            // Report local variables and method parameters of the enclosing scope
-            if (symbol is ILocalSymbol || symbol is IParameterSymbol)
+            if (symbol is (ILocalSymbol or IParameterSymbol) && !lambdaParameters.Contains(symbol.Name))
             {
                 capturedLocals.Add((symbol.Name, symbol.Kind));
             }
@@ -182,38 +178,12 @@ public sealed class ClosureCaptureAnalyzer : DiagnosticAnalyzer
         // ThisExpressionSyntax in the syntax tree. Additionally, implicit 'this' accesses
         // (accessing instance fields/properties/methods without an explicit receiver) also
         // create a closure that captures 'this'. We detect both patterns here.
-        bool capturesThis = false;
-
-        foreach (var node in syntax.DescendantNodes())
-        {
-            if (ct.IsCancellationRequested) break;
-
-            // Pattern 1: explicit 'this' keyword (e.g., this.Field, this.Method())
-            if (node is ThisExpressionSyntax)
-            {
-                capturesThis = true;
-                break;
-            }
-
-            // Pattern 2: implicit 'this' — instance member access without explicit receiver
-            // (e.g., _field, _property, InstanceMethod() inside a lambda body).
-            // These are identifier names that resolve to non-static members of the containing type.
-            if (node is IdentifierNameSyntax identifierNode
-                && !(node.Parent is MemberAccessExpressionSyntax memberAccess && memberAccess.Expression != node))
-            {
-                var symbol = semanticModel.GetSymbolInfo(identifierNode, ct).Symbol;
-                if (symbol is null) continue;
-
-                // Instance field, property, event, or method on the containing type — implicit 'this' capture
-                if (symbol is (IFieldSymbol or IPropertySymbol or IEventSymbol or IMethodSymbol)
-                    && !symbol.IsStatic
-                    && symbol.ContainingType is not null)
-                {
-                    capturesThis = true;
-                    break;
-                }
-            }
-        }
+        bool capturesThis = syntax.DescendantNodes().Any(node =>
+            node is ThisExpressionSyntax ||
+            (node is IdentifierNameSyntax identifierNode
+             && !(node.Parent is MemberAccessExpressionSyntax memberAccess && memberAccess.Expression != node)
+             && semanticModel.GetSymbolInfo(identifierNode, ct).Symbol is { IsStatic: false, ContainingType: not null } symbol
+             && symbol is (IFieldSymbol or IPropertySymbol or IEventSymbol or IMethodSymbol)));
 
         // Collect all capture names in a stable, deduplicated order
         foreach (var (name, _) in capturedLocals)
@@ -241,11 +211,13 @@ public sealed class ClosureCaptureAnalyzer : DiagnosticAnalyzer
             foreach (var param in parenLambda.ParameterList.Parameters)
                 result.Add(param.Identifier.Text);
         }
-        else if (lambdaSyntax is AnonymousMethodExpressionSyntax anonMethod &&
-                 anonMethod.ParameterList is not null)
+        else if (lambdaSyntax is AnonymousMethodExpressionSyntax anonMethod)
         {
-            foreach (var param in anonMethod.ParameterList.Parameters)
-                result.Add(param.Identifier.Text);
+            if (anonMethod.ParameterList is not null)
+            {
+                foreach (var param in anonMethod.ParameterList.Parameters)
+                    result.Add(param.Identifier.Text);
+            }
         }
         return result;
     }
@@ -253,21 +225,11 @@ public sealed class ClosureCaptureAnalyzer : DiagnosticAnalyzer
     /// <summary>
     /// Checks whether the method is already the TState overload by verifying that the first
     /// parameter is a non-delegate, non-primitive generic-typed parameter (i.e., TState).
-    /// This is more robust than checking by parameter name alone, which would produce false
-    /// negatives if users define TState overloads with a non-"state" parameter name.
     /// </summary>
     private static bool IsAlreadyUsingStateOverload(IMethodSymbol method)
-    {
-        if (method.Parameters.Length < 2) return false;
-        var firstParam = method.Parameters[0];
-
-        // The TState overloads have a non-delegate, non-class, non-interface first parameter
-        // at a generic type position. Checking by name is fragile; checking the type kind is
-        // reliable: TState will be TypeKind.TypeParameter, not TypeKind.Delegate or a concrete type.
-        // Also accept the name-based check as a fallback for cases where the type info is unavailable.
-        return firstParam.Type.TypeKind == TypeKind.TypeParameter
-               || (string.Equals(firstParam.Name, "state", System.StringComparison.Ordinal)
-                   && firstParam.Type.TypeKind != TypeKind.Delegate);
-    }
+        => method.OriginalDefinition.Parameters.Length >= 2 && method.OriginalDefinition.Parameters[0].Type.TypeKind == TypeKind.TypeParameter;
 }
+
+
+
 

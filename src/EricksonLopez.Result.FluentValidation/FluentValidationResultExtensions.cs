@@ -1,6 +1,11 @@
+// Copyright © Erickson Lopez. MIT License.
+// Stryker disable Boolean : ConfigureAwait(false) equivalent mutation
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Threading;
+using System.Threading.Tasks;
+using EricksonLopez.Result;
 using FluentValidation.Results;
 
 namespace EricksonLopez.Result.FluentValidation;
@@ -43,7 +48,7 @@ namespace EricksonLopez.Result.FluentValidation;
 /// <b>Note:</b> <see cref="ValidationFailure.CustomState"/> is not propagated to error
 /// metadata. Use <c>ValidationFailure.CustomState</c> if you need structured data from
 /// validators and access it before conversion, or set metadata via <c>.WithState()</c>
-/// with a <see cref="System.Collections.Generic.Dictionary{TKey,TValue}"/> and
+/// with a <see cref="Dictionary{TKey,TValue}"/> and
 /// convert via a custom overload.
 /// </para>
 /// </remarks>
@@ -125,6 +130,7 @@ public static class FluentValidationResultExtensions
     /// <typeparam name="T">The type of the object to validate.</typeparam>
     /// <param name="validator">The FluentValidation validator.</param>
     /// <param name="instance">The object to validate.</param>
+    /// <returns>A <see cref="Result{T}"/> wrapping <paramref name="instance"/> on success, or a validation failure.</returns>
     public static Result<T> ValidateToResultWithValue<T>(this global::FluentValidation.IValidator<T> validator, T instance)
     {
         var validationResult = validator.Validate(instance);
@@ -134,6 +140,11 @@ public static class FluentValidationResultExtensions
     /// <summary>
     /// Validates an object asynchronously and returns a <see cref="Result"/>.
     /// </summary>
+    /// <typeparam name="T">The type of the object to validate.</typeparam>
+    /// <param name="validator">The FluentValidation validator.</param>
+    /// <param name="instance">The object to validate.</param>
+    /// <param name="cancellationToken">A token that can be used to cancel the validation operation.</param>
+    /// <returns>A task representing the asynchronous operation. The task result contains a <see cref="Result"/> representing the validation outcome.</returns>
     /// <remarks>
     /// Named <c>ValidateToResultAsync</c> instead of <c>ValidateAsync</c> to avoid method resolution
     /// ambiguity with FluentValidation's own <c>IValidator&lt;T&gt;.ValidateAsync(T)</c>.
@@ -141,7 +152,7 @@ public static class FluentValidationResultExtensions
     public static async Task<Result> ValidateToResultAsync<T>(
         this global::FluentValidation.IValidator<T> validator,
         T instance,
-        System.Threading.CancellationToken cancellationToken = default)
+        CancellationToken cancellationToken = default)
     {
         var validationResult = await validator.ValidateAsync(instance, cancellationToken).ConfigureAwait(false);
         return validationResult.ToValidationResult();
@@ -151,10 +162,15 @@ public static class FluentValidationResultExtensions
     /// Validates an object asynchronously and returns a <see cref="Result{T}"/>
     /// wrapping the validated instance on success.
     /// </summary>
+    /// <typeparam name="T">The type of the object to validate.</typeparam>
+    /// <param name="validator">The FluentValidation validator.</param>
+    /// <param name="instance">The object to validate.</param>
+    /// <param name="cancellationToken">A token that can be used to cancel the validation operation.</param>
+    /// <returns>A task representing the asynchronous operation. The task result contains a <see cref="Result{T}"/> wrapping <paramref name="instance"/> on success, or a validation failure.</returns>
     public static async Task<Result<T>> ValidateToResultWithValueAsync<T>(
         this global::FluentValidation.IValidator<T> validator,
         T instance,
-        System.Threading.CancellationToken cancellationToken = default)
+        CancellationToken cancellationToken = default)
     {
         var validationResult = await validator.ValidateAsync(instance, cancellationToken).ConfigureAwait(false);
         return validationResult.ToValidationResult(instance);
@@ -165,9 +181,10 @@ public static class FluentValidationResultExtensions
     /// <see cref="Result{T}"/> and returns a validation failure if invalid.
     /// </summary>
     /// <typeparam name="T">The type of the value to validate.</typeparam>
-    /// <param name="result">The result containing the value to validate.</param>
+    /// <param name="result">The result containing the value to validate, passed by readonly reference.</param>
     /// <param name="validator">The FluentValidation validator.</param>
     /// <returns>The original result if valid, or a validation failure result.</returns>
+    /// <exception cref="InvalidOperationException"><paramref name="result"/> is an uninitialized default value</exception>
     /// <example>
     /// <code>
     /// var result = await GetOrderAsync()
@@ -189,10 +206,16 @@ public static class FluentValidationResultExtensions
     /// <summary>
     /// Async version: Integrates validation into a Result pipeline.
     /// </summary>
+    /// <typeparam name="T">The type of the value to validate.</typeparam>
+    /// <param name="resultTask">The task returning the result containing the value to validate.</param>
+    /// <param name="validator">The FluentValidation validator.</param>
+    /// <param name="cancellationToken">A token that can be used to cancel the validation operation.</param>
+    /// <returns>A task representing the asynchronous operation. The task result contains the original result if valid, or a validation failure result.</returns>
+    /// <exception cref="InvalidOperationException">The awaited result is an uninitialized default value</exception>
     public static async Task<Result<T>> EnsureValidAsync<T>(
         this Task<Result<T>> resultTask,
         global::FluentValidation.IValidator<T> validator,
-        System.Threading.CancellationToken cancellationToken = default)
+        CancellationToken cancellationToken = default)
     {
         var result = await resultTask.ConfigureAwait(false);
         if (result.IsUninitialized) throw new System.InvalidOperationException("Cannot operate on an uninitialized default Result<TValue>. Always construct Result<TValue> via Result.Success(value) or Result.Failure(error).");
@@ -259,3 +282,8 @@ public static class FluentValidationResultExtensions
         _ => ErrorSeverity.Error
     };
 }
+
+
+
+
+

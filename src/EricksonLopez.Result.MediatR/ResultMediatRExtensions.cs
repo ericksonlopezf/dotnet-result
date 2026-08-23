@@ -1,4 +1,6 @@
+// Copyright © Erickson Lopez. MIT License.
 using System;
+using EricksonLopez.Result;
 using MediatR;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -38,3 +40,4 @@ public static class ResultMediatRExtensions
         return services;
     }
 }
+

@@ -1,4 +1,5 @@
 <Project Sdk="Microsoft.NET.Sdk">
+  <!-- Copyright © Erickson Lopez. MIT License. -->
   <PropertyGroup>
     <TargetFrameworks>net8.0;net9.0;net10.0</TargetFrameworks>
     <LangVersion>latest</LangVersion>
@@ -10,13 +11,11 @@
     <Company>Erickson Lopez</Company>
     <Copyright>Copyright © 2026 Erickson Lopez</Copyright>
     <Description>An ultra-high performance, struct-based, enterprise-grade Result pattern implementation for modern .NET.</Description>
-    <PackageProjectUrl>https://github.com/ericksonlopez/dotnet-result</PackageProjectUrl>
-    <RepositoryUrl>https://github.com/ericksonlopez/dotnet-result</RepositoryUrl>
-    <RepositoryType>git</RepositoryType>
+    <PackageProjectUrl>https://github.com/ericksonlopezf/dotnet-result</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/ericksonlopezf/dotnet-result</RepositoryUrl>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
-    <PackageTags>result;functional;monad;railway-oriented-programming;csharp;performance;struct;dotnet10;enterprise;aot</PackageTags>
-    <ImplicitUsings>enable</ImplicitUsings>
-    <Nullable>enable</Nullable>
+    <PackageTags>$(CommonPackageTags);monad;monadic-pipeline;struct;zero-allocation;high-performance;native-aot;trimming;domain-errors;validation</PackageTags>
+    <ImplicitUsings>disable</ImplicitUsings>
     <IsAotCompatible>true</IsAotCompatible>
     <EnableTrimAnalyzer>true</EnableTrimAnalyzer>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
@@ -41,7 +40,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.CodeAnalysis.PublicApiAnalyzers" Version="3.3.4" PrivateAssets="All" />
+    <PackageReference Include="Microsoft.CodeAnalysis.PublicApiAnalyzers" PrivateAssets="All" />
   </ItemGroup>
 
   <ItemGroup>
@@ -57,3 +56,4 @@
     <InternalsVisibleTo Include="EricksonLopez.Result.Tests" Key="$(PublicKey)" />
   </ItemGroup>
 </Project>
+

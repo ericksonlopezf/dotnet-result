@@ -1,4 +1,6 @@
+// Copyright © Erickson Lopez. MIT License.
 using System;
+using EricksonLopez.Result;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 
@@ -49,3 +51,5 @@ public static class ResultServiceCollectionExtensions
         return services;
     }
 }
+
+

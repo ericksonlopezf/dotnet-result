@@ -1,0 +1,9 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!-- Copyright © Erickson Lopez. MIT License. -->
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\EricksonLopez.Result.Serialization.Generators\EricksonLopez.Result.Serialization.Generators.csproj" />
+    <ProjectReference Include="..\..\src\EricksonLopez.Result.Serialization\EricksonLopez.Result.Serialization.csproj" />
+    <ProjectReference Include="..\..\src\EricksonLopez.Result\EricksonLopez.Result.csproj" />
+    <ProjectReference Include="..\..\src\EricksonLopez.Result.Testing\EricksonLopez.Result.Testing.csproj" />
+  </ItemGroup>
+</Project>

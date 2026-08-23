@@ -1,3 +1,6 @@
+// Copyright © Erickson Lopez. MIT License.
+using System;
+using EricksonLopez.Result;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
@@ -91,3 +94,5 @@ public static class ResultEndpointRouteBuilderExtensions
                       .Produces<Microsoft.AspNetCore.Mvc.ProblemDetails>(StatusCodes.Status400BadRequest);
     }
 }
+
+

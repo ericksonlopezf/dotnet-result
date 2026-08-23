@@ -1,8 +1,12 @@
+// Copyright © Erickson Lopez. MIT License.
+// Stryker disable Boolean : ConfigureAwait(false) equivalent mutation
 using System;
 using System.Diagnostics.CodeAnalysis;
+using System.Linq;
 using System.Linq.Expressions;
 using System.Threading;
 using System.Threading.Tasks;
+using EricksonLopez.Result;
 using MediatR;
 
 namespace EricksonLopez.Result.MediatR;
@@ -80,13 +84,15 @@ public sealed class ResultExceptionBehavior<TRequest, TResponse> : IPipelineBeha
     /// <inheritdoc/>
     public async Task<TResponse> Handle(TRequest request, RequestHandlerDelegate<TResponse> next, CancellationToken cancellationToken)
     {
+        cancellationToken.ThrowIfCancellationRequested();
+
         // Only intercept if the response is a Result type (cached factory is non-null)
         if (CachedFailureFactory is null)
-            return await next().ConfigureAwait(false);
+            return await next(cancellationToken).ConfigureAwait(false);
 
         try
         {
-            return await next().ConfigureAwait(false);
+            return await next(cancellationToken).ConfigureAwait(false);
         }
         catch (OperationCanceledException)
         {
@@ -154,7 +160,7 @@ public sealed class ResultExceptionBehavior<TRequest, TResponse> : IPipelineBeha
 
             // Build: (Error error) => Result.Failure<T>(error)
             // Using Expression trees to compile a direct call without per-invocation reflection.
-            var errorParam = Expression.Parameter(typeof(Error), "error");
+            var errorParam = Expression.Parameter(typeof(Error));
             var failureMethod = typeof(Result)
                 .GetMethod(nameof(Result.Failure), 1, new[] { typeof(Error) })!
                 .MakeGenericMethod(valueType);
@@ -171,3 +177,7 @@ public sealed class ResultExceptionBehavior<TRequest, TResponse> : IPipelineBeha
         return null;
     }
 }
+
+
+
+

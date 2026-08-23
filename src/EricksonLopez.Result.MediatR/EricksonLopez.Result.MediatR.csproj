@@ -1,4 +1,5 @@
 <Project Sdk="Microsoft.NET.Sdk">
+  <!-- Copyright © Erickson Lopez. MIT License. -->
   <PropertyGroup>
     <TargetFrameworks>net8.0;net9.0;net10.0</TargetFrameworks>
     <LangVersion>latest</LangVersion>
@@ -9,22 +10,25 @@
     <Authors>Erickson Lopez</Authors>
     <Company>Erickson Lopez</Company>
     <Copyright>Copyright © 2026 Erickson Lopez</Copyright>
-    <Description>MediatR pipeline behavior integration for EricksonLopez.Result. Provides Result-aware validation and exception handling behaviors.</Description>
-    <PackageProjectUrl>https://github.com/ericksonlopez/dotnet-result</PackageProjectUrl>
-    <RepositoryUrl>https://github.com/ericksonlopez/dotnet-result</RepositoryUrl>
+    <Description>[INTEROP / COMPATIBILITY BRIDGE] MediatR pipeline behavior integration for EricksonLopez.Result. Provides Result-aware validation and exception handling behaviors for legacy MediatR applications.</Description>
+    <PackageProjectUrl>https://github.com/ericksonlopezf/dotnet-result</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/ericksonlopezf/dotnet-result</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
-    <PackageTags>result;mediatr;cqrs;pipeline;behavior;error-handling</PackageTags>
-    <ImplicitUsings>enable</ImplicitUsings>
+    <PackageTags>$(CommonPackageTags);mediatr;mediator;cqrs;pipeline-behavior;middleware</PackageTags>
+    <ImplicitUsings>disable</ImplicitUsings>
     <Nullable>enable</Nullable>
-    <!-- MediatR itself uses reflection; AOT is not supported -->
+    <!-- MediatR itself uses reflection; AOT and Trimming are not supported -->
     <IsAotCompatible>false</IsAotCompatible>
+    <IsTrimmable>false</IsTrimmable>
     <EnableTrimAnalyzer>false</EnableTrimAnalyzer>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
   </PropertyGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\EricksonLopez.Result\EricksonLopez.Result.csproj" />
-    <PackageReference Include="MediatR" Version="12.4.1" />
+    <PackageReference Include="MediatR" />
   </ItemGroup>
 </Project>
+
+

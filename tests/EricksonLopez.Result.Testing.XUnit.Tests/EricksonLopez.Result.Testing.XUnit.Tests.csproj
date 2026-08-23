@@ -1,0 +1,14 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!-- Copyright © Erickson Lopez. MIT License. -->
+
+  
+
+  
+
+  
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\EricksonLopez.Result.Testing.XUnit\EricksonLopez.Result.Testing.XUnit.csproj" />
+  </ItemGroup>
+
+</Project>

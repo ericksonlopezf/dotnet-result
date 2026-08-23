@@ -1,5 +1,7 @@
+// Copyright © Erickson Lopez. MIT License.
 using System;
 using System.Diagnostics.Contracts;
+using System.Linq;
 
 namespace EricksonLopez.Result;
 
@@ -57,10 +59,7 @@ public static class ResultSyncExtensions
     /// <param name="result">The result to transform, passed by readonly reference.</param>
     /// <param name="mapper">The projection function applied to the success value.</param>
     /// <returns>A new result with the mapped value on success, or the original error on failure.</returns>
-    /// <exception cref="InvalidOperationException">
-    /// Thrown when <paramref name="result"/> is an uninitialized <c>default(Result&lt;TValue&gt;)</c>.
-    /// Always construct results via <see cref="Result.Success{TValue}"/> or <see cref="Result.Failure{TValue}"/>.
-    /// </exception>
+    /// <exception cref="InvalidOperationException"><paramref name="result"/> is an uninitialized default value</exception>
     [Pure]
     public static Result<TNext> Map<TValue, TNext>(
         this in Result<TValue> result,
@@ -77,9 +76,14 @@ public static class ResultSyncExtensions
     /// with captured <paramref name="state"/> to avoid closure allocation.
     /// The <c>in</c> parameter avoids copying the struct.
     /// </summary>
-    /// <exception cref="InvalidOperationException">
-    /// Thrown when <paramref name="result"/> is an uninitialized <c>default(Result&lt;TValue&gt;)</c>.
-    /// </exception>
+    /// <typeparam name="TValue">The source value type.</typeparam>
+    /// <typeparam name="TState">The type of the state object passed to the mapper.</typeparam>
+    /// <typeparam name="TNext">The projected output type.</typeparam>
+    /// <param name="result">The result to transform, passed by readonly reference.</param>
+    /// <param name="state">The state value passed to the mapper function.</param>
+    /// <param name="mapper">The projection function applied to state and the success value.</param>
+    /// <returns>A new result with the mapped value on success, or the original error on failure.</returns>
+    /// <exception cref="InvalidOperationException"><paramref name="result"/> is an uninitialized default value</exception>
     [Pure]
     public static Result<TNext> Map<TValue, TState, TNext>(
         this in Result<TValue> result,
@@ -99,9 +103,12 @@ public static class ResultSyncExtensions
     /// The <c>in</c> parameter avoids copying the struct — use when <typeparamref name="TValue"/>
     /// is a large value type (≥ 16 bytes).
     /// </summary>
-    /// <exception cref="InvalidOperationException">
-    /// Thrown when <paramref name="result"/> is an uninitialized <c>default(Result&lt;TValue&gt;)</c>.
-    /// </exception>
+    /// <typeparam name="TValue">The source value type.</typeparam>
+    /// <typeparam name="TNext">The output value type of the chained operation.</typeparam>
+    /// <param name="result">The source result, passed by readonly reference.</param>
+    /// <param name="bind">The operation to execute with the success value.</param>
+    /// <returns>The result of executing <paramref name="bind"/> on success; otherwise, a failure with the original error.</returns>
+    /// <exception cref="InvalidOperationException"><paramref name="result"/> is an uninitialized default value</exception>
     [Pure]
     public static Result<TNext> Bind<TValue, TNext>(
         this in Result<TValue> result,
@@ -118,9 +125,14 @@ public static class ResultSyncExtensions
     /// <paramref name="state"/> to avoid closure allocation.
     /// The <c>in</c> parameter avoids copying the struct.
     /// </summary>
-    /// <exception cref="InvalidOperationException">
-    /// Thrown when <paramref name="result"/> is an uninitialized <c>default(Result&lt;TValue&gt;)</c>.
-    /// </exception>
+    /// <typeparam name="TValue">The source value type.</typeparam>
+    /// <typeparam name="TState">The type of the state object passed to the bind function.</typeparam>
+    /// <typeparam name="TNext">The output value type of the chained operation.</typeparam>
+    /// <param name="result">The source result, passed by readonly reference.</param>
+    /// <param name="state">The state value passed to the bind function.</param>
+    /// <param name="bind">The operation to execute with state and the success value.</param>
+    /// <returns>The result of executing <paramref name="bind"/> on success; otherwise, a failure with the original error.</returns>
+    /// <exception cref="InvalidOperationException"><paramref name="result"/> is an uninitialized default value</exception>
     [Pure]
     public static Result<TNext> Bind<TValue, TState, TNext>(
         this in Result<TValue> result,
@@ -139,9 +151,12 @@ public static class ResultSyncExtensions
     /// The <c>in</c> parameter avoids copying the struct — use when <typeparamref name="TValue"/>
     /// is a large value type (≥ 16 bytes).
     /// </summary>
-    /// <exception cref="InvalidOperationException">
-    /// Thrown when <paramref name="result"/> is an uninitialized <c>default(Result&lt;TValue&gt;)</c>.
-    /// </exception>
+    /// <typeparam name="TValue">The source value type.</typeparam>
+    /// <param name="result">The result to validate, passed by readonly reference.</param>
+    /// <param name="predicate">The condition to test on the success value.</param>
+    /// <param name="error">The error to return if the condition evaluates to <see langword="false"/>.</param>
+    /// <returns>The original result if valid or failed; otherwise, a failure with <paramref name="error"/>.</returns>
+    /// <exception cref="InvalidOperationException"><paramref name="result"/> is an uninitialized default value</exception>
     [Pure]
     public static Result<TValue> Ensure<TValue>(
         this in Result<TValue> result,
@@ -159,9 +174,12 @@ public static class ResultSyncExtensions
     /// The <c>in</c> parameter avoids copying the struct — use when <typeparamref name="TValue"/>
     /// is a large value type (≥ 16 bytes).
     /// </summary>
-    /// <exception cref="InvalidOperationException">
-    /// Thrown when <paramref name="result"/> is an uninitialized <c>default(Result&lt;TValue&gt;)</c>.
-    /// </exception>
+    /// <typeparam name="TValue">The source value type.</typeparam>
+    /// <param name="result">The result to validate, passed by readonly reference.</param>
+    /// <param name="predicate">The condition to test on the success value.</param>
+    /// <param name="errorFactory">A factory that generates the error if the condition evaluates to <see langword="false"/>.</param>
+    /// <returns>The original result if valid or failed; otherwise, a failure with the generated error.</returns>
+    /// <exception cref="InvalidOperationException"><paramref name="result"/> is an uninitialized default value</exception>
     [Pure]
     public static Result<TValue> Ensure<TValue>(
         this in Result<TValue> result,
@@ -179,9 +197,12 @@ public static class ResultSyncExtensions
     /// The <c>in</c> parameter avoids copying the struct — use when <typeparamref name="TValue"/>
     /// is a large value type (≥ 16 bytes).
     /// </summary>
-    /// <exception cref="InvalidOperationException">
-    /// Thrown when <paramref name="result"/> is an uninitialized <c>default(Result&lt;TValue&gt;)</c>.
-    /// </exception>
+    /// <typeparam name="TValue">The source value type.</typeparam>
+    /// <param name="result">The result to validate, passed by readonly reference.</param>
+    /// <param name="predicate">The condition to test on the success value.</param>
+    /// <param name="errorFactory">A factory that receives the value and generates the error if the condition evaluates to <see langword="false"/>.</param>
+    /// <returns>The original result if valid or failed; otherwise, a failure with the generated error.</returns>
+    /// <exception cref="InvalidOperationException"><paramref name="result"/> is an uninitialized default value</exception>
     [Pure]
     public static Result<TValue> Ensure<TValue>(
         this in Result<TValue> result,
@@ -197,9 +218,14 @@ public static class ResultSyncExtensions
     /// with captured <paramref name="state"/> to avoid closure allocation.
     /// The <c>in</c> parameter avoids copying the struct.
     /// </summary>
-    /// <exception cref="InvalidOperationException">
-    /// Thrown when <paramref name="result"/> is an uninitialized <c>default(Result&lt;TValue&gt;)</c>.
-    /// </exception>
+    /// <typeparam name="TValue">The source value type.</typeparam>
+    /// <typeparam name="TState">The type of the state object passed to the predicate.</typeparam>
+    /// <param name="result">The result to validate, passed by readonly reference.</param>
+    /// <param name="state">The state value passed to the predicate.</param>
+    /// <param name="predicate">The condition to test on state and the success value.</param>
+    /// <param name="error">The error to return if the condition evaluates to <see langword="false"/>.</param>
+    /// <returns>The original result if valid or failed; otherwise, a failure with <paramref name="error"/>.</returns>
+    /// <exception cref="InvalidOperationException"><paramref name="result"/> is an uninitialized default value</exception>
     [Pure]
     public static Result<TValue> Ensure<TValue, TState>(
         this in Result<TValue> result,
@@ -217,9 +243,14 @@ public static class ResultSyncExtensions
     /// The error factory is only invoked when the predicate fails.
     /// The <c>in</c> parameter avoids copying the struct.
     /// </summary>
-    /// <exception cref="InvalidOperationException">
-    /// Thrown when <paramref name="result"/> is an uninitialized <c>default(Result&lt;TValue&gt;)</c>.
-    /// </exception>
+    /// <typeparam name="TValue">The source value type.</typeparam>
+    /// <typeparam name="TState">The type of the state object passed to the predicate and error factory.</typeparam>
+    /// <param name="result">The result to validate, passed by readonly reference.</param>
+    /// <param name="state">The state value passed to the predicate and error factory.</param>
+    /// <param name="predicate">The condition to test on state and the success value.</param>
+    /// <param name="errorFactory">A factory that receives state and generates the error if the condition evaluates to <see langword="false"/>.</param>
+    /// <returns>The original result if valid or failed; otherwise, a failure with the generated error.</returns>
+    /// <exception cref="InvalidOperationException"><paramref name="result"/> is an uninitialized default value</exception>
     [Pure]
     public static Result<TValue> Ensure<TValue, TState>(
         this in Result<TValue> result,
@@ -237,9 +268,14 @@ public static class ResultSyncExtensions
     /// The error factory receives both the state and the value for context-aware error construction.
     /// The <c>in</c> parameter avoids copying the struct.
     /// </summary>
-    /// <exception cref="InvalidOperationException">
-    /// Thrown when <paramref name="result"/> is an uninitialized <c>default(Result&lt;TValue&gt;)</c>.
-    /// </exception>
+    /// <typeparam name="TValue">The source value type.</typeparam>
+    /// <typeparam name="TState">The type of the state object passed to the predicate and error factory.</typeparam>
+    /// <param name="result">The result to validate, passed by readonly reference.</param>
+    /// <param name="state">The state value passed to the predicate and error factory.</param>
+    /// <param name="predicate">The condition to test on state and the success value.</param>
+    /// <param name="errorFactory">A factory that receives state and value to generate the error if the condition evaluates to <see langword="false"/>.</param>
+    /// <returns>The original result if valid or failed; otherwise, a failure with the generated error.</returns>
+    /// <exception cref="InvalidOperationException"><paramref name="result"/> is an uninitialized default value</exception>
     [Pure]
     public static Result<TValue> Ensure<TValue, TState>(
         this in Result<TValue> result,
@@ -259,9 +295,13 @@ public static class ResultSyncExtensions
     /// The <c>in</c> parameter avoids copying the struct — use when <typeparamref name="TValue"/>
     /// is a large value type (≥ 16 bytes).
     /// </summary>
-    /// <exception cref="InvalidOperationException">
-    /// Thrown when <paramref name="result"/> is an uninitialized <c>default(Result&lt;TValue&gt;)</c>.
-    /// </exception>
+    /// <typeparam name="TValue">The source value type.</typeparam>
+    /// <typeparam name="TOut">The output value type produced by the matching functions.</typeparam>
+    /// <param name="result">The result to match on, passed by readonly reference.</param>
+    /// <param name="onSuccess">The function to evaluate with the value if successful.</param>
+    /// <param name="onFailure">The function to evaluate with the error if failed.</param>
+    /// <returns>The value produced by the invoked branch.</returns>
+    /// <exception cref="InvalidOperationException"><paramref name="result"/> is an uninitialized default value</exception>
     [Pure]
     public static TOut Match<TValue, TOut>(
         this in Result<TValue> result,
@@ -277,9 +317,15 @@ public static class ResultSyncExtensions
     /// <paramref name="state"/> to avoid closure allocation.
     /// The <c>in</c> parameter avoids copying the struct.
     /// </summary>
-    /// <exception cref="InvalidOperationException">
-    /// Thrown when <paramref name="result"/> is an uninitialized <c>default(Result&lt;TValue&gt;)</c>.
-    /// </exception>
+    /// <typeparam name="TValue">The source value type.</typeparam>
+    /// <typeparam name="TState">The type of the state object passed to the matching functions.</typeparam>
+    /// <typeparam name="TOut">The output value type produced by the matching functions.</typeparam>
+    /// <param name="result">The result to match on, passed by readonly reference.</param>
+    /// <param name="state">The state value passed to the matching delegates.</param>
+    /// <param name="onSuccess">The function to evaluate with state and value if successful.</param>
+    /// <param name="onFailure">The function to evaluate with state and error if failed.</param>
+    /// <returns>The value produced by the invoked branch.</returns>
+    /// <exception cref="InvalidOperationException"><paramref name="result"/> is an uninitialized default value</exception>
     [Pure]
     public static TOut Match<TValue, TState, TOut>(
         this in Result<TValue> result,
@@ -298,6 +344,7 @@ public static class ResultSyncExtensions
     /// The <c>in</c> parameter avoids copying the struct — use when <typeparamref name="TValue"/>
     /// is a large value type (≥ 16 bytes).
     /// </summary>
+    /// <typeparam name="TValue">The source value type.</typeparam>
     /// <param name="result">The result to inspect, passed by readonly reference.</param>
     /// <param name="value">When this method returns <see langword="true"/>, contains the success value.</param>
     /// <returns><see langword="true"/> if the result is a success; otherwise <see langword="false"/>.</returns>
@@ -332,6 +379,10 @@ public static class ResultSyncExtensions
     /// is a large value type (≥ 16 bytes).
     /// Per BCL convention, this method never throws, even for uninitialized results.
     /// </summary>
+    /// <typeparam name="TValue">The source value type.</typeparam>
+    /// <param name="result">The result to inspect, passed by readonly reference.</param>
+    /// <param name="defaultValue">The fallback value to return if the result is not a success.</param>
+    /// <returns>The success value if successful; otherwise, <paramref name="defaultValue"/>.</returns>
     /// <remarks>
     /// This method intentionally does NOT throw for an uninitialized <c>default(Result&lt;TValue&gt;)</c>.
     /// Per BCL <c>*OrDefault</c> convention (e.g., <c>Enumerable.FirstOrDefault</c>,
@@ -351,3 +402,4 @@ public static class ResultSyncExtensions
         return result.IsSuccess ? result.Value : defaultValue;
     }
 }
+

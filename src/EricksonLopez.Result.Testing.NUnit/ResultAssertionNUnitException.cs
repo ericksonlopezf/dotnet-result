@@ -1,4 +1,6 @@
+// Copyright © Erickson Lopez. MIT License.
 using System;
+using EricksonLopez.Result;
 using NUnit.Framework;
 
 namespace EricksonLopez.Result.Testing.NUnit;
@@ -37,3 +39,4 @@ public sealed class ResultAssertionNUnitException : AssertionException
     {
     }
 }
+

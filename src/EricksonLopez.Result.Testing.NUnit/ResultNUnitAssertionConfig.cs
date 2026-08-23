@@ -1,4 +1,7 @@
+// Copyright © Erickson Lopez. MIT License.
 using System;
+using System.Threading;
+using EricksonLopez.Result;
 using EricksonLopez.Result.Testing;
 
 namespace EricksonLopez.Result.Testing.NUnit;
@@ -40,7 +43,7 @@ public static class ResultNUnitAssertionConfig
     /// </summary>
     public static void UseNUnitExceptions()
     {
-        if (System.Threading.Interlocked.CompareExchange(ref _configured, 1, 0) != 0) return;
+        if (Interlocked.CompareExchange(ref _configured, 1, 0) != 0) return;
         ResultAssertionException.ExceptionFactory =
             static message => new ResultAssertionNUnitException(message);
     }
@@ -50,7 +53,10 @@ public static class ResultNUnitAssertionConfig
     /// </summary>
     internal static void Reset()
     {
-        System.Threading.Interlocked.Exchange(ref _configured, 0);
+        Interlocked.Exchange(ref _configured, 0);
         ResultAssertionException.ExceptionFactory = static msg => new ResultAssertionException(msg);
     }
 }
+
+
+

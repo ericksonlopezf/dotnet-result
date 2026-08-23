@@ -1,14 +1,16 @@
-using BenchmarkDotNet.Attributes;
-using BenchmarkDotNet.Columns;
-using BenchmarkDotNet.Jobs;
-using BenchmarkDotNet.Order;
-using System.Text.Json;
-using EricksonLopez.Result.Serialization;
-
+// Copyright © Erickson Lopez. MIT License.
 // Benchmarks intentionally use the reflection-based constructor to measure its performance baseline.
 // CS0618/CS0619: Suppressed because this benchmark explicitly measures the reflection path as a baseline
 // to compare against the AOT-safe JsonTypeInfo<T> overload.
 #pragma warning disable CS0618, CS0619
+using System;
+using System.Text.Json;
+using BenchmarkDotNet.Attributes;
+using BenchmarkDotNet.Columns;
+using BenchmarkDotNet.Jobs;
+using BenchmarkDotNet.Order;
+using EricksonLopez.Result;
+using EricksonLopez.Result.Serialization;
 
 namespace EricksonLopez.Result.Benchmarks;
 
@@ -51,7 +53,7 @@ public class SerializationBenchmarks
             .WithMetadata("ratio", 3.14)
             .WithMetadata("active", true)
             .WithMetadata("name", "test")
-            .WithMetadata("id", System.Guid.Empty)
+            .WithMetadata("id", Guid.Empty)
             .Build();
 
         _errorWithInnerErrors = Error.Create("Bench.Inner", "Error with inner errors")
@@ -124,5 +126,8 @@ public class SerializationBenchmarks
         return JsonSerializer.Deserialize<Result>(bytes, _options);
     }
 }
+
+
+
 
 

@@ -1,3 +1,4 @@
+// Copyright © Erickson Lopez. MIT License.
 using System;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
@@ -29,3 +30,4 @@ internal static class ResultThrowHelper
             "Cannot operate on an uninitialized default Result<TValue>. " +
             "Always construct Result<TValue> via Result.Success(value) or Result.Failure(error).");
 }
+

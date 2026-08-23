@@ -1,7 +1,9 @@
+// Copyright © Erickson Lopez. MIT License.
 using BenchmarkDotNet.Attributes;
 using BenchmarkDotNet.Columns;
 using BenchmarkDotNet.Jobs;
 using BenchmarkDotNet.Order;
+using EricksonLopez.Result;
 
 namespace EricksonLopez.Result.Benchmarks;
 
@@ -120,5 +122,7 @@ public class ResultPipelineBenchmarks
             .Map(0, static (_, x) => x.ToString())
             .TapOnSuccess(this, static (self, x) => self._sideEffect = x.Length);
 }
+
+
 
 

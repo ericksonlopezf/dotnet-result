@@ -1,4 +1,5 @@
 <Project Sdk="Microsoft.NET.Sdk">
+  <!-- Copyright © Erickson Lopez. MIT License. -->
   <PropertyGroup>
     <TargetFrameworks>net8.0;net9.0;net10.0</TargetFrameworks>
     <LangVersion>latest</LangVersion>
@@ -15,24 +16,30 @@
       so failed assertions appear as "Failure" (not "Error") in xUnit's test output,
       producing cleaner assertion messages without unnecessary stack traces.
     </Description>
-    <PackageProjectUrl>https://github.com/ericksonlopez/dotnet-result</PackageProjectUrl>
-    <RepositoryUrl>https://github.com/ericksonlopez/dotnet-result</RepositoryUrl>
+    <PackageProjectUrl>https://github.com/ericksonlopezf/dotnet-result</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/ericksonlopezf/dotnet-result</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
-    <ImplicitUsings>enable</ImplicitUsings>
+    <ImplicitUsings>disable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <IsAotCompatible>false</IsAotCompatible>
     <!-- xUnit.core is not AOT-compatible; test packages are never deployed in AOT production code -->
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
-    <PackageTags>result;testing;xunit;assertions;dotnet</PackageTags>
+    <PackageTags>$(CommonPackageTags);xunit;xunit2;xunit3;testing;unit-testing;assertions;test-adapter</PackageTags>
   </PropertyGroup>
 
   <ItemGroup>
     <!-- xunit.v3.assert ships XunitException in Xunit.Sdk; compatible with xUnit 3.x test projects. -->
-    <PackageReference Include="xunit.v3.assert" Version="1.0.0" />
+    <PackageReference Include="xunit.v3.assert" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\EricksonLopez.Result.Testing\EricksonLopez.Result.Testing.csproj" />
   </ItemGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="EricksonLopez.Result.Testing.XUnit.Tests" Key="$(PublicKey)" />
+  </ItemGroup>
 </Project>
+
+

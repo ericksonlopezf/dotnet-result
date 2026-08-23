@@ -1,3 +1,5 @@
+// Copyright © Erickson Lopez. MIT License.
+using System;
 using System.Collections.Generic;
 
 namespace EricksonLopez.Result;
@@ -66,22 +68,22 @@ public static class ErrorEqualityComparer
             var hashCode = new HashCode();
             hashCode.Add(obj.Code, System.StringComparer.Ordinal);
             hashCode.Add(obj.Description, System.StringComparer.Ordinal);
-            hashCode.Add(obj.Type);
-            hashCode.Add(obj.Severity);
-            hashCode.Add(obj.Retryability);
-            hashCode.Add(obj.DescriptionKey);
-            hashCode.Add(obj.TraceId);
-            hashCode.Add(obj.CorrelationId);
+            hashCode.Add<ErrorType>(obj.Type);
+            hashCode.Add<ErrorSeverity>(obj.Severity);
+            hashCode.Add<ErrorRetryability>(obj.Retryability);
+            hashCode.Add<string?>(obj.DescriptionKey, System.StringComparer.Ordinal);
+            hashCode.Add<string?>(obj.TraceId, System.StringComparer.Ordinal);
+            hashCode.Add<string?>(obj.CorrelationId, System.StringComparer.Ordinal);
 
             if (obj.HasInnerErrors)
             {
                 // Hash count + each inner error's Code+Type so that errors with the same
                 // number of inner errors but different content get distinct hashes.
-                hashCode.Add(obj.InnerErrors.Length);
+                hashCode.Add<int>(obj.InnerErrors.Length);
                 foreach (var inner in obj.InnerErrors)
                 {
                     hashCode.Add(inner.Code, System.StringComparer.Ordinal);
-                    hashCode.Add(inner.Type);
+                    hashCode.Add<ErrorType>(inner.Type);
                 }
             }
 
@@ -89,12 +91,13 @@ public static class ErrorEqualityComparer
             {
                 // Hash count + each key so that errors with the same number of metadata
                 // entries but different keys (or values) get distinct hashes.
-                hashCode.Add(obj.Metadata.Count);
+                hashCode.Add<int>(obj.Metadata.Count);
                 foreach (var kvp in obj.Metadata)
                 {
                     hashCode.Add(kvp.Key, System.StringComparer.Ordinal);
-                    // Value hash: use ToString() as a safe fallback that works for all object types.
-                    hashCode.Add(kvp.Value?.GetHashCode() ?? 0);
+                    // Value hash: use safe fallback that works for all object types.
+                    int valHash = kvp.Value is null ? 0 : kvp.Value.GetHashCode();
+                    hashCode.Add<int>(valHash);
                 }
             }
 
@@ -102,3 +105,5 @@ public static class ErrorEqualityComparer
         }
     }
 }
+
+

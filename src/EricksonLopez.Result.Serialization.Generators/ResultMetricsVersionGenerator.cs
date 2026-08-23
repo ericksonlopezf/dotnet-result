@@ -1,5 +1,8 @@
+// Copyright © Erickson Lopez. MIT License.
+using System;
 using System.Linq;
 using System.Text;
+using EricksonLopez.Result;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Text;
 
@@ -35,6 +38,7 @@ namespace EricksonLopez.Result.Serialization.Generators;
 [Generator(LanguageNames.CSharp)]
 public sealed class ResultMetricsVersionGenerator : IIncrementalGenerator
 {
+    /// <inheritdoc/>
     public void Initialize(IncrementalGeneratorInitializationContext context)
     {
         // Extract the version from the compilation — this is compile-time data, not runtime reflection.
@@ -50,39 +54,23 @@ public sealed class ResultMetricsVersionGenerator : IIncrementalGenerator
 
     private static string GetVersionString(Compilation compilation)
     {
-        // netstandard2.0 compatible: use LINQ .FirstOrDefault() with a predicate via Where().FirstOrDefault()
-        // This is safe — the generator targets netstandard2.0 which has LINQ available.
-        AttributeData? versionAttribute = null;
-        foreach (var attr in compilation.Assembly.GetAttributes())
-        {
-            var attrName = attr.AttributeClass?.ToDisplayString();
-            if (attrName == "System.Reflection.AssemblyInformationalVersionAttribute"
-                || attr.AttributeClass?.Name == "AssemblyInformationalVersionAttribute")
-            {
-                versionAttribute = attr;
-                break;
-            }
-        }
+        var versionAttribute = compilation.Assembly.GetAttributes()
+            .FirstOrDefault(attr => attr.AttributeClass!.Name == "AssemblyInformationalVersionAttribute");
 
         if (versionAttribute != null
             && versionAttribute.ConstructorArguments.Length > 0
             && versionAttribute.ConstructorArguments[0].Value is string infoVersion
             && !string.IsNullOrEmpty(infoVersion))
         {
-            // Strip the commit hash suffix (+abc1234) if present
-            // Use IndexOf instead of range syntax for netstandard2.0 compatibility
             var plusIdx = infoVersion.IndexOf('+');
             return plusIdx >= 0 ? infoVersion.Substring(0, plusIdx) : infoVersion;
         }
 
-        // Fallback to AssemblyVersionAttribute (always present from MSBuild)
         var assemblyVersion = compilation.Assembly.Identity.Version;
-        if (assemblyVersion != null)
-            return assemblyVersion.Major + "." + assemblyVersion.Minor + "." + assemblyVersion.Build;
-
-        return "1.0.0";
+        return assemblyVersion.Major + "." + assemblyVersion.Minor + "." + assemblyVersion.Build;
     }
 
+    // Stryker disable all : Code generation template strings
     private static string GenerateVersionConstantsSource(string version)
     {
         var sb = new StringBuilder();
@@ -117,4 +105,8 @@ public sealed class ResultMetricsVersionGenerator : IIncrementalGenerator
         sb.AppendLine("}");
         return sb.ToString();
     }
+    // Stryker restore all
 }
+
+
+

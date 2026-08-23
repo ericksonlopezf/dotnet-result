@@ -1,4 +1,5 @@
 <Project Sdk="Microsoft.NET.Sdk">
+  <!-- Copyright © Erickson Lopez. MIT License. -->
   <PropertyGroup>
     <TargetFrameworks>net8.0;net9.0;net10.0</TargetFrameworks>
     <LangVersion>latest</LangVersion>
@@ -10,10 +11,11 @@
     <Company>Erickson Lopez</Company>
     <Copyright>Copyright © 2026 Erickson Lopez</Copyright>
     <Description>OpenTelemetry ActivitySource tracing and Metrics integration for EricksonLopez.Result.</Description>
-    <PackageProjectUrl>https://github.com/ericksonlopez/dotnet-result</PackageProjectUrl>
-    <RepositoryUrl>https://github.com/ericksonlopez/dotnet-result</RepositoryUrl>
+    <PackageProjectUrl>https://github.com/ericksonlopezf/dotnet-result</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/ericksonlopezf/dotnet-result</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageTags>$(CommonPackageTags);opentelemetry;telemetry;observability;tracing;metrics;activitysource;distributed-tracing;native-aot</PackageTags>
     <ImplicitUsings>disable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <IsAotCompatible>true</IsAotCompatible>
@@ -23,7 +25,7 @@
 
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="8.0.1" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" />
     <ProjectReference Include="..\EricksonLopez.Result\EricksonLopez.Result.csproj" />
     <!-- Source generator: emits ResultMetricsVersionConstants.g.cs at build time,
          providing the version as a compile-time const string without runtime reflection.
@@ -35,7 +37,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <InternalsVisibleTo Include="EricksonLopez.Result.Tests" Key="$(PublicKey)" />
+    <InternalsVisibleTo Include="EricksonLopez.Result.OpenTelemetry.Tests" Key="$(PublicKey)" />
   </ItemGroup>
 </Project>
+
 

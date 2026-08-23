@@ -1,22 +1,11 @@
-﻿using System;
+// Copyright © Erickson Lopez. MIT License.
+using System;
+using System.Threading;
+using System.Threading.Tasks;
+using EricksonLopez.Result;
 
 namespace EricksonLopez.Result.Testing;
 
-/// <summary>
-/// Exception thrown when a Result assertion fails.
-/// </summary>
-/// <remarks>
-/// <para>
-/// This exception inherits from <see cref="Exception"/> rather than a test framework-specific
-/// assertion exception (e.g., xUnit's <c>XunitException</c>) to avoid coupling to a specific
-/// test framework. Test runners such as xUnit, NUnit, and MSTest will display this as a test
-/// failure in the output, though it may appear in the "Error" column rather than "Failure" for
-/// some runners.
-/// </para>
-/// <para>
-/// CA1032: All standard Exception constructors are implemented.
-/// </para>
-/// </remarks>
 /// <summary>
 /// Exception thrown when a Result assertion fails.
 /// </summary>
@@ -37,7 +26,6 @@ namespace EricksonLopez.Result.Testing;
 /// CA1032: All standard Exception constructors are implemented.
 /// </para>
 /// </remarks>
-[System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage]
 public class ResultAssertionException : Exception
 {
     // ─── Configurable exception factory ───────────────────────────────────────
@@ -54,20 +42,21 @@ public class ResultAssertionException : Exception
     /// <summary>
     /// Gets or sets the factory function used to create assertion exceptions.
     /// Override this to produce framework-native exceptions (e.g., xUnit's XunitException).
-    /// Thread-safe: uses <see cref="System.Threading.Interlocked"/> for atomic access.
+    /// Thread-safe: uses <see cref="Interlocked"/> for atomic access.
     /// </summary>
+    /// <exception cref="ArgumentNullException">The assigned value is <see langword="null"/></exception>
     /// <remarks>
     /// Do not call this directly. Use <c>ResultXUnitAssertionConfig.UseXUnitExceptions()</c> from
     /// the <c>EricksonLopez.Result.Testing.XUnit</c> package, or the equivalent for your test framework.
     /// </remarks>
     public static Func<string, Exception> ExceptionFactory
     {
-        get => System.Threading.Volatile.Read(ref _factory);
+        get => Volatile.Read(ref _factory);
         set
         {
             ArgumentNullException.ThrowIfNull(value);
             // Stryker disable once all : Framework thread-safety implementation
-            System.Threading.Interlocked.Exchange(ref _factory, value);
+            Interlocked.Exchange(ref _factory, value);
         }
     }
 
@@ -111,4 +100,8 @@ public class ResultAssertionException : Exception
     {
     }
 }
+
+
+
+
 

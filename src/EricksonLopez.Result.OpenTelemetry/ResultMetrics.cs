@@ -1,7 +1,9 @@
-
+// Copyright © Erickson Lopez. MIT License.
 using System;
 using System.Diagnostics;
 using System.Diagnostics.Metrics;
+using System.Threading;
+using EricksonLopez.Result;
 
 namespace EricksonLopez.Result.OpenTelemetry;
 
@@ -54,14 +56,6 @@ public sealed class ResultMetrics : IDisposable
     /// </remarks>
     internal static readonly string AssemblyVersion = ResultMetricsVersionConstants.Version;
 
-    private static readonly Meter Meter;
-
-    [System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage]
-    static ResultMetrics()
-    {
-        Meter = new("EricksonLopez.Result", AssemblyVersion);
-    }
-
     // ─── Static meter (for legacy/simple usage without DI) ────────────────────
     // ⚠️ Lifecycle note: _staticMeter is intentionally NEVER DISPOSED.
     // It is a process-singleton that is lazily initialized on first static-mode call and remains
@@ -73,7 +67,7 @@ public sealed class ResultMetrics : IDisposable
     private static readonly object StaticLock = new();
     private static Meter? _staticMeter;
     private static Counter<long>? _staticOperationsCounter;
-    
+
     // 0 = uninitialized, 1 = static mode, 2 = DI mode
     private static int _initializationMode;
 
@@ -99,14 +93,13 @@ public sealed class ResultMetrics : IDisposable
     /// Leave <see langword="false"/> when the meter is provided by <c>IMeterFactory</c> in DI —  the factory
     /// manages the meter lifecycle automatically. See <c>AddResultMetrics()</c> for the DI registration.
     /// </param>
-    [System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage]
     public ResultMetrics(Meter meter, bool ownsMeter = true)
     {
         ArgumentNullException.ThrowIfNull(meter);
 
         if (!ownsMeter)
         {
-            if (System.Threading.Interlocked.CompareExchange(ref _initializationMode, 2, 0) == 1)
+            if (Interlocked.CompareExchange(ref _initializationMode, 2, 0) == 1)
             {
                 throw new InvalidOperationException("Cannot initialize DI ResultMetrics because static mode is already active. Mixing both modes causes double-counting.");
             }
@@ -119,6 +112,8 @@ public sealed class ResultMetrics : IDisposable
     // ——— DI instance methods —————————————————
 
     /// <summary>Records a success outcome using the instance meter.</summary>
+    /// <param name="operationName">The name of the operation being recorded.</param>
+    /// <exception cref="ObjectDisposedException">This instance has been disposed</exception>
     public void TrackSuccess(string operationName)
     {
         ObjectDisposedException.ThrowIf(_disposed, this);
@@ -130,6 +125,10 @@ public sealed class ResultMetrics : IDisposable
     }
 
     /// <summary>Records a failure outcome using the instance meter.</summary>
+    /// <param name="operationName">The name of the operation being recorded.</param>
+    /// <param name="errorCode">The application error code associated with the failure.</param>
+    /// <param name="errorType">The string representation of the error type.</param>
+    /// <exception cref="ObjectDisposedException">This instance has been disposed</exception>
     /// <remarks>
     /// <b>⚠️ CARDINALITY WARNING:</b> The <paramref name="errorCode"/> parameter is recorded as a
     /// metric tag dimension (<c>ericksonlopez.result.error.code</c>). Ensure error codes are
@@ -166,40 +165,10 @@ public sealed class ResultMetrics : IDisposable
 
     /// <summary>
     /// Records a success outcome using the static (non-DI) meter.
-    /// </summary>
-    /// <remarks>
-    /// Uses a static meter that is never disposed. For tests and production code with DI,
-    /// prefer creating a <see cref="ResultMetrics"/> instance with a DI-provided <see cref="Meter"/>
-    /// and passing it to extension methods via the <c>metrics</c> parameter to avoid double-counting.
-    /// </remarks>
-    [Obsolete("Use TrackSuccess(string) instead for consistent naming with instance methods. This method will be removed in v2.0.")]
-    public static void RecordSuccess(string operationName)
-        => StaticTrackSuccess(operationName);
-
-    /// <summary>
-    /// Records a failure outcome using the static (non-DI) meter.
-    /// </summary>
-    /// <remarks>
-    /// Uses a static meter that is never disposed. For tests and production code with DI,
-    /// prefer creating a <see cref="ResultMetrics"/> instance with a DI-provided <see cref="Meter"/>
-    /// and passing it to extension methods via the <c>metrics</c> parameter to avoid double-counting.
-    /// <para>
-    /// <b>⚠️ CARDINALITY WARNING:</b> The <paramref name="errorCode"/> parameter is recorded as a
-    /// metric tag dimension (<c>ericksonlopez.result.error.code</c>). If error codes are high-cardinality
-    /// (e.g., contain user IDs, request IDs, or record IDs), your metrics backend (Prometheus, OTLP, Azure Monitor)
-    /// will create a distinct time series for each unique value, potentially causing a metrics explosion.<br/>
-    /// Ensure error codes are low-cardinality bounded enumerations (e.g., <c>"NOT_FOUND"</c>,
-    /// <c>"VALIDATION_ERROR"</c>), not per-request identifiers.
-    /// </para>
-    /// </remarks>
-    [Obsolete("Use TrackFailure(string, string, string) instead for consistent naming with instance methods. This method will be removed in v2.0.")]
-    public static void RecordFailure(string operationName, string errorCode, string errorType)
-        => StaticTrackFailure(operationName, errorCode, errorType);
-
-    /// <summary>
-    /// Records a success outcome using the static (non-DI) meter.
     /// Consistent naming with the instance <see cref="TrackSuccess(string)"/> method.
     /// </summary>
+    /// <param name="operationName">The name of the operation being recorded.</param>
+    /// <exception cref="InvalidOperationException">DI mode is already active</exception>
     /// <remarks>
     /// <para>
     /// This is the primary API for scenarios without a DI container: console apps, AWS Lambda, Azure Functions v1,
@@ -231,6 +200,10 @@ public sealed class ResultMetrics : IDisposable
     /// Records a failure outcome using the static (non-DI) meter.
     /// Consistent naming with the instance <see cref="TrackFailure(string, string, string)"/> method.
     /// </summary>
+    /// <param name="operationName">The name of the operation being recorded.</param>
+    /// <param name="errorCode">The application error code associated with the failure.</param>
+    /// <param name="errorType">The string representation of the error type.</param>
+    /// <exception cref="InvalidOperationException">DI mode is already active</exception>
     /// <remarks>
     /// <para>
     /// This is the primary API for scenarios without a DI container: console apps, AWS Lambda, Azure Functions v1,
@@ -267,24 +240,21 @@ public sealed class ResultMetrics : IDisposable
         });
     }
 
-    [System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage]
     private static void EnsureStaticInstruments()
     {
-        bool shouldReturn = ShouldReturnStaticInstruments();
-        if (shouldReturn)
+        if (_staticOperationsCounter is not null)
         {
             return;
         }
 
         lock (StaticLock)
         {
-            bool isInitialized = IsStaticInstrumentInitialized();
-            if (isInitialized)
+            if (_staticOperationsCounter is not null)
             {
                 return;
             }
 
-            if (System.Threading.Interlocked.CompareExchange(ref _initializationMode, 1, 0) == 2)
+            if (Interlocked.CompareExchange(ref _initializationMode, 1, 0) == 2)
             {
                 throw new InvalidOperationException("Cannot initialize static ResultMetrics because DI mode (services.AddResultMetrics) is already active. Mixing both modes causes double-counting.");
             }
@@ -318,7 +288,6 @@ public sealed class ResultMetrics : IDisposable
     /// with <see cref="StaticTrackSuccess"/> or <see cref="StaticTrackFailure"/>.
     /// </para>
     /// </remarks>
-    [System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage]
     internal static void ResetStaticMeterForTesting()
     {
         lock (StaticLock)
@@ -330,12 +299,14 @@ public sealed class ResultMetrics : IDisposable
         }
     }
 
-    [System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage]
-    private static bool ShouldReturnStaticInstruments() => _staticOperationsCounter is not null;
-
-    [System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage]
-    private static bool IsStaticInstrumentInitialized() => _staticOperationsCounter is not null;
+    internal Meter? OwnedMeterForTesting => _ownedMeter;
+    internal static Meter? StaticMeterForTesting => _staticMeter;
+    internal static Counter<long>? StaticOperationsCounterForTesting => _staticOperationsCounter;
+    internal static object StaticLockForTesting => StaticLock;
 }
+
+
+
 
 
 

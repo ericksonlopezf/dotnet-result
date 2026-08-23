@@ -1,4 +1,5 @@
 <Project Sdk="Microsoft.NET.Sdk">
+  <!-- Copyright © Erickson Lopez. MIT License. -->
   <PropertyGroup>
     <!-- Multi-target so BenchmarkDotNet can spawn worker processes for each TFM.
          net10.0 is required for RuntimeMoniker.Net100 in BDN 0.15.x.
@@ -11,6 +12,7 @@
     <IsPackable>false</IsPackable>
     <!-- Benchmarks are not AOT-compatible due to BenchmarkDotNet internals -->
     <IsAotCompatible>false</IsAotCompatible>
+    <EnableTrimAnalyzer>false</EnableTrimAnalyzer>
     <!-- Benchmark methods use underscores for readability and cannot be static -->
     <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
     <NoWarn>$(NoWarn);CA1707;CA1822;CA1305;CS1591;CA1716;CA1000;CA1510</NoWarn>
@@ -18,7 +20,7 @@
 
   <ItemGroup>
     <!-- 0.15.8 adds RuntimeMoniker.Net100 for .NET 10.0 benchmark jobs -->
-    <PackageReference Include="BenchmarkDotNet" Version="0.15.8" />
+    <PackageReference Include="BenchmarkDotNet" />
   </ItemGroup>
 
   <ItemGroup>
@@ -27,3 +29,4 @@
     <ProjectReference Include="..\..\src\EricksonLopez.Result.MediatR\EricksonLopez.Result.MediatR.csproj" />
   </ItemGroup>
 </Project>
+

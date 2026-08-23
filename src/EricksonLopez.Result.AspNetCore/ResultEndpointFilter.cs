@@ -1,5 +1,8 @@
+// Copyright © Erickson Lopez. MIT License.
 using System;
+using System.Threading;
 using System.Threading.Tasks;
+using EricksonLopez.Result;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Options;
 
@@ -35,6 +38,7 @@ public sealed class ResultEndpointFilter : IEndpointFilter
     /// <summary>
     /// Initializes a new instance of the <see cref="ResultEndpointFilter"/> class using DI options.
     /// </summary>
+    /// <param name="options">The configured HTTP options from dependency injection, or <see langword="null"/> to use defaults.</param>
     [Microsoft.Extensions.DependencyInjection.ActivatorUtilitiesConstructor]
     public ResultEndpointFilter(IOptions<ResultHttpOptions>? options = null)
         : this(options?.Value)
@@ -120,3 +124,7 @@ public sealed class ResultEndpointFilter : IEndpointFilter
         return result;
     }
 }
+
+
+
+

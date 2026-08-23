@@ -1,3 +1,6 @@
+// Copyright © Erickson Lopez. MIT License.
+using System;
+
 namespace EricksonLopez.Result;
 
 /// <summary>
@@ -90,3 +93,5 @@ internal static class ErrorEnumStrings
         _ => "error"
     };
 }
+
+

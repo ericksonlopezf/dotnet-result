@@ -1,4 +1,8 @@
+// Copyright © Erickson Lopez. MIT License.
+using System;
 using System.Diagnostics;
+using System.Threading;
+using EricksonLopez.Result;
 
 namespace EricksonLopez.Result.OpenTelemetry;
 
@@ -28,7 +32,7 @@ namespace EricksonLopez.Result.OpenTelemetry;
 /// to the <c>metrics</c> parameter of <c>TraceOutcome</c>, <c>TraceOnFailure</c>, and
 /// <c>TraceOnSuccess</c>. If you call these methods without the <c>metrics</c> parameter,
 /// no DI metrics will be recorded. However, if you ALSO call <see cref="ResultMetrics.StaticTrackSuccess"/>
-/// or <see cref="ResultMetrics.RecordFailure"/> separately (static mode), both the static and DI meters
+/// or <see cref="ResultMetrics.StaticTrackFailure"/> separately (static mode), both the static and DI meters
 /// will emit events, resulting in double-counted metrics. Choose one mode:
 /// <list type="bullet">
 ///   <item><b>DI mode:</b> Use <c>services.AddResultMetrics()</c> + pass the instance via the <c>metrics</c> parameter.</item>
@@ -55,7 +59,6 @@ public static class ResultActivityExtensions
     /// </summary>
     public static readonly ActivitySource ResultSource;
 
-    [System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage]
     static ResultActivityExtensions()
     {
         ResultSource = new(ActivitySourceName, ResultMetrics.AssemblyVersion);
@@ -105,8 +108,9 @@ public static class ResultActivityExtensions
     /// Optional <see cref="ResultMetrics"/> instance for recording metrics. When provided, records
     /// success or failure using the instance meter. When <see langword="null"/>, no metrics are recorded.
     /// To use the static (non-DI) meter, call <see cref="ResultMetrics.StaticTrackSuccess"/> /
-    /// <see cref="ResultMetrics.RecordFailure"/> explicitly after this method.
+    /// <see cref="ResultMetrics.StaticTrackFailure"/> explicitly after this method.
     /// </param>
+    /// <returns>The original <paramref name="result"/> instance unchanged.</returns>
     public static Result TraceOutcome(this in Result result, string operationName, Activity? targetActivity = null, ResultMetrics? metrics = null)
     {
         var activity = targetActivity ?? Activity.Current;
@@ -159,6 +163,7 @@ public static class ResultActivityExtensions
     /// </code>
     /// </para>
     /// </param>
+    /// <returns>The original <paramref name="result"/> instance unchanged.</returns>
     public static Result TraceOnFailure(this in Result result, string operationName, Activity? targetActivity = null, ResultMetrics? metrics = null)
     {
         if (!result.IsFailure) return result;
@@ -204,6 +209,7 @@ public static class ResultActivityExtensions
     /// both success and failure to be recorded in a single call.
     /// </para>
     /// </param>
+    /// <returns>The original <paramref name="result"/> instance unchanged.</returns>
     public static Result TraceOnSuccess(this in Result result, string operationName, Activity? targetActivity = null, ResultMetrics? metrics = null)
     {
         if (!result.IsSuccess) return result;
@@ -225,6 +231,7 @@ public static class ResultActivityExtensions
     /// For failure, sets activity status to Error and records error attributes.
     /// For success, sets activity status to Ok and records success metrics.
     /// </summary>
+    /// <typeparam name="T">The value type of the result.</typeparam>
     /// <param name="result">The result to trace.</param>
     /// <param name="operationName">The name of the operation being traced.</param>
     /// <param name="targetActivity">The activity to record on. Defaults to <see cref="Activity.Current"/> if null.</param>
@@ -244,6 +251,7 @@ public static class ResultActivityExtensions
     /// </code>
     /// </para>
     /// </param>
+    /// <returns>The original <paramref name="result"/> instance unchanged.</returns>
     public static Result<T> TraceOutcome<T>(this in Result<T> result, string operationName, Activity? targetActivity = null, ResultMetrics? metrics = null)
     {
         var activity = targetActivity ?? Activity.Current;
@@ -276,6 +284,7 @@ public static class ResultActivityExtensions
     /// Records only a failure outcome to an Activity and updates failure metrics.
     /// If the result is successful, no recording occurs.
     /// </summary>
+    /// <typeparam name="T">The value type of the result.</typeparam>
     /// <param name="result">The result to trace.</param>
     /// <param name="operationName">The name of the operation being traced.</param>
     /// <param name="targetActivity">The activity to record on. Defaults to <see cref="Activity.Current"/> if null.</param>
@@ -283,6 +292,7 @@ public static class ResultActivityExtensions
     /// Optional <see cref="ResultMetrics"/> instance for recording metrics. When provided, records
     /// failure using the instance meter. When <see langword="null"/>, no metrics are recorded.
     /// </param>
+    /// <returns>The original <paramref name="result"/> instance unchanged.</returns>
     public static Result<T> TraceOnFailure<T>(this in Result<T> result, string operationName, Activity? targetActivity = null, ResultMetrics? metrics = null)
     {
         if (!result.IsFailure) return result;
@@ -305,6 +315,7 @@ public static class ResultActivityExtensions
     /// Records only a success outcome to an Activity and updates success metrics.
     /// If the result is a failure, no recording occurs.
     /// </summary>
+    /// <typeparam name="T">The value type of the result.</typeparam>
     /// <param name="result">The result to trace.</param>
     /// <param name="operationName">The name of the operation being traced.</param>
     /// <param name="targetActivity">The activity to record on. Defaults to <see cref="Activity.Current"/> if null.</param>
@@ -312,6 +323,7 @@ public static class ResultActivityExtensions
     /// Optional <see cref="ResultMetrics"/> instance for recording metrics. When provided, records
     /// success using the instance meter. When <see langword="null"/>, no metrics are recorded.
     /// </param>
+    /// <returns>The original <paramref name="result"/> instance unchanged.</returns>
     public static Result<T> TraceOnSuccess<T>(this in Result<T> result, string operationName, Activity? targetActivity = null, ResultMetrics? metrics = null)
     {
         if (!result.IsSuccess) return result;
@@ -338,6 +350,9 @@ public static class ResultActivityExtensions
     private static string ErrorSeverityToString(ErrorSeverity severity)
         => ErrorEnumStrings.ErrorSeverityToOTelString(severity);
 }
+
+
+
 
 
 

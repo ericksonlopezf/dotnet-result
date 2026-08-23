@@ -1,0 +1,7 @@
+# Test Projects EditorConfig — ADR-017 Method_Scenario_Result Naming Standards
+
+[*.cs]
+# ADR-017: Roy Osherove's Method_Scenario_Result test naming pattern
+# Tests are living executable specifications whose readability in CI logs and test runners is paramount.
+dotnet_diagnostic.IDE1006.severity = none
+dotnet_diagnostic.CA1707.severity = none

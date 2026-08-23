@@ -1,5 +1,10 @@
+// Copyright © Erickson Lopez. MIT License.
 using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
+using EricksonLopez.Result;
 
 namespace EricksonLopez.Result.Testing;
 
@@ -7,8 +12,11 @@ namespace EricksonLopez.Result.Testing;
 /// Fluent testing assertion extensions for <see cref="Result"/> and <see cref="Result{T}"/>.
 /// </summary>
 [System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage]
+// Stryker disable Boolean : ConfigureAwait(false) equivalent mutation
+// Stryker disable String : Assertion error messages
 public static class ResultAssertions
 {
+    // Stryker disable Boolean : ConfigureAwait(false) equivalent mutation
     private static async Task<TOut> AwaitAndAssert<TIn, TOut>(Task<TIn> task, Func<TIn, TOut> assert)
     {
         var result = await task.ConfigureAwait(false);
@@ -18,41 +26,56 @@ public static class ResultAssertions
     /// <summary>
     /// Asserts that the Result is successful.
     /// </summary>
+    /// <param name="result">The result to inspect.</param>
+    /// <param name="message">Optional custom failure message.</param>
+    /// <returns>The original result for chaining.</returns>
+    /// <exception cref="ResultAssertionException">The result is not a success</exception>
     public static Result ShouldBeSuccess(this in Result result, string? message = null)
     {
         if (result.IsFailure)
-        throw new ResultAssertionException(message ?? $"Expected Result to be Success, but failed with Error: {result.Error.Code} - {result.Error.Description}");
-        
+            throw new ResultAssertionException(message ?? $"Expected Result to be Success, but failed with Error: {result.Error.Code} - {result.Error.Description}");
+
         if (result.IsUninitialized)
-        throw new ResultAssertionException("Expected Result to be Success, but it was uninitialized default.");
-        
+            throw new ResultAssertionException("Expected Result to be Success, but it was uninitialized default.");
+
         return result;
     }
 
     /// <summary>
     /// Asserts that the Result&lt;T&gt; is successful and returns its value.
     /// </summary>
+    /// <typeparam name="T">The value type of the result.</typeparam>
+    /// <param name="result">The result to inspect.</param>
+    /// <param name="message">Optional custom failure message.</param>
+    /// <returns>The success value.</returns>
+    /// <exception cref="ResultAssertionException">The result is not a success</exception>
     public static T ShouldBeSuccess<T>(this in Result<T> result, string? message = null)
     {
         var typeName = GetFriendlyTypeName(typeof(T));
         if (result.IsFailure)
-        throw new ResultAssertionException(message ?? $"Expected Result<{typeName}> to be Success, but failed with Error: {result.Error.Code} - {result.Error.Description}");
-        
+            throw new ResultAssertionException(message ?? $"Expected Result<{typeName}> to be Success, but failed with Error: {result.Error.Code} - {result.Error.Description}");
+
         if (result.IsUninitialized)
-        throw new ResultAssertionException($"Expected Result<{typeName}> to be Success, but it was uninitialized default.");
-        
+            throw new ResultAssertionException($"Expected Result<{typeName}> to be Success, but it was uninitialized default.");
+
         return result.Value;
     }
 
     /// <summary>
     /// Asserts that the Result&lt;T&gt; is successful and has the expected value.
     /// </summary>
+    /// <typeparam name="T">The value type of the result.</typeparam>
+    /// <param name="result">The result to inspect.</param>
+    /// <param name="expectedValue">The expected success value.</param>
+    /// <param name="message">Optional custom failure message.</param>
+    /// <returns>The success value.</returns>
+    /// <exception cref="ResultAssertionException">The result is not a success or the value does not match <paramref name="expectedValue"/></exception>
     public static T ShouldHaveValue<T>(this in Result<T> result, T expectedValue, string? message = null)
     {
         var value = result.ShouldBeSuccess(message);
         if (!EqualityComparer<T>.Default.Equals(value, expectedValue))
-        throw new ResultAssertionException(message ?? $"Expected Result to have value '{expectedValue}', but got '{value}'.");
-        
+            throw new ResultAssertionException(message ?? $"Expected Result to have value '{expectedValue}', but got '{value}'.");
+
         return value;
     }
 
@@ -74,133 +97,180 @@ public static class ResultAssertions
     {
         var value = result.ShouldBeSuccess(message);
         if (!predicate(value))
-        throw new ResultAssertionException(message ?? $"Expected Result value to satisfy the predicate, but it did not. Value was: '{value}'.");
-        
+            throw new ResultAssertionException(message ?? $"Expected Result value to satisfy the predicate, but it did not. Value was: '{value}'.");
+
         return value;
     }
 
     /// <summary>
     /// Asserts that the Result is a failure and returns its Error.
     /// </summary>
+    /// <param name="result">The result to inspect.</param>
+    /// <param name="message">Optional custom failure message.</param>
+    /// <returns>The error from the failed result.</returns>
+    /// <exception cref="ResultAssertionException">The result is not a failure</exception>
     public static Error ShouldBeFailure(this in Result result, string? message = null)
     {
         if (result.IsSuccess)
-        throw new ResultAssertionException(message ?? "Expected Result to be Failure, but it was Success.");
-        
+            throw new ResultAssertionException(message ?? "Expected Result to be Failure, but it was Success.");
+
         if (result.IsUninitialized)
-        throw new ResultAssertionException("Expected Result to be Failure, but it was uninitialized default.");
-        
+            throw new ResultAssertionException("Expected Result to be Failure, but it was uninitialized default.");
+
         return result.Error;
     }
 
     /// <summary>
     /// Asserts that the Result&lt;T&gt; is a failure and returns its Error.
     /// </summary>
+    /// <typeparam name="T">The value type of the result.</typeparam>
+    /// <param name="result">The result to inspect.</param>
+    /// <param name="message">Optional custom failure message.</param>
+    /// <returns>The error from the failed result.</returns>
+    /// <exception cref="ResultAssertionException">The result is not a failure</exception>
     public static Error ShouldBeFailure<T>(this in Result<T> result, string? message = null)
     {
         var typeName = GetFriendlyTypeName(typeof(T));
         if (result.IsSuccess)
-        throw new ResultAssertionException(message ?? $"Expected Result<{typeName}> to be Failure, but it was Success.");
-        
+            throw new ResultAssertionException(message ?? $"Expected Result<{typeName}> to be Failure, but it was Success.");
+
         if (result.IsUninitialized)
-        throw new ResultAssertionException($"Expected Result<{typeName}> to be Failure, but it was uninitialized default.");
-        
+            throw new ResultAssertionException($"Expected Result<{typeName}> to be Failure, but it was uninitialized default.");
+
         return result.Error;
     }
 
     /// <summary>
     /// Asserts that the Result failed with a specific error code.
     /// </summary>
+    /// <param name="result">The result to inspect.</param>
+    /// <param name="expectedErrorCode">The expected error code string.</param>
+    /// <returns>The error from the failed result.</returns>
+    /// <exception cref="ResultAssertionException">The result is not a failure or its error code does not match <paramref name="expectedErrorCode"/></exception>
     public static Error ShouldHaveErrorCode(this in Result result, string expectedErrorCode)
     {
         var error = result.ShouldBeFailure();
         if (error.Code != expectedErrorCode)
-        throw new ResultAssertionException($"Expected error code '{expectedErrorCode}', but got '{error.Code}'.");
-        
+            throw new ResultAssertionException($"Expected error code '{expectedErrorCode}', but got '{error.Code}'.");
+
         return error;
     }
 
     /// <summary>
     /// Asserts that the Result&lt;T&gt; failed with a specific error code.
     /// </summary>
+    /// <typeparam name="T">The value type of the result.</typeparam>
+    /// <param name="result">The result to inspect.</param>
+    /// <param name="expectedErrorCode">The expected error code string.</param>
+    /// <returns>The error from the failed result.</returns>
+    /// <exception cref="ResultAssertionException">The result is not a failure or its error code does not match <paramref name="expectedErrorCode"/></exception>
     public static Error ShouldHaveErrorCode<T>(this in Result<T> result, string expectedErrorCode)
     {
         var error = result.ShouldBeFailure();
         if (error.Code != expectedErrorCode)
-        throw new ResultAssertionException($"Expected error code '{expectedErrorCode}', but got '{error.Code}'.");
-        
+            throw new ResultAssertionException($"Expected error code '{expectedErrorCode}', but got '{error.Code}'.");
+
         return error;
     }
 
     /// <summary>
     /// Asserts that the Result failed with a specific ErrorType.
     /// </summary>
+    /// <param name="result">The result to inspect.</param>
+    /// <param name="expectedType">The expected error type.</param>
+    /// <returns>The error from the failed result.</returns>
+    /// <exception cref="ResultAssertionException">The result is not a failure or its error type does not match <paramref name="expectedType"/></exception>
     public static Error ShouldHaveErrorType(this in Result result, ErrorType expectedType)
     {
         var error = result.ShouldBeFailure();
         if (error.Type != expectedType)
-        throw new ResultAssertionException($"Expected ErrorType '{expectedType}', but got '{error.Type}'.");
-        
+            throw new ResultAssertionException($"Expected ErrorType '{expectedType}', but got '{error.Type}'.");
+
         return error;
     }
 
     /// <summary>
     /// Asserts that the Result&lt;T&gt; failed with a specific ErrorType.
     /// </summary>
+    /// <typeparam name="T">The value type of the result.</typeparam>
+    /// <param name="result">The result to inspect.</param>
+    /// <param name="expectedType">The expected error type.</param>
+    /// <returns>The error from the failed result.</returns>
+    /// <exception cref="ResultAssertionException">The result is not a failure or its error type does not match <paramref name="expectedType"/></exception>
     public static Error ShouldHaveErrorType<T>(this in Result<T> result, ErrorType expectedType)
     {
         var error = result.ShouldBeFailure();
         if (error.Type != expectedType)
-        throw new ResultAssertionException($"Expected ErrorType '{expectedType}', but got '{error.Type}'.");
-        
+            throw new ResultAssertionException($"Expected ErrorType '{expectedType}', but got '{error.Type}'.");
+
         return error;
     }
 
     /// <summary>
     /// Asserts that the Result failed with a specific ErrorSeverity.
     /// </summary>
+    /// <param name="result">The result to inspect.</param>
+    /// <param name="expectedSeverity">The expected error severity.</param>
+    /// <returns>The error from the failed result.</returns>
+    /// <exception cref="ResultAssertionException">The result is not a failure or its severity does not match <paramref name="expectedSeverity"/></exception>
     public static Error ShouldHaveSeverity(this in Result result, ErrorSeverity expectedSeverity)
     {
         var error = result.ShouldBeFailure();
         if (error.Severity != expectedSeverity)
-        throw new ResultAssertionException($"Expected ErrorSeverity '{expectedSeverity}', but got '{error.Severity}'.");
-        
+            throw new ResultAssertionException($"Expected ErrorSeverity '{expectedSeverity}', but got '{error.Severity}'.");
+
         return error;
     }
 
     /// <summary>
     /// Asserts that the Result&lt;T&gt; failed with a specific ErrorSeverity.
     /// </summary>
+    /// <typeparam name="T">The value type of the result.</typeparam>
+    /// <param name="result">The result to inspect.</param>
+    /// <param name="expectedSeverity">The expected error severity.</param>
+    /// <returns>The error from the failed result.</returns>
+    /// <exception cref="ResultAssertionException">The result is not a failure or its severity does not match <paramref name="expectedSeverity"/></exception>
     public static Error ShouldHaveSeverity<T>(this in Result<T> result, ErrorSeverity expectedSeverity)
     {
         var error = result.ShouldBeFailure();
         if (error.Severity != expectedSeverity)
-        throw new ResultAssertionException($"Expected ErrorSeverity '{expectedSeverity}', but got '{error.Severity}'.");
-        
+            throw new ResultAssertionException($"Expected ErrorSeverity '{expectedSeverity}', but got '{error.Severity}'.");
+
         return error;
     }
 
     /// <summary>
     /// Asserts that the Result failed with a specific metadata key and value.
     /// </summary>
+    /// <param name="result">The result to inspect.</param>
+    /// <param name="key">The metadata key to look up.</param>
+    /// <param name="expectedValue">The expected value corresponding to <paramref name="key"/>.</param>
+    /// <returns>The error from the failed result.</returns>
+    /// <exception cref="ResultAssertionException">The result is not a failure or the metadata key/value does not match</exception>
     public static Error ShouldHaveMetadata(this in Result result, string key, object expectedValue)
     {
         var error = result.ShouldBeFailure();
         if (!error.Metadata.TryGetValue(key, out var val) || !Equals(val, expectedValue))
-        throw new ResultAssertionException($"Expected metadata key '{key}' with value '{expectedValue}', but got '{val}'.");
-        
+            throw new ResultAssertionException($"Expected metadata key '{key}' with value '{expectedValue}', but got '{val}'.");
+
         return error;
     }
 
     /// <summary>
     /// Asserts that the Result&lt;T&gt; failed with a specific metadata key and value.
     /// </summary>
+    /// <typeparam name="T">The value type of the result.</typeparam>
+    /// <param name="result">The result to inspect.</param>
+    /// <param name="key">The metadata key to look up.</param>
+    /// <param name="expectedValue">The expected value corresponding to <paramref name="key"/>.</param>
+    /// <returns>The error from the failed result.</returns>
+    /// <exception cref="ResultAssertionException">The result is not a failure or the metadata key/value does not match</exception>
     public static Error ShouldHaveMetadata<T>(this in Result<T> result, string key, object expectedValue)
     {
         var error = result.ShouldBeFailure();
         if (!error.Metadata.TryGetValue(key, out var val) || !Equals(val, expectedValue))
-        throw new ResultAssertionException($"Expected metadata key '{key}' with value '{expectedValue}', but got '{val}'.");
-        
+            throw new ResultAssertionException($"Expected metadata key '{key}' with value '{expectedValue}', but got '{val}'.");
+
         return error;
     }
 
@@ -228,8 +298,8 @@ public static class ResultAssertions
     {
         var error = result.ShouldBeFailure(message);
         if (!predicate(error))
-        throw new ResultAssertionException(message ?? $"Expected error to satisfy the predicate, but it did not. Error: [{error.Type}] {error.Code}: {error.Description}");
-        
+            throw new ResultAssertionException(message ?? $"Expected error to satisfy the predicate, but it did not. Error: [{error.Type}] {error.Code}: {error.Description}");
+
         return error;
     }
 
@@ -245,14 +315,19 @@ public static class ResultAssertions
     {
         var error = result.ShouldBeFailure(message);
         if (!predicate(error))
-        throw new ResultAssertionException(message ?? $"Expected Result<{GetFriendlyTypeName(typeof(T))}> error to satisfy the predicate, but it did not. Error: [{error.Type}] {error.Code}: {error.Description}");
-        
+            throw new ResultAssertionException(message ?? $"Expected Result<{GetFriendlyTypeName(typeof(T))}> error to satisfy the predicate, but it did not. Error: [{error.Type}] {error.Code}: {error.Description}");
+
         return error;
     }
 
     /// <summary>
     /// Asserts that the Result is a failure and has the exact number of inner errors.
     /// </summary>
+    /// <param name="result">The result to inspect.</param>
+    /// <param name="expectedCount">The expected number of inner errors.</param>
+    /// <param name="message">Optional custom failure message.</param>
+    /// <returns>The error from the failed result.</returns>
+    /// <exception cref="ResultAssertionException">The result is not a failure or the inner error count does not match <paramref name="expectedCount"/></exception>
     public static Error ShouldHaveErrorCount(this in Result result, int expectedCount, string? message = null)
     {
         var error = result.ShouldBeFailure(message);
@@ -264,6 +339,12 @@ public static class ResultAssertions
     /// <summary>
     /// Asserts that the Result&lt;T&gt; is a failure and has the exact number of inner errors.
     /// </summary>
+    /// <typeparam name="T">The value type of the result.</typeparam>
+    /// <param name="result">The result to inspect.</param>
+    /// <param name="expectedCount">The expected number of inner errors.</param>
+    /// <param name="message">Optional custom failure message.</param>
+    /// <returns>The error from the failed result.</returns>
+    /// <exception cref="ResultAssertionException">The result is not a failure or the inner error count does not match <paramref name="expectedCount"/></exception>
     public static Error ShouldHaveErrorCount<T>(this in Result<T> result, int expectedCount, string? message = null)
     {
         var error = result.ShouldBeFailure(message);
@@ -275,6 +356,11 @@ public static class ResultAssertions
     /// <summary>
     /// Asserts that the Result is a failure and its inner errors satisfy the given predicate.
     /// </summary>
+    /// <param name="result">The result to inspect.</param>
+    /// <param name="predicate">A predicate that the inner errors collection must satisfy.</param>
+    /// <param name="message">Optional custom failure message.</param>
+    /// <returns>The error from the failed result.</returns>
+    /// <exception cref="ResultAssertionException">The result is not a failure or the inner errors do not satisfy <paramref name="predicate"/></exception>
     public static Error ShouldHaveInnerErrorsMatching(this in Result result, Func<System.Collections.Immutable.ImmutableArray<Error>, bool> predicate, string? message = null)
     {
         var error = result.ShouldBeFailure(message);
@@ -286,6 +372,12 @@ public static class ResultAssertions
     /// <summary>
     /// Asserts that the Result&lt;T&gt; is a failure and its inner errors satisfy the given predicate.
     /// </summary>
+    /// <typeparam name="T">The value type of the result.</typeparam>
+    /// <param name="result">The result to inspect.</param>
+    /// <param name="predicate">A predicate that the inner errors collection must satisfy.</param>
+    /// <param name="message">Optional custom failure message.</param>
+    /// <returns>The error from the failed result.</returns>
+    /// <exception cref="ResultAssertionException">The result is not a failure or the inner errors do not satisfy <paramref name="predicate"/></exception>
     public static Error ShouldHaveInnerErrorsMatching<T>(this in Result<T> result, Func<System.Collections.Immutable.ImmutableArray<Error>, bool> predicate, string? message = null)
     {
         var error = result.ShouldBeFailure(message);
@@ -295,30 +387,52 @@ public static class ResultAssertions
     }
 
 
-    /// <summary>Asserts that the Task&lt;Result&gt; error satisfies the given predicate.</summary>
+    /// <summary>Asserts that the <c>Task&lt;Result&gt;</c> is a failure and that its error satisfies the given predicate.</summary>
+    /// <param name="task">The task returning the result to inspect.</param>
+    /// <param name="predicate">A predicate the error must satisfy.</param>
+    /// <param name="message">Optional custom failure message.</param>
+    /// <returns>A task representing the asynchronous assertion. The task result contains the error from the failed result.</returns>
     public static Task<Error> ShouldHaveErrorMatchingAsync(this Task<Result> task, Func<Error, bool> predicate, string? message = null)
     {
+        // Stryker disable once all : Fast path optimization
         if (task.IsCompletedSuccessfully) return Task.FromResult(task.Result.ShouldHaveErrorMatching(predicate, message));
         return AwaitAndAssert(task, r => r.ShouldHaveErrorMatching(predicate, message));
     }
 
-    /// <summary>Asserts that the ValueTask&lt;Result&gt; error satisfies the given predicate.</summary>
+    /// <summary>Asserts that the <c>ValueTask&lt;Result&gt;</c> is a failure and that its error satisfies the given predicate.</summary>
+    /// <param name="task">The value task returning the result to inspect.</param>
+    /// <param name="predicate">A predicate the error must satisfy.</param>
+    /// <param name="message">Optional custom failure message.</param>
+    /// <returns>A value task representing the asynchronous assertion. The task result contains the error from the failed result.</returns>
     public static ValueTask<Error> ShouldHaveErrorMatchingAsync(this ValueTask<Result> task, Func<Error, bool> predicate, string? message = null)
     {
+        // Stryker disable once all : Fast path optimization
         if (task.IsCompletedSuccessfully) return new ValueTask<Error>(task.Result.ShouldHaveErrorMatching(predicate, message));
         return new ValueTask<Error>(AwaitAndAssert(task.AsTask(), r => r.ShouldHaveErrorMatching(predicate, message)));
     }
 
-    /// <summary>Asserts that the Task&lt;Result&lt;T&gt;&gt; error satisfies the given predicate.</summary>
+    /// <summary>Asserts that the <c>Task&lt;Result&lt;T&gt;&gt;</c> is a failure and that its error satisfies the given predicate.</summary>
+    /// <typeparam name="T">The value type of the result.</typeparam>
+    /// <param name="task">The task returning the result to inspect.</param>
+    /// <param name="predicate">A predicate the error must satisfy.</param>
+    /// <param name="message">Optional custom failure message.</param>
+    /// <returns>A task representing the asynchronous assertion. The task result contains the error from the failed result.</returns>
     public static Task<Error> ShouldHaveErrorMatchingAsync<T>(this Task<Result<T>> task, Func<Error, bool> predicate, string? message = null)
     {
+        // Stryker disable once all : Fast path optimization
         if (task.IsCompletedSuccessfully) return Task.FromResult(task.Result.ShouldHaveErrorMatching(predicate, message));
         return AwaitAndAssert(task, r => r.ShouldHaveErrorMatching(predicate, message));
     }
 
-    /// <summary>Asserts that the ValueTask&lt;Result&lt;T&gt;&gt; error satisfies the given predicate.</summary>
+    /// <summary>Asserts that the <c>ValueTask&lt;Result&lt;T&gt;&gt;</c> is a failure and that its error satisfies the given predicate.</summary>
+    /// <typeparam name="T">The value type of the result.</typeparam>
+    /// <param name="task">The value task returning the result to inspect.</param>
+    /// <param name="predicate">A predicate the error must satisfy.</param>
+    /// <param name="message">Optional custom failure message.</param>
+    /// <returns>A value task representing the asynchronous assertion. The task result contains the error from the failed result.</returns>
     public static ValueTask<Error> ShouldHaveErrorMatchingAsync<T>(this ValueTask<Result<T>> task, Func<Error, bool> predicate, string? message = null)
     {
+        // Stryker disable once all : Fast path optimization
         if (task.IsCompletedSuccessfully) return new ValueTask<Error>(task.Result.ShouldHaveErrorMatching(predicate, message));
         return new ValueTask<Error>(AwaitAndAssert(task.AsTask(), r => r.ShouldHaveErrorMatching(predicate, message)));
     }
@@ -351,14 +465,14 @@ public static class ResultAssertions
     {
         var error = result.ShouldBeFailure(message);
         if (!error.Metadata.TryGetValue(key, out var rawVal))
-        throw new ResultAssertionException(message ?? $"Expected metadata key '{key}' to be present, but it was not found. Available keys: [{string.Join(", ", error.Metadata.Keys)}]");
-        
+            throw new ResultAssertionException(message ?? $"Expected metadata key '{key}' to be present, but it was not found. Available keys: [{string.Join(", ", error.Metadata.Keys)}]");
+
         if (rawVal is not TValue typedVal)
-        throw new ResultAssertionException(message ?? $"Expected metadata key '{key}' to be of type '{typeof(TValue).Name}', but got '{rawVal?.GetType().Name ?? "<null>"}'.");
-        
+            throw new ResultAssertionException(message ?? $"Expected metadata key '{key}' to be of type '{typeof(TValue).Name}', but got '{rawVal?.GetType().Name ?? "<null>"}'.");
+
         else if (!EqualityComparer<TValue>.Default.Equals(typedVal, expectedValue))
-        throw new ResultAssertionException(message ?? $"Expected metadata['{key}'] = '{expectedValue}' ({typeof(TValue).Name}), but got '{typedVal}'.");
-        
+            throw new ResultAssertionException(message ?? $"Expected metadata['{key}'] = '{expectedValue}' ({typeof(TValue).Name}), but got '{typedVal}'.");
+
         return error;
     }
 
@@ -366,18 +480,26 @@ public static class ResultAssertions
     /// Asserts that the Result&lt;T&gt; is a failure and that its error metadata contains
     /// <paramref name="key"/> with a typed value equal to <paramref name="expectedValue"/>.
     /// </summary>
+    /// <typeparam name="T">The value type of the result.</typeparam>
+    /// <typeparam name="TValue">The expected type of the metadata value.</typeparam>
+    /// <param name="result">The result to inspect.</param>
+    /// <param name="key">The metadata key to look up.</param>
+    /// <param name="expectedValue">The expected value after casting to <typeparamref name="TValue"/>.</param>
+    /// <param name="message">Optional custom failure message.</param>
+    /// <returns>The error from the failed result.</returns>
+    /// <exception cref="ResultAssertionException">The result is not a failure or the metadata key/value does not match</exception>
     public static Error ShouldHaveMetadataValue<T, TValue>(this in Result<T> result, string key, TValue expectedValue, string? message = null)
     {
         var error = result.ShouldBeFailure(message);
         if (!error.Metadata.TryGetValue(key, out var rawVal))
-        throw new ResultAssertionException(message ?? $"Expected metadata key '{key}' to be present, but it was not found. Available keys: [{string.Join(", ", error.Metadata.Keys)}]");
-        
+            throw new ResultAssertionException(message ?? $"Expected metadata key '{key}' to be present, but it was not found. Available keys: [{string.Join(", ", error.Metadata.Keys)}]");
+
         if (rawVal is not TValue typedVal)
-        throw new ResultAssertionException(message ?? $"Expected metadata key '{key}' to be of type '{typeof(TValue).Name}', but got '{rawVal?.GetType().Name ?? "<null>"}'.");
-        
+            throw new ResultAssertionException(message ?? $"Expected metadata key '{key}' to be of type '{typeof(TValue).Name}', but got '{rawVal?.GetType().Name ?? "<null>"}'.");
+
         else if (!EqualityComparer<TValue>.Default.Equals(typedVal, expectedValue))
-        throw new ResultAssertionException(message ?? $"Expected metadata['{key}'] = '{expectedValue}' ({typeof(TValue).Name}), but got '{typedVal}'.");
-        
+            throw new ResultAssertionException(message ?? $"Expected metadata['{key}'] = '{expectedValue}' ({typeof(TValue).Name}), but got '{typedVal}'.");
+
         return error;
     }
 
@@ -408,15 +530,16 @@ public static class ResultAssertions
         var error = result.ShouldBeFailure(message);
         if (!string.Equals(error.Code, WellKnownErrors.CombinedFailuresCode, StringComparison.Ordinal))
         {
-            ResultAssertionException.Throw(
+            throw new ResultAssertionException(
                 message ?? $"Expected a combined failure (code '{WellKnownErrors.CombinedFailuresCode}'), " +
                            $"but got error code '{error.Code}'. " +
                            $"If only one operation failed, Result.Combine returns a direct failure — use ShouldHaveErrorCode() instead.");
         }
+        // Stryker disable once Conditional : Equivalent mutation (InnerErrors.Length is 0 when HasInnerErrors is false)
         var actualCount = error.HasInnerErrors ? error.InnerErrors.Length : 0;
         if (actualCount != expectedErrorCount)
         {
-            ResultAssertionException.Throw(
+            throw new ResultAssertionException(
                 message ?? $"Expected combined failure to contain {expectedErrorCount} inner error(s), but found {actualCount}.");
         }
         return error;
@@ -425,48 +548,77 @@ public static class ResultAssertions
     /// <summary>
     /// Asserts that the Result&lt;T&gt; is a combined failure with exactly <paramref name="expectedErrorCount"/> inner errors.
     /// </summary>
+    /// <typeparam name="T">The value type of the result.</typeparam>
+    /// <param name="result">The result to inspect.</param>
+    /// <param name="expectedErrorCount">The expected number of combined failures (inner errors).</param>
+    /// <param name="message">Optional custom failure message.</param>
+    /// <returns>The root error with its inner errors.</returns>
+    /// <exception cref="ResultAssertionException">The result is not a failure, is not a combined failure, or the inner error count does not match <paramref name="expectedErrorCount"/></exception>
     public static Error ShouldBeCombinedFailure<T>(this in Result<T> result, int expectedErrorCount, string? message = null)
     {
         var error = result.ShouldBeFailure(message);
         if (!string.Equals(error.Code, WellKnownErrors.CombinedFailuresCode, StringComparison.Ordinal))
         {
-            ResultAssertionException.Throw(
+            throw new ResultAssertionException(
                 message ?? $"Expected a combined failure (code '{WellKnownErrors.CombinedFailuresCode}'), " +
                            $"but got error code '{error.Code}' in Result<{GetFriendlyTypeName(typeof(T))}>.");
         }
+        // Stryker disable once Conditional : Equivalent mutation (InnerErrors.Length is 0 when HasInnerErrors is false)
         var actualCount = error.HasInnerErrors ? error.InnerErrors.Length : 0;
         if (actualCount != expectedErrorCount)
         {
-            ResultAssertionException.Throw(
+            throw new ResultAssertionException(
                 message ?? $"Expected Result<{GetFriendlyTypeName(typeof(T))}> combined failure to contain {expectedErrorCount} inner error(s), but found {actualCount}.");
         }
         return error;
     }
 
-    /// <summary>Asserts that the Task&lt;Result&gt; is a combined failure with the expected inner error count.</summary>
+    /// <summary>Asserts that the <c>Task&lt;Result&gt;</c> is a combined failure with the expected inner error count.</summary>
+    /// <param name="task">The task returning the result to inspect.</param>
+    /// <param name="expectedErrorCount">The expected number of combined failures (inner errors).</param>
+    /// <param name="message">Optional custom failure message.</param>
+    /// <returns>A task representing the asynchronous assertion. The task result contains the root error with its inner errors.</returns>
     public static Task<Error> ShouldBeCombinedFailureAsync(this Task<Result> task, int expectedErrorCount, string? message = null)
     {
+        // Stryker disable once all : Fast path optimization
         if (task.IsCompletedSuccessfully) return Task.FromResult(task.Result.ShouldBeCombinedFailure(expectedErrorCount, message));
         return AwaitAndAssert(task, r => r.ShouldBeCombinedFailure(expectedErrorCount, message));
     }
 
-    /// <summary>Asserts that the ValueTask&lt;Result&gt; is a combined failure with the expected inner error count.</summary>
+    /// <summary>Asserts that the <c>ValueTask&lt;Result&gt;</c> is a combined failure with the expected inner error count.</summary>
+    /// <param name="task">The value task returning the result to inspect.</param>
+    /// <param name="expectedErrorCount">The expected number of combined failures (inner errors).</param>
+    /// <param name="message">Optional custom failure message.</param>
+    /// <returns>A value task representing the asynchronous assertion. The task result contains the root error with its inner errors.</returns>
     public static ValueTask<Error> ShouldBeCombinedFailureAsync(this ValueTask<Result> task, int expectedErrorCount, string? message = null)
     {
+        // Stryker disable once all : Fast path optimization
         if (task.IsCompletedSuccessfully) return new ValueTask<Error>(task.Result.ShouldBeCombinedFailure(expectedErrorCount, message));
         return new ValueTask<Error>(AwaitAndAssert(task.AsTask(), r => r.ShouldBeCombinedFailure(expectedErrorCount, message)));
     }
 
-    /// <summary>Asserts that the Task&lt;Result&lt;T&gt;&gt; is a combined failure with the expected inner error count.</summary>
+    /// <summary>Asserts that the <c>Task&lt;Result&lt;T&gt;&gt;</c> is a combined failure with the expected inner error count.</summary>
+    /// <typeparam name="T">The value type of the result.</typeparam>
+    /// <param name="task">The task returning the result to inspect.</param>
+    /// <param name="expectedErrorCount">The expected number of combined failures (inner errors).</param>
+    /// <param name="message">Optional custom failure message.</param>
+    /// <returns>A task representing the asynchronous assertion. The task result contains the root error with its inner errors.</returns>
     public static Task<Error> ShouldBeCombinedFailureAsync<T>(this Task<Result<T>> task, int expectedErrorCount, string? message = null)
     {
+        // Stryker disable once all : Fast path optimization
         if (task.IsCompletedSuccessfully) return Task.FromResult(task.Result.ShouldBeCombinedFailure(expectedErrorCount, message));
         return AwaitAndAssert(task, r => r.ShouldBeCombinedFailure(expectedErrorCount, message));
     }
 
-    /// <summary>Asserts that the ValueTask&lt;Result&lt;T&gt;&gt; is a combined failure with the expected inner error count.</summary>
+    /// <summary>Asserts that the <c>ValueTask&lt;Result&lt;T&gt;&gt;</c> is a combined failure with the expected inner error count.</summary>
+    /// <typeparam name="T">The value type of the result.</typeparam>
+    /// <param name="task">The value task returning the result to inspect.</param>
+    /// <param name="expectedErrorCount">The expected number of combined failures (inner errors).</param>
+    /// <param name="message">Optional custom failure message.</param>
+    /// <returns>A value task representing the asynchronous assertion. The task result contains the root error with its inner errors.</returns>
     public static ValueTask<Error> ShouldBeCombinedFailureAsync<T>(this ValueTask<Result<T>> task, int expectedErrorCount, string? message = null)
     {
+        // Stryker disable once all : Fast path optimization
         if (task.IsCompletedSuccessfully) return new ValueTask<Error>(task.Result.ShouldBeCombinedFailure(expectedErrorCount, message));
         return new ValueTask<Error>(AwaitAndAssert(task.AsTask(), r => r.ShouldBeCombinedFailure(expectedErrorCount, message)));
     }
@@ -474,56 +626,74 @@ public static class ResultAssertions
     /// <summary>
     /// Asserts that the Result failed with inner errors of expected count.
     /// </summary>
+    /// <param name="result">The result to inspect.</param>
+    /// <param name="expectedCount">The expected number of inner errors.</param>
+    /// <returns>The error from the failed result.</returns>
+    /// <exception cref="ResultAssertionException">The result is not a failure or the inner error count does not match <paramref name="expectedCount"/></exception>
     public static Error ShouldHaveInnerErrors(this in Result result, int expectedCount)
     {
         var error = result.ShouldBeFailure();
         if (error.InnerErrors.Length != expectedCount)
-        throw new ResultAssertionException($"Expected {expectedCount} inner errors, but got {error.InnerErrors.Length}.");
-        
+            throw new ResultAssertionException($"Expected {expectedCount} inner errors, but got {error.InnerErrors.Length}.");
+
         return error;
     }
 
     /// <summary>
     /// Asserts that the Result&lt;T&gt; failed with inner errors of expected count.
     /// </summary>
+    /// <typeparam name="T">The value type of the result.</typeparam>
+    /// <param name="result">The result to inspect.</param>
+    /// <param name="expectedCount">The expected number of inner errors.</param>
+    /// <returns>The error from the failed result.</returns>
+    /// <exception cref="ResultAssertionException">The result is not a failure or the inner error count does not match <paramref name="expectedCount"/></exception>
     public static Error ShouldHaveInnerErrors<T>(this in Result<T> result, int expectedCount)
     {
         var error = result.ShouldBeFailure();
         if (error.InnerErrors.Length != expectedCount)
-        throw new ResultAssertionException($"Expected {expectedCount} inner errors, but got {error.InnerErrors.Length}.");
-        
+            throw new ResultAssertionException($"Expected {expectedCount} inner errors, but got {error.InnerErrors.Length}.");
+
         return error;
     }
 
     /// <summary>
     /// Asserts that the Result failure has no inner errors.
     /// </summary>
+    /// <param name="result">The result to inspect.</param>
+    /// <param name="message">Optional custom failure message.</param>
+    /// <returns>The error from the failed result.</returns>
     /// <remarks>
     /// This is the complement of <see cref="ShouldHaveInnerErrors(in Result, int)"/>.
     /// Use it when you expect a failure with a single root error and no nested errors.
     /// </remarks>
+    /// <exception cref="ResultAssertionException">The result is not a failure or it has one or more inner errors</exception>
     public static Error ShouldHaveNoInnerErrors(this in Result result, string? message = null)
     {
         var error = result.ShouldBeFailure();
         if (error.HasInnerErrors)
-        throw new ResultAssertionException(message ?? $"Expected no inner errors, but got {error.InnerErrors.Length} inner error(s).");
-        
+            throw new ResultAssertionException(message ?? $"Expected no inner errors, but got {error.InnerErrors.Length} inner error(s).");
+
         return error;
     }
 
     /// <summary>
     /// Asserts that the Result&lt;T&gt; failure has no inner errors.
     /// </summary>
+    /// <typeparam name="T">The value type of the result.</typeparam>
+    /// <param name="result">The result to inspect.</param>
+    /// <param name="message">Optional custom failure message.</param>
+    /// <returns>The error from the failed result.</returns>
     /// <remarks>
     /// This is the complement of <see cref="ShouldHaveInnerErrors{T}(in Result{T}, int)"/>.
     /// Use it when you expect a failure with a single root error and no nested errors.
     /// </remarks>
+    /// <exception cref="ResultAssertionException">The result is not a failure or it has one or more inner errors</exception>
     public static Error ShouldHaveNoInnerErrors<T>(this in Result<T> result, string? message = null)
     {
         var error = result.ShouldBeFailure();
         if (error.HasInnerErrors)
-        throw new ResultAssertionException(message ?? $"Expected no inner errors, but got {error.InnerErrors.Length} inner error(s).");
-        
+            throw new ResultAssertionException(message ?? $"Expected no inner errors, but got {error.InnerErrors.Length} inner error(s).");
+
         return error;
     }
 
@@ -533,6 +703,9 @@ public static class ResultAssertions
     /// Asserts that the failure result's root error has exactly <paramref name="expectedCount"/> inner errors
     /// (i.e., errors aggregated from a <see cref="Result.Combine"/> call or similar multi-error operation).
     /// </summary>
+    /// <param name="result">The result to inspect.</param>
+    /// <param name="expectedCount">The expected number of inner errors.</param>
+    /// <returns>The error from the failed result.</returns>
     /// <remarks>
     /// This is a named alias for <see cref="ShouldHaveInnerErrors(in Result, int)"/> for scenarios where
     /// the intent is to verify the number of combined failures without examining each individual error.
@@ -541,13 +714,15 @@ public static class ResultAssertions
     /// result.ShouldHaveErrorCount(3);
     /// </code>
     /// </remarks>
+    /// <exception cref="ResultAssertionException">The result is not a failure or the inner error count does not match <paramref name="expectedCount"/></exception>
     public static Error ShouldHaveErrorCount(this in Result result, int expectedCount)
     {
         var error = result.ShouldBeFailure();
+        // Stryker disable once Conditional : Equivalent mutation (InnerErrors.Length is 0 when HasInnerErrors is false)
         var actualCount = error.HasInnerErrors ? error.InnerErrors.Length : 0;
         if (actualCount != expectedCount)
         {
-            ResultAssertionException.Throw(
+            throw new ResultAssertionException(
                 $"Expected the result error to have {expectedCount} inner error(s), but found {actualCount}.");
         }
         return error;
@@ -556,13 +731,19 @@ public static class ResultAssertions
     /// <summary>
     /// Asserts that the Result&lt;T&gt; failure's root error has exactly <paramref name="expectedCount"/> inner errors.
     /// </summary>
+    /// <typeparam name="T">The value type of the result.</typeparam>
+    /// <param name="result">The result to inspect.</param>
+    /// <param name="expectedCount">The expected number of inner errors.</param>
+    /// <returns>The error from the failed result.</returns>
+    /// <exception cref="ResultAssertionException">The result is not a failure or the inner error count does not match <paramref name="expectedCount"/></exception>
     public static Error ShouldHaveErrorCount<T>(this in Result<T> result, int expectedCount)
     {
         var error = result.ShouldBeFailure();
+        // Stryker disable once Conditional : Equivalent mutation (InnerErrors.Length is 0 when HasInnerErrors is false)
         var actualCount = error.HasInnerErrors ? error.InnerErrors.Length : 0;
         if (actualCount != expectedCount)
         {
-            ResultAssertionException.Throw(
+            throw new ResultAssertionException(
                 $"Expected the Result<{GetFriendlyTypeName(typeof(T))}> error to have {expectedCount} inner error(s), but found {actualCount}.");
         }
         return error;
@@ -576,6 +757,10 @@ public static class ResultAssertions
     /// <see cref="Error.TraceId"/>, <see cref="Error.CorrelationId"/>,
     /// <see cref="Error.InnerErrors"/>, and <see cref="Error.Metadata"/>.
     /// </summary>
+    /// <param name="result">The result to inspect.</param>
+    /// <param name="expected">The expected error to compare against using full field equality.</param>
+    /// <param name="message">Optional custom failure message.</param>
+    /// <returns>The error from the failed result.</returns>
     /// <remarks>
     /// Use this instead of <see cref="ShouldHaveErrorCode"/> when you need to verify
     /// that all properties of an error match exactly — for example in tests that construct errors with
@@ -587,12 +772,13 @@ public static class ResultAssertions
     /// use <see cref="Error.Equals(Error?)"/> directly in a <see cref="ShouldSatisfyError"/> callback.
     /// </para>
     /// </remarks>
+    /// <exception cref="ResultAssertionException">The result is not a failure or the error does not strictly equal <paramref name="expected"/></exception>
     public static Error ShouldStrictlyEqual(this in Result result, Error expected, string? message = null)
     {
         var error = result.ShouldBeFailure(message);
         if (!error.StrictEquals(expected))
         {
-            ResultAssertionException.Throw(
+            throw new ResultAssertionException(
                 message ?? $"Expected error to strictly equal '{expected.Code}' (all fields), " +
                            $"but the errors differ in one or more diagnostic fields (TraceId, CorrelationId, Metadata, InnerErrors).");
         }
@@ -603,12 +789,18 @@ public static class ResultAssertions
     /// Asserts that the Result&lt;T&gt; failure's error is strictly equal to <paramref name="expected"/>
     /// using <see cref="Error.StrictEquals"/>.
     /// </summary>
+    /// <typeparam name="T">The value type of the result.</typeparam>
+    /// <param name="result">The result to inspect.</param>
+    /// <param name="expected">The expected error to compare against using full field equality.</param>
+    /// <param name="message">Optional custom failure message.</param>
+    /// <returns>The error from the failed result.</returns>
+    /// <exception cref="ResultAssertionException">The result is not a failure or the error does not strictly equal <paramref name="expected"/></exception>
     public static Error ShouldStrictlyEqual<T>(this in Result<T> result, Error expected, string? message = null)
     {
         var error = result.ShouldBeFailure(message);
         if (!error.StrictEquals(expected))
         {
-            ResultAssertionException.Throw(
+            throw new ResultAssertionException(
                 message ?? $"Expected Result<{GetFriendlyTypeName(typeof(T))}> error to strictly equal '{expected.Code}' (all fields), " +
                            $"but the errors differ in one or more diagnostic fields (TraceId, CorrelationId, Metadata, InnerErrors).");
         }
@@ -618,131 +810,176 @@ public static class ResultAssertions
     /// <summary>
     /// Asserts that the Result error is retryable (Transient).
     /// </summary>
+    /// <param name="result">The result to inspect.</param>
+    /// <returns>The error from the failed result.</returns>
+    /// <exception cref="ResultAssertionException">The result is not a failure or its retryability is not <see cref="ErrorRetryability.Transient"/></exception>
     public static Error ShouldBeRetryable(this in Result result)
     {
         var error = result.ShouldBeFailure();
         if (error.Retryability != ErrorRetryability.Transient)
-        throw new ResultAssertionException($"Expected error to be Transient retryable, but got '{error.Retryability}'.");
-        
+            throw new ResultAssertionException($"Expected error to be Transient retryable, but got '{error.Retryability}'.");
+
         return error;
     }
 
     /// <summary>
     /// Asserts that the Result&lt;T&gt; error is retryable (Transient).
     /// </summary>
+    /// <typeparam name="T">The value type of the result.</typeparam>
+    /// <param name="result">The result to inspect.</param>
+    /// <returns>The error from the failed result.</returns>
+    /// <exception cref="ResultAssertionException">The result is not a failure or its retryability is not <see cref="ErrorRetryability.Transient"/></exception>
     public static Error ShouldBeRetryable<T>(this in Result<T> result)
     {
         var error = result.ShouldBeFailure();
         if (error.Retryability != ErrorRetryability.Transient)
-        throw new ResultAssertionException($"Expected error to be Transient retryable, but got '{error.Retryability}'.");
-        
+            throw new ResultAssertionException($"Expected error to be Transient retryable, but got '{error.Retryability}'.");
+
         return error;
     }
 
     /// <summary>
     /// Asserts that the Result error is permanent (not retryable).
     /// </summary>
+    /// <param name="result">The result to inspect.</param>
+    /// <returns>The error from the failed result.</returns>
+    /// <exception cref="ResultAssertionException">The result is not a failure or its retryability is not <see cref="ErrorRetryability.Permanent"/></exception>
     public static Error ShouldBePermanent(this in Result result)
     {
         var error = result.ShouldBeFailure();
         if (error.Retryability != ErrorRetryability.Permanent)
-        throw new ResultAssertionException($"Expected error to be Permanent (not retryable), but got '{error.Retryability}'.");
-        
+            throw new ResultAssertionException($"Expected error to be Permanent (not retryable), but got '{error.Retryability}'.");
+
         return error;
     }
 
     /// <summary>
     /// Asserts that the Result&lt;T&gt; error is permanent (not retryable).
     /// </summary>
+    /// <typeparam name="T">The value type of the result.</typeparam>
+    /// <param name="result">The result to inspect.</param>
+    /// <returns>The error from the failed result.</returns>
+    /// <exception cref="ResultAssertionException">The result is not a failure or its retryability is not <see cref="ErrorRetryability.Permanent"/></exception>
     public static Error ShouldBePermanent<T>(this in Result<T> result)
     {
         var error = result.ShouldBeFailure();
         if (error.Retryability != ErrorRetryability.Permanent)
-        throw new ResultAssertionException($"Expected error to be Permanent (not retryable), but got '{error.Retryability}'.");
-        
+            throw new ResultAssertionException($"Expected error to be Permanent (not retryable), but got '{error.Retryability}'.");
+
         return error;
     }
 
     /// <summary>
     /// Asserts that the Result error has the expected OpenTelemetry TraceId.
     /// </summary>
+    /// <param name="result">The result to inspect.</param>
+    /// <param name="expectedTraceId">The expected trace ID string.</param>
+    /// <returns>The error from the failed result.</returns>
+    /// <exception cref="ResultAssertionException">The result is not a failure or its trace ID does not match <paramref name="expectedTraceId"/></exception>
     public static Error ShouldHaveTraceId(this in Result result, string expectedTraceId)
     {
         var error = result.ShouldBeFailure();
         if (!string.Equals(error.TraceId, expectedTraceId, StringComparison.Ordinal))
-        throw new ResultAssertionException($"Expected error TraceId to be '{expectedTraceId}', but got '{error.TraceId ?? "<null>"}'");
-        
+            throw new ResultAssertionException($"Expected error TraceId to be '{expectedTraceId}', but got '{error.TraceId ?? "<null>"}'");
+
         return error;
     }
 
     /// <summary>
     /// Asserts that the Result&lt;T&gt; error has the expected OpenTelemetry TraceId.
     /// </summary>
+    /// <typeparam name="T">The value type of the result.</typeparam>
+    /// <param name="result">The result to inspect.</param>
+    /// <param name="expectedTraceId">The expected trace ID string.</param>
+    /// <returns>The error from the failed result.</returns>
+    /// <exception cref="ResultAssertionException">The result is not a failure or its trace ID does not match <paramref name="expectedTraceId"/></exception>
     public static Error ShouldHaveTraceId<T>(this in Result<T> result, string expectedTraceId)
     {
         var error = result.ShouldBeFailure();
         if (!string.Equals(error.TraceId, expectedTraceId, StringComparison.Ordinal))
-        throw new ResultAssertionException($"Expected error TraceId to be '{expectedTraceId}', but got '{error.TraceId ?? "<null>"}'");
-        
+            throw new ResultAssertionException($"Expected error TraceId to be '{expectedTraceId}', but got '{error.TraceId ?? "<null>"}'");
+
         return error;
     }
 
     /// <summary>
     /// Asserts that the Result error has the expected CorrelationId.
     /// </summary>
+    /// <param name="result">The result to inspect.</param>
+    /// <param name="expectedCorrelationId">The expected correlation ID string.</param>
+    /// <returns>The error from the failed result.</returns>
+    /// <exception cref="ResultAssertionException">The result is not a failure or its correlation ID does not match <paramref name="expectedCorrelationId"/></exception>
     public static Error ShouldHaveCorrelationId(this in Result result, string expectedCorrelationId)
     {
         var error = result.ShouldBeFailure();
         if (!string.Equals(error.CorrelationId, expectedCorrelationId, StringComparison.Ordinal))
-        throw new ResultAssertionException($"Expected error CorrelationId to be '{expectedCorrelationId}', but got '{error.CorrelationId ?? "<null>"}'");
-        
+            throw new ResultAssertionException($"Expected error CorrelationId to be '{expectedCorrelationId}', but got '{error.CorrelationId ?? "<null>"}'");
+
         return error;
     }
 
     /// <summary>
     /// Asserts that the Result&lt;T&gt; error has the expected CorrelationId.
     /// </summary>
+    /// <typeparam name="T">The value type of the result.</typeparam>
+    /// <param name="result">The result to inspect.</param>
+    /// <param name="expectedCorrelationId">The expected correlation ID string.</param>
+    /// <returns>The error from the failed result.</returns>
+    /// <exception cref="ResultAssertionException">The result is not a failure or its correlation ID does not match <paramref name="expectedCorrelationId"/></exception>
     public static Error ShouldHaveCorrelationId<T>(this in Result<T> result, string expectedCorrelationId)
     {
         var error = result.ShouldBeFailure();
         if (!string.Equals(error.CorrelationId, expectedCorrelationId, StringComparison.Ordinal))
-        throw new ResultAssertionException($"Expected error CorrelationId to be '{expectedCorrelationId}', but got '{error.CorrelationId ?? "<null>"}'");
-        
+            throw new ResultAssertionException($"Expected error CorrelationId to be '{expectedCorrelationId}', but got '{error.CorrelationId ?? "<null>"}'");
+
         return error;
     }
 
     /// <summary>
     /// Asserts that the Result error has the expected description.
     /// </summary>
+    /// <param name="result">The result to inspect.</param>
+    /// <param name="expectedDescription">The expected error description string.</param>
+    /// <returns>The error from the failed result.</returns>
+    /// <exception cref="ResultAssertionException">The result is not a failure or its description does not match <paramref name="expectedDescription"/></exception>
     public static Error ShouldHaveDescription(this in Result result, string expectedDescription)
     {
         var error = result.ShouldBeFailure();
         if (!string.Equals(error.Description, expectedDescription, StringComparison.Ordinal))
-        throw new ResultAssertionException($"Expected error Description to be '{expectedDescription}', but got '{error.Description}'.");
-        
+            throw new ResultAssertionException($"Expected error Description to be '{expectedDescription}', but got '{error.Description}'.");
+
         return error;
     }
 
     /// <summary>
     /// Asserts that the Result&lt;T&gt; error has the expected description.
     /// </summary>
+    /// <typeparam name="T">The value type of the result.</typeparam>
+    /// <param name="result">The result to inspect.</param>
+    /// <param name="expectedDescription">The expected error description string.</param>
+    /// <returns>The error from the failed result.</returns>
+    /// <exception cref="ResultAssertionException">The result is not a failure or its description does not match <paramref name="expectedDescription"/></exception>
     public static Error ShouldHaveDescription<T>(this in Result<T> result, string expectedDescription)
     {
         var error = result.ShouldBeFailure();
         if (!string.Equals(error.Description, expectedDescription, StringComparison.Ordinal))
-        throw new ResultAssertionException($"Expected error Description to be '{expectedDescription}', but got '{error.Description}'.");
-        
+            throw new ResultAssertionException($"Expected error Description to be '{expectedDescription}', but got '{error.Description}'.");
+
         return error;
     }
 
     /// <summary>
     /// Asserts that the Result error has at least one inner error with the specified error code.
     /// </summary>
+    /// <param name="result">The result to inspect.</param>
+    /// <param name="errorCode">The error code to search for within the inner errors.</param>
+    /// <returns>The root error from the failed result.</returns>
+    /// <exception cref="ResultAssertionException">The result is not a failure or no inner error has the specified <paramref name="errorCode"/></exception>
     public static Error ShouldContainInnerError(this in Result result, string errorCode)
     {
         var error = result.ShouldBeFailure();
         if (!error.HasInnerErrors)
-            throw new ResultAssertionException($"Expected at least one inner error with code '{errorCode}', but none was found.");
+            throw new ResultAssertionException($"Expected at least one inner error with code '{errorCode}', but error has no inner errors.");
 
         var innerErrors = error.InnerErrors;
         for (int i = 0; i < innerErrors.Length; i++)
@@ -757,11 +994,16 @@ public static class ResultAssertions
     /// <summary>
     /// Asserts that the Result&lt;T&gt; error has at least one inner error with the specified error code.
     /// </summary>
+    /// <typeparam name="T">The value type of the result.</typeparam>
+    /// <param name="result">The result to inspect.</param>
+    /// <param name="errorCode">The error code to search for within the inner errors.</param>
+    /// <returns>The root error from the failed result.</returns>
+    /// <exception cref="ResultAssertionException">The result is not a failure or no inner error has the specified <paramref name="errorCode"/></exception>
     public static Error ShouldContainInnerError<T>(this in Result<T> result, string errorCode)
     {
         var error = result.ShouldBeFailure();
         if (!error.HasInnerErrors)
-            throw new ResultAssertionException($"Expected at least one inner error with code '{errorCode}', but none was found.");
+            throw new ResultAssertionException($"Expected at least one inner error with code '{errorCode}', but error has no inner errors.");
 
         var innerErrors = error.InnerErrors;
         for (int i = 0; i < innerErrors.Length; i++)
@@ -779,11 +1021,15 @@ public static class ResultAssertions
     /// Asserts that the Result is in the uninitialized default state
     /// (i.e., <c>default(Result)</c> was never replaced by <see cref="Result.Success()"/> or <see cref="Result.Failure"/>).
     /// </summary>
+    /// <param name="result">The result to inspect.</param>
+    /// <param name="message">Optional custom failure message.</param>
+    /// <returns>The original uninitialized result.</returns>
     /// <remarks>
     /// Use this assertion to verify that code paths that should always initialize a Result
     /// do not accidentally return <c>default(Result)</c>. The uninitialized state is neither
     /// Success nor Failure — it is a third sentinel state that typically indicates a programming error.
     /// </remarks>
+    /// <exception cref="ResultAssertionException">The result is not in the uninitialized state</exception>
     public static Result ShouldBeUninitialized(this in Result result, string? message = null)
     {
         if (!result.IsUninitialized)
@@ -797,10 +1043,15 @@ public static class ResultAssertions
     /// <summary>
     /// Asserts that the Result&lt;T&gt; is in the uninitialized default state.
     /// </summary>
+    /// <typeparam name="T">The value type of the result.</typeparam>
+    /// <param name="result">The result to inspect.</param>
+    /// <param name="message">Optional custom failure message.</param>
+    /// <returns>The original uninitialized result.</returns>
     /// <remarks>
     /// Use this assertion to verify that code paths that should always initialize a Result&lt;T&gt;
     /// do not accidentally return <c>default(Result&lt;T&gt;)</c>.
     /// </remarks>
+    /// <exception cref="ResultAssertionException">The result is not in the uninitialized state</exception>
     public static Result<T> ShouldBeUninitialized<T>(this in Result<T> result, string? message = null)
     {
         if (!result.IsUninitialized)
@@ -818,12 +1069,16 @@ public static class ResultAssertions
     /// Asserts that the Result failure's error has no inner errors.
     /// This is the inverse of <see cref="ShouldHaveInnerErrors(in Result, int)"/>.
     /// </summary>
+    /// <param name="result">The result to inspect.</param>
+    /// <param name="message">Optional custom failure message.</param>
+    /// <returns>The error from the failed result.</returns>
+    /// <exception cref="ResultAssertionException">The result is not a failure or its error has one or more inner errors</exception>
     public static Error ShouldNotHaveInnerErrors(this in Result result, string? message = null)
     {
         var error = result.ShouldBeFailure(message);
         if (error.HasInnerErrors)
         {
-            ResultAssertionException.Throw(
+            throw new ResultAssertionException(
                 message ?? $"Expected error '{error.Code}' to have no inner errors, but found {error.InnerErrors.Length}.");
         }
         return error;
@@ -832,12 +1087,17 @@ public static class ResultAssertions
     /// <summary>
     /// Asserts that the Result&lt;T&gt; failure's error has no inner errors.
     /// </summary>
+    /// <typeparam name="T">The value type of the result.</typeparam>
+    /// <param name="result">The result to inspect.</param>
+    /// <param name="message">Optional custom failure message.</param>
+    /// <returns>The error from the failed result.</returns>
+    /// <exception cref="ResultAssertionException">The result is not a failure or its error has one or more inner errors</exception>
     public static Error ShouldNotHaveInnerErrors<T>(this in Result<T> result, string? message = null)
     {
         var error = result.ShouldBeFailure(message);
         if (error.HasInnerErrors)
         {
-            ResultAssertionException.Throw(
+            throw new ResultAssertionException(
                 message ?? $"Expected Result<{GetFriendlyTypeName(typeof(T))}> error '{error.Code}' to have no inner errors, but found {error.InnerErrors.Length}.");
         }
         return error;
@@ -849,13 +1109,19 @@ public static class ResultAssertions
     /// Asserts that the Result failure's error has exactly <paramref name="expectedCount"/> inner errors.
     /// Useful for verifying <see cref="Result.Combine(ReadOnlySpan{Result})"/> produced the expected number of collected failures.
     /// </summary>
+    /// <param name="result">The result to inspect.</param>
+    /// <param name="expectedCount">The expected number of inner errors.</param>
+    /// <param name="message">Optional custom failure message.</param>
+    /// <returns>The error from the failed result.</returns>
+    /// <exception cref="ResultAssertionException">The result is not a failure or the inner error count does not match <paramref name="expectedCount"/></exception>
     public static Error ShouldHaveInnerErrorCount(this in Result result, int expectedCount, string? message = null)
     {
         var error = result.ShouldBeFailure(message);
+        // Stryker disable once Conditional : Equivalent mutation (InnerErrors.Length is 0 when HasInnerErrors is false)
         var actualCount = error.HasInnerErrors ? error.InnerErrors.Length : 0;
         if (actualCount != expectedCount)
         {
-            ResultAssertionException.Throw(
+            throw new ResultAssertionException(
                 message ?? $"Expected error '{error.Code}' to have exactly {expectedCount} inner error(s), but found {actualCount}.");
         }
         return error;
@@ -864,98 +1130,163 @@ public static class ResultAssertions
     /// <summary>
     /// Asserts that the Result&lt;T&gt; failure's error has exactly <paramref name="expectedCount"/> inner errors.
     /// </summary>
+    /// <typeparam name="T">The value type of the result.</typeparam>
+    /// <param name="result">The result to inspect.</param>
+    /// <param name="expectedCount">The expected number of inner errors.</param>
+    /// <param name="message">Optional custom failure message.</param>
+    /// <returns>The error from the failed result.</returns>
+    /// <exception cref="ResultAssertionException">The result is not a failure or the inner error count does not match <paramref name="expectedCount"/></exception>
     public static Error ShouldHaveInnerErrorCount<T>(this in Result<T> result, int expectedCount, string? message = null)
     {
         var error = result.ShouldBeFailure(message);
+        // Stryker disable once Conditional : Equivalent mutation (InnerErrors.Length is 0 when HasInnerErrors is false)
         var actualCount = error.HasInnerErrors ? error.InnerErrors.Length : 0;
         if (actualCount != expectedCount)
         {
-            ResultAssertionException.Throw(
+            throw new ResultAssertionException(
                 message ?? $"Expected Result<{GetFriendlyTypeName(typeof(T))}> error '{error.Code}' to have exactly {expectedCount} inner error(s), but found {actualCount}.");
         }
         return error;
     }
 
-    /// <summary>Asserts that the Task&lt;Result&gt; is in the uninitialized default state.</summary>
+    /// <summary>Asserts that the <c>Task&lt;Result&gt;</c> is in the uninitialized default state.</summary>
+    /// <param name="task">The task returning the result to inspect.</param>
+    /// <param name="message">Optional custom failure message.</param>
+    /// <returns>A task representing the asynchronous assertion. The task result contains the uninitialized result.</returns>
     public static Task<Result> ShouldBeUninitializedAsync(this Task<Result> task, string? message = null)
     {
+        // Stryker disable once all : Fast path optimization
         if (task.IsCompletedSuccessfully) return Task.FromResult(task.Result.ShouldBeUninitialized(message));
         return AwaitAndAssert(task, r => r.ShouldBeUninitialized(message));
     }
 
-    /// <summary>Asserts that the ValueTask&lt;Result&gt; is in the uninitialized default state.</summary>
+    /// <summary>Asserts that the <c>ValueTask&lt;Result&gt;</c> is in the uninitialized default state.</summary>
+    /// <param name="task">The value task returning the result to inspect.</param>
+    /// <param name="message">Optional custom failure message.</param>
+    /// <returns>A value task representing the asynchronous assertion. The task result contains the uninitialized result.</returns>
     public static ValueTask<Result> ShouldBeUninitializedAsync(this ValueTask<Result> task, string? message = null)
     {
+        // Stryker disable once all : Fast path optimization
         if (task.IsCompletedSuccessfully) return new ValueTask<Result>(task.Result.ShouldBeUninitialized(message));
         return new ValueTask<Result>(AwaitAndAssert(task.AsTask(), r => r.ShouldBeUninitialized(message)));
     }
 
-    /// <summary>Asserts that the Task&lt;Result&lt;T&gt;&gt; is in the uninitialized default state.</summary>
+    /// <summary>Asserts that the <c>Task&lt;Result&lt;T&gt;&gt;</c> is in the uninitialized default state.</summary>
+    /// <typeparam name="T">The value type of the result.</typeparam>
+    /// <param name="task">The task returning the result to inspect.</param>
+    /// <param name="message">Optional custom failure message.</param>
+    /// <returns>A task representing the asynchronous assertion. The task result contains the uninitialized result.</returns>
     public static Task<Result<T>> ShouldBeUninitializedAsync<T>(this Task<Result<T>> task, string? message = null)
     {
+        // Stryker disable once all : Fast path optimization
         if (task.IsCompletedSuccessfully) return Task.FromResult(task.Result.ShouldBeUninitialized(message));
         return AwaitAndAssert(task, r => r.ShouldBeUninitialized(message));
     }
 
-    /// <summary>Asserts that the ValueTask&lt;Result&lt;T&gt;&gt; is in the uninitialized default state.</summary>
+    /// <summary>Asserts that the <c>ValueTask&lt;Result&lt;T&gt;&gt;</c> is in the uninitialized default state.</summary>
+    /// <typeparam name="T">The value type of the result.</typeparam>
+    /// <param name="task">The value task returning the result to inspect.</param>
+    /// <param name="message">Optional custom failure message.</param>
+    /// <returns>A value task representing the asynchronous assertion. The task result contains the uninitialized result.</returns>
     public static ValueTask<Result<T>> ShouldBeUninitializedAsync<T>(this ValueTask<Result<T>> task, string? message = null)
     {
+        // Stryker disable once all : Fast path optimization
         if (task.IsCompletedSuccessfully) return new ValueTask<Result<T>>(task.Result.ShouldBeUninitialized(message));
         return new ValueTask<Result<T>>(AwaitAndAssert(task.AsTask(), r => r.ShouldBeUninitialized(message)));
     }
 
-    /// <summary>Asserts that the Task&lt;Result&gt; failure's error has no inner errors.</summary>
+    /// <summary>Asserts that the <c>Task&lt;Result&gt;</c> failure's error has no inner errors.</summary>
+    /// <param name="task">The task returning the result to inspect.</param>
+    /// <param name="message">Optional custom failure message.</param>
+    /// <returns>A task representing the asynchronous assertion. The task result contains the error from the failed result.</returns>
     public static Task<Error> ShouldNotHaveInnerErrorsAsync(this Task<Result> task, string? message = null)
     {
+        // Stryker disable once all : Fast path optimization
         if (task.IsCompletedSuccessfully) return Task.FromResult(task.Result.ShouldNotHaveInnerErrors(message));
         return AwaitAndAssert(task, r => r.ShouldNotHaveInnerErrors(message));
     }
 
-    /// <summary>Asserts that the ValueTask&lt;Result&gt; failure's error has no inner errors.</summary>
+    /// <summary>Asserts that the <c>ValueTask&lt;Result&gt;</c> failure's error has no inner errors.</summary>
+    /// <param name="task">The value task returning the result to inspect.</param>
+    /// <param name="message">Optional custom failure message.</param>
+    /// <returns>A value task representing the asynchronous assertion. The task result contains the error from the failed result.</returns>
     public static ValueTask<Error> ShouldNotHaveInnerErrorsAsync(this ValueTask<Result> task, string? message = null)
     {
+        // Stryker disable once all : Fast path optimization
         if (task.IsCompletedSuccessfully) return new ValueTask<Error>(task.Result.ShouldNotHaveInnerErrors(message));
         return new ValueTask<Error>(AwaitAndAssert(task.AsTask(), r => r.ShouldNotHaveInnerErrors(message)));
     }
 
-    /// <summary>Asserts that the Task&lt;Result&lt;T&gt;&gt; failure's error has no inner errors.</summary>
+    /// <summary>Asserts that the <c>Task&lt;Result&lt;T&gt;&gt;</c> failure's error has no inner errors.</summary>
+    /// <typeparam name="T">The value type of the result.</typeparam>
+    /// <param name="task">The task returning the result to inspect.</param>
+    /// <param name="message">Optional custom failure message.</param>
+    /// <returns>A task representing the asynchronous assertion. The task result contains the error from the failed result.</returns>
     public static Task<Error> ShouldNotHaveInnerErrorsAsync<T>(this Task<Result<T>> task, string? message = null)
     {
+        // Stryker disable once all : Fast path optimization
         if (task.IsCompletedSuccessfully) return Task.FromResult(task.Result.ShouldNotHaveInnerErrors(message));
         return AwaitAndAssert(task, r => r.ShouldNotHaveInnerErrors(message));
     }
 
-    /// <summary>Asserts that the ValueTask&lt;Result&lt;T&gt;&gt; failure's error has no inner errors.</summary>
+    /// <summary>Asserts that the <c>ValueTask&lt;Result&lt;T&gt;&gt;</c> failure's error has no inner errors.</summary>
+    /// <typeparam name="T">The value type of the result.</typeparam>
+    /// <param name="task">The value task returning the result to inspect.</param>
+    /// <param name="message">Optional custom failure message.</param>
+    /// <returns>A value task representing the asynchronous assertion. The task result contains the error from the failed result.</returns>
     public static ValueTask<Error> ShouldNotHaveInnerErrorsAsync<T>(this ValueTask<Result<T>> task, string? message = null)
     {
+        // Stryker disable once all : Fast path optimization
         if (task.IsCompletedSuccessfully) return new ValueTask<Error>(task.Result.ShouldNotHaveInnerErrors(message));
         return new ValueTask<Error>(AwaitAndAssert(task.AsTask(), r => r.ShouldNotHaveInnerErrors(message)));
     }
 
-    /// <summary>Asserts that the Task&lt;Result&gt; failure's error has exactly <paramref name="expectedCount"/> inner errors.</summary>
+    /// <summary>Asserts that the <c>Task&lt;Result&gt;</c> failure's error has exactly <paramref name="expectedCount"/> inner errors.</summary>
+    /// <param name="task">The task returning the result to inspect.</param>
+    /// <param name="expectedCount">The expected number of inner errors.</param>
+    /// <param name="message">Optional custom failure message.</param>
+    /// <returns>A task representing the asynchronous assertion. The task result contains the error from the failed result.</returns>
     public static Task<Error> ShouldHaveInnerErrorCountAsync(this Task<Result> task, int expectedCount, string? message = null)
     {
+        // Stryker disable once all : Fast path optimization
         if (task.IsCompletedSuccessfully) return Task.FromResult(task.Result.ShouldHaveInnerErrorCount(expectedCount, message));
         return AwaitAndAssert(task, r => r.ShouldHaveInnerErrorCount(expectedCount, message));
     }
 
-    /// <summary>Asserts that the ValueTask&lt;Result&gt; failure's error has exactly <paramref name="expectedCount"/> inner errors.</summary>
+    /// <summary>Asserts that the <c>ValueTask&lt;Result&gt;</c> failure's error has exactly <paramref name="expectedCount"/> inner errors.</summary>
+    /// <param name="task">The value task returning the result to inspect.</param>
+    /// <param name="expectedCount">The expected number of inner errors.</param>
+    /// <param name="message">Optional custom failure message.</param>
+    /// <returns>A value task representing the asynchronous assertion. The task result contains the error from the failed result.</returns>
     public static ValueTask<Error> ShouldHaveInnerErrorCountAsync(this ValueTask<Result> task, int expectedCount, string? message = null)
     {
+        // Stryker disable once all : Fast path optimization
         if (task.IsCompletedSuccessfully) return new ValueTask<Error>(task.Result.ShouldHaveInnerErrorCount(expectedCount, message));
         return new ValueTask<Error>(AwaitAndAssert(task.AsTask(), r => r.ShouldHaveInnerErrorCount(expectedCount, message)));
     }
 
-    /// <summary>Asserts that the Task&lt;Result&lt;T&gt;&gt; failure's error has exactly <paramref name="expectedCount"/> inner errors.</summary>
+    /// <summary>Asserts that the <c>Task&lt;Result&lt;T&gt;&gt;</c> failure's error has exactly <paramref name="expectedCount"/> inner errors.</summary>
+    /// <typeparam name="T">The value type of the result.</typeparam>
+    /// <param name="task">The task returning the result to inspect.</param>
+    /// <param name="expectedCount">The expected number of inner errors.</param>
+    /// <param name="message">Optional custom failure message.</param>
+    /// <returns>A task representing the asynchronous assertion. The task result contains the error from the failed result.</returns>
     public static Task<Error> ShouldHaveInnerErrorCountAsync<T>(this Task<Result<T>> task, int expectedCount, string? message = null)
     {
+        // Stryker disable once all : Fast path optimization
         if (task.IsCompletedSuccessfully) return Task.FromResult(task.Result.ShouldHaveInnerErrorCount(expectedCount, message));
         return AwaitAndAssert(task, r => r.ShouldHaveInnerErrorCount(expectedCount, message));
     }
 
-    /// <summary>Asserts that the ValueTask&lt;Result&lt;T&gt;&gt; failure's error has exactly <paramref name="expectedCount"/> inner errors.</summary>
+    /// <summary>Asserts that the <c>ValueTask&lt;Result&lt;T&gt;&gt;</c> failure's error has exactly <paramref name="expectedCount"/> inner errors.</summary>
+    /// <typeparam name="T">The value type of the result.</typeparam>
+    /// <param name="task">The value task returning the result to inspect.</param>
+    /// <param name="expectedCount">The expected number of inner errors.</param>
+    /// <param name="message">Optional custom failure message.</param>
+    /// <returns>A value task representing the asynchronous assertion. The task result contains the error from the failed result.</returns>
     public static ValueTask<Error> ShouldHaveInnerErrorCountAsync<T>(this ValueTask<Result<T>> task, int expectedCount, string? message = null)
     {
+        // Stryker disable once all : Fast path optimization
         if (task.IsCompletedSuccessfully) return new ValueTask<Error>(task.Result.ShouldHaveInnerErrorCount(expectedCount, message));
         return new ValueTask<Error>(AwaitAndAssert(task.AsTask(), r => r.ShouldHaveInnerErrorCount(expectedCount, message)));
     }
@@ -967,12 +1298,16 @@ public static class ResultAssertions
     /// regardless of the value. Use <see cref="ShouldHaveMetadata(in Result, string, object)"/>
     /// to also assert the value.
     /// </summary>
+    /// <param name="result">The result to inspect.</param>
+    /// <param name="key">The metadata key to look up.</param>
+    /// <returns>The error from the failed result.</returns>
+    /// <exception cref="ResultAssertionException">The result is not a failure or the key is not present in the error metadata</exception>
     public static Error ShouldHaveMetadataKey(this in Result result, string key)
     {
         var error = result.ShouldBeFailure();
         if (!error.HasMetadata || !error.Metadata.ContainsKey(key))
-        throw new ResultAssertionException($"Expected error metadata to contain key '{key}', but it was not found.");
-        
+            throw new ResultAssertionException($"Expected error metadata to contain key '{key}', but it was not found.");
+
         return error;
     }
 
@@ -981,36 +1316,50 @@ public static class ResultAssertions
     /// regardless of the value. Use <see cref="ShouldHaveMetadata{T}(in Result{T}, string, object)"/>
     /// to also assert the value.
     /// </summary>
+    /// <typeparam name="T">The value type of the result.</typeparam>
+    /// <param name="result">The result to inspect.</param>
+    /// <param name="key">The metadata key to look up.</param>
+    /// <returns>The error from the failed result.</returns>
+    /// <exception cref="ResultAssertionException">The result is not a failure or the key is not present in the error metadata</exception>
     public static Error ShouldHaveMetadataKey<T>(this in Result<T> result, string key)
     {
         var error = result.ShouldBeFailure();
         if (!error.HasMetadata || !error.Metadata.ContainsKey(key))
-        throw new ResultAssertionException($"Expected error metadata to contain key '{key}', but it was not found.");
-        
+            throw new ResultAssertionException($"Expected error metadata to contain key '{key}', but it was not found.");
+
         return error;
     }
 
     /// <summary>
     /// Asserts that the Result error does <b>not</b> contain a metadata entry with the specified key.
     /// </summary>
+    /// <param name="result">The result to inspect.</param>
+    /// <param name="key">The metadata key that must be absent.</param>
+    /// <returns>The error from the failed result.</returns>
+    /// <exception cref="ResultAssertionException">The result is not a failure or the key is present in the error metadata</exception>
     public static Error ShouldNotHaveMetadata(this in Result result, string key)
     {
         var error = result.ShouldBeFailure();
         if (error.HasMetadata && error.Metadata.ContainsKey(key))
-        throw new ResultAssertionException($"Expected error metadata to NOT contain key '{key}', but it was present with value '{error.Metadata[key]}'.");
-        
+            throw new ResultAssertionException($"Expected error metadata to NOT contain key '{key}', but it was present with value '{error.Metadata[key]}'.");
+
         return error;
     }
 
     /// <summary>
     /// Asserts that the Result&lt;T&gt; error does <b>not</b> contain a metadata entry with the specified key.
     /// </summary>
+    /// <typeparam name="T">The value type of the result.</typeparam>
+    /// <param name="result">The result to inspect.</param>
+    /// <param name="key">The metadata key that must be absent.</param>
+    /// <returns>The error from the failed result.</returns>
+    /// <exception cref="ResultAssertionException">The result is not a failure or the key is present in the error metadata</exception>
     public static Error ShouldNotHaveMetadata<T>(this in Result<T> result, string key)
     {
         var error = result.ShouldBeFailure();
         if (error.HasMetadata && error.Metadata.ContainsKey(key))
-        throw new ResultAssertionException($"Expected error metadata to NOT contain key '{key}', but it was present with value '{error.Metadata[key]}'.");
-        
+            throw new ResultAssertionException($"Expected error metadata to NOT contain key '{key}', but it was present with value '{error.Metadata[key]}'.");
+
         return error;
     }
 
@@ -1041,19 +1390,29 @@ public static class ResultAssertions
     }
 
     /// <summary>
-    /// Asserts that the Task&lt;Result&gt; is successful and executes a custom assertion action.
+    /// Asserts that the <c>Task&lt;Result&gt;</c> is successful and executes a custom assertion action.
     /// </summary>
+    /// <param name="task">The task returning the result to inspect.</param>
+    /// <param name="assertion">An action that performs custom assertions on the result. Throw any exception to indicate failure.</param>
+    /// <param name="message">Optional failure message if the result is not successful.</param>
+    /// <returns>A task representing the asynchronous assertion. The task result contains the original result.</returns>
     public static Task<Result> ShouldSatisfyAsync(this Task<Result> task, Action<Result> assertion, string? message = null)
     {
+        // Stryker disable once all : Fast path optimization
         if (task.IsCompletedSuccessfully) return Task.FromResult(task.Result.ShouldSatisfy(assertion, message));
         return AwaitAndAssert(task, r => r.ShouldSatisfy(assertion, message));
     }
 
     /// <summary>
-    /// Asserts that the ValueTask&lt;Result&gt; is successful and executes a custom assertion action.
+    /// Asserts that the <c>ValueTask&lt;Result&gt;</c> is successful and executes a custom assertion action.
     /// </summary>
+    /// <param name="task">The value task returning the result to inspect.</param>
+    /// <param name="assertion">An action that performs custom assertions on the result. Throw any exception to indicate failure.</param>
+    /// <param name="message">Optional failure message if the result is not successful.</param>
+    /// <returns>A value task representing the asynchronous assertion. The task result contains the original result.</returns>
     public static ValueTask<Result> ShouldSatisfyAsync(this ValueTask<Result> task, Action<Result> assertion, string? message = null)
     {
+        // Stryker disable once all : Fast path optimization
         if (task.IsCompletedSuccessfully) return new ValueTask<Result>(task.Result.ShouldSatisfy(assertion, message));
         return new ValueTask<Result>(AwaitAndAssert(task.AsTask(), r => r.ShouldSatisfy(assertion, message)));
     }
@@ -1085,19 +1444,31 @@ public static class ResultAssertions
     }
 
     /// <summary>
-    /// Asserts that the Task&lt;Result&lt;T&gt;&gt; is successful and that its value satisfies the specified assertion action.
+    /// Asserts that the <c>Task&lt;Result&lt;T&gt;&gt;</c> is successful and that its value satisfies the specified assertion action.
     /// </summary>
+    /// <typeparam name="T">The result value type.</typeparam>
+    /// <param name="task">The task returning the result to inspect.</param>
+    /// <param name="assertion">An action that performs custom assertions on the value. Throw any exception to indicate failure.</param>
+    /// <param name="message">Optional failure message if the result is not successful.</param>
+    /// <returns>A task representing the asynchronous assertion. The task result contains the success value.</returns>
     public static Task<T> ShouldSatisfyAsync<T>(this Task<Result<T>> task, Action<T> assertion, string? message = null)
     {
+        // Stryker disable once all : Fast path optimization
         if (task.IsCompletedSuccessfully) return Task.FromResult(task.Result.ShouldSatisfy(assertion, message));
         return AwaitAndAssert(task, r => r.ShouldSatisfy(assertion, message));
     }
 
     /// <summary>
-    /// Asserts that the ValueTask&lt;Result&lt;T&gt;&gt; is successful and that its value satisfies the specified assertion action.
+    /// Asserts that the <c>ValueTask&lt;Result&lt;T&gt;&gt;</c> is successful and that its value satisfies the specified assertion action.
     /// </summary>
+    /// <typeparam name="T">The result value type.</typeparam>
+    /// <param name="task">The value task returning the result to inspect.</param>
+    /// <param name="assertion">An action that performs custom assertions on the value. Throw any exception to indicate failure.</param>
+    /// <param name="message">Optional failure message if the result is not successful.</param>
+    /// <returns>A value task representing the asynchronous assertion. The task result contains the success value.</returns>
     public static ValueTask<T> ShouldSatisfyAsync<T>(this ValueTask<Result<T>> task, Action<T> assertion, string? message = null)
     {
+        // Stryker disable once all : Fast path optimization
         if (task.IsCompletedSuccessfully) return new ValueTask<T>(task.Result.ShouldSatisfy(assertion, message));
         return new ValueTask<T>(AwaitAndAssert(task.AsTask(), r => r.ShouldSatisfy(assertion, message)));
     }
@@ -1146,30 +1517,52 @@ public static class ResultAssertions
         return error;
     }
 
-    /// <summary>Asserts that Task&lt;Result&gt; is a failure and the error satisfies the assertion.</summary>
+    /// <summary>Asserts that <c>Task&lt;Result&gt;</c> is a failure and the error satisfies the assertion.</summary>
+    /// <param name="task">The task returning the result to inspect.</param>
+    /// <param name="assertion">An action that performs custom assertions on the error. Throw any exception to indicate failure.</param>
+    /// <param name="message">Optional failure message if the result is not a failure.</param>
+    /// <returns>A task representing the asynchronous assertion. The task result contains the error from the failed result.</returns>
     public static Task<Error> ShouldSatisfyErrorAsync(this Task<Result> task, Action<Error> assertion, string? message = null)
     {
+        // Stryker disable once all : Fast path optimization
         if (task.IsCompletedSuccessfully) return Task.FromResult(task.Result.ShouldSatisfyError(assertion, message));
         return AwaitAndAssert(task, r => r.ShouldSatisfyError(assertion, message));
     }
 
-    /// <summary>Asserts that Task&lt;Result&lt;T&gt;&gt; is a failure and the error satisfies the assertion.</summary>
+    /// <summary>Asserts that <c>Task&lt;Result&lt;T&gt;&gt;</c> is a failure and the error satisfies the assertion.</summary>
+    /// <typeparam name="T">The value type of the result.</typeparam>
+    /// <param name="task">The task returning the result to inspect.</param>
+    /// <param name="assertion">An action that performs custom assertions on the error. Throw any exception to indicate failure.</param>
+    /// <param name="message">Optional failure message if the result is not a failure.</param>
+    /// <returns>A task representing the asynchronous assertion. The task result contains the error from the failed result.</returns>
     public static Task<Error> ShouldSatisfyErrorAsync<T>(this Task<Result<T>> task, Action<Error> assertion, string? message = null)
     {
+        // Stryker disable once all : Fast path optimization
         if (task.IsCompletedSuccessfully) return Task.FromResult(task.Result.ShouldSatisfyError(assertion, message));
         return AwaitAndAssert(task, r => r.ShouldSatisfyError(assertion, message));
     }
 
-    /// <summary>Asserts that ValueTask&lt;Result&gt; is a failure and the error satisfies the assertion.</summary>
+    /// <summary>Asserts that <c>ValueTask&lt;Result&gt;</c> is a failure and the error satisfies the assertion.</summary>
+    /// <param name="task">The value task returning the result to inspect.</param>
+    /// <param name="assertion">An action that performs custom assertions on the error. Throw any exception to indicate failure.</param>
+    /// <param name="message">Optional failure message if the result is not a failure.</param>
+    /// <returns>A value task representing the asynchronous assertion. The task result contains the error from the failed result.</returns>
     public static ValueTask<Error> ShouldSatisfyErrorAsync(this ValueTask<Result> task, Action<Error> assertion, string? message = null)
     {
+        // Stryker disable once all : Fast path optimization
         if (task.IsCompletedSuccessfully) return new ValueTask<Error>(task.Result.ShouldSatisfyError(assertion, message));
         return new ValueTask<Error>(AwaitAndAssert(task.AsTask(), r => r.ShouldSatisfyError(assertion, message)));
     }
 
-    /// <summary>Asserts that ValueTask&lt;Result&lt;T&gt;&gt; is a failure and the error satisfies the assertion.</summary>
+    /// <summary>Asserts that <c>ValueTask&lt;Result&lt;T&gt;&gt;</c> is a failure and the error satisfies the assertion.</summary>
+    /// <typeparam name="T">The value type of the result.</typeparam>
+    /// <param name="task">The value task returning the result to inspect.</param>
+    /// <param name="assertion">An action that performs custom assertions on the error. Throw any exception to indicate failure.</param>
+    /// <param name="message">Optional failure message if the result is not a failure.</param>
+    /// <returns>A value task representing the asynchronous assertion. The task result contains the error from the failed result.</returns>
     public static ValueTask<Error> ShouldSatisfyErrorAsync<T>(this ValueTask<Result<T>> task, Action<Error> assertion, string? message = null)
     {
+        // Stryker disable once all : Fast path optimization
         if (task.IsCompletedSuccessfully) return new ValueTask<Error>(task.Result.ShouldSatisfyError(assertion, message));
         return new ValueTask<Error>(AwaitAndAssert(task.AsTask(), r => r.ShouldSatisfyError(assertion, message)));
     }
@@ -1177,73 +1570,109 @@ public static class ResultAssertions
     // --- Async Assertions -----------------------------------------------------
 
     /// <summary>
-    /// Async assertion that Task&lt;Result&gt; is successful.
+    /// Asserts that the <c>Task&lt;Result&gt;</c> is successful.
     /// </summary>
+    /// <param name="task">The task returning the result to inspect.</param>
+    /// <param name="message">Optional custom failure message.</param>
+    /// <returns>A task representing the asynchronous assertion. The task result contains the original result.</returns>
     public static Task<Result> ShouldBeSuccessAsync(this Task<Result> task, string? message = null)
     {
+        // Stryker disable once all : Fast path optimization
         if (task.IsCompletedSuccessfully) return Task.FromResult(task.Result.ShouldBeSuccess(message));
         return AwaitAndAssert(task, r => r.ShouldBeSuccess(message));
     }
 
     /// <summary>
-    /// Async assertion that Task&lt;Result&lt;T&gt;&gt; is successful and returns value.
+    /// Asserts that the <c>Task&lt;Result&lt;T&gt;&gt;</c> is successful and returns the value.
     /// </summary>
+    /// <typeparam name="T">The value type of the result.</typeparam>
+    /// <param name="task">The task returning the result to inspect.</param>
+    /// <param name="message">Optional custom failure message.</param>
+    /// <returns>A task representing the asynchronous assertion. The task result contains the success value.</returns>
     public static Task<T> ShouldBeSuccessAsync<T>(this Task<Result<T>> task, string? message = null)
     {
+        // Stryker disable once all : Fast path optimization
         if (task.IsCompletedSuccessfully) return Task.FromResult(task.Result.ShouldBeSuccess(message));
         return AwaitAndAssert(task, r => r.ShouldBeSuccess(message));
     }
 
     /// <summary>
-    /// Async assertion that Task&lt;Result&gt; is a failure.
+    /// Asserts that the <c>Task&lt;Result&gt;</c> is a failure and returns its error.
     /// </summary>
+    /// <param name="task">The task returning the result to inspect.</param>
+    /// <param name="message">Optional custom failure message.</param>
+    /// <returns>A task representing the asynchronous assertion. The task result contains the error from the failed result.</returns>
     public static Task<Error> ShouldBeFailureAsync(this Task<Result> task, string? message = null)
     {
+        // Stryker disable once all : Fast path optimization
         if (task.IsCompletedSuccessfully) return Task.FromResult(task.Result.ShouldBeFailure(message));
         return AwaitAndAssert(task, r => r.ShouldBeFailure(message));
     }
 
     /// <summary>
-    /// Async assertion that Task&lt;Result&lt;T&gt;&gt; is a failure.
+    /// Asserts that the <c>Task&lt;Result&lt;T&gt;&gt;</c> is a failure and returns its error.
     /// </summary>
+    /// <typeparam name="T">The value type of the result.</typeparam>
+    /// <param name="task">The task returning the result to inspect.</param>
+    /// <param name="message">Optional custom failure message.</param>
+    /// <returns>A task representing the asynchronous assertion. The task result contains the error from the failed result.</returns>
     public static Task<Error> ShouldBeFailureAsync<T>(this Task<Result<T>> task, string? message = null)
     {
+        // Stryker disable once all : Fast path optimization
         if (task.IsCompletedSuccessfully) return Task.FromResult(task.Result.ShouldBeFailure(message));
         return AwaitAndAssert(task, r => r.ShouldBeFailure(message));
     }
 
     /// <summary>
-    /// Async assertion that ValueTask&lt;Result&gt; is successful.
+    /// Asserts that the <c>ValueTask&lt;Result&gt;</c> is successful.
     /// </summary>
+    /// <param name="task">The value task returning the result to inspect.</param>
+    /// <param name="message">Optional custom failure message.</param>
+    /// <returns>A value task representing the asynchronous assertion. The task result contains the original result.</returns>
     public static ValueTask<Result> ShouldBeSuccessAsync(this ValueTask<Result> task, string? message = null)
     {
+        // Stryker disable once all : Fast path optimization
         if (task.IsCompletedSuccessfully) return new ValueTask<Result>(task.Result.ShouldBeSuccess(message));
         return new ValueTask<Result>(AwaitAndAssert(task.AsTask(), r => r.ShouldBeSuccess(message)));
     }
 
     /// <summary>
-    /// Async assertion that ValueTask&lt;Result&lt;T&gt;&gt; is successful and returns value.
+    /// Asserts that the <c>ValueTask&lt;Result&lt;T&gt;&gt;</c> is successful and returns the value.
     /// </summary>
+    /// <typeparam name="T">The value type of the result.</typeparam>
+    /// <param name="task">The value task returning the result to inspect.</param>
+    /// <param name="message">Optional custom failure message.</param>
+    /// <returns>A value task representing the asynchronous assertion. The task result contains the success value.</returns>
     public static ValueTask<T> ShouldBeSuccessAsync<T>(this ValueTask<Result<T>> task, string? message = null)
     {
+        // Stryker disable once all : Fast path optimization
         if (task.IsCompletedSuccessfully) return new ValueTask<T>(task.Result.ShouldBeSuccess(message));
         return new ValueTask<T>(AwaitAndAssert(task.AsTask(), r => r.ShouldBeSuccess(message)));
     }
 
     /// <summary>
-    /// Async assertion that ValueTask&lt;Result&gt; is a failure.
+    /// Asserts that the <c>ValueTask&lt;Result&gt;</c> is a failure and returns its error.
     /// </summary>
+    /// <param name="task">The value task returning the result to inspect.</param>
+    /// <param name="message">Optional custom failure message.</param>
+    /// <returns>A value task representing the asynchronous assertion. The task result contains the error from the failed result.</returns>
     public static ValueTask<Error> ShouldBeFailureAsync(this ValueTask<Result> task, string? message = null)
     {
+        // Stryker disable once all : Fast path optimization
         if (task.IsCompletedSuccessfully) return new ValueTask<Error>(task.Result.ShouldBeFailure(message));
         return new ValueTask<Error>(AwaitAndAssert(task.AsTask(), r => r.ShouldBeFailure(message)));
     }
 
     /// <summary>
-    /// Async assertion that ValueTask&lt;Result&lt;T&gt;&gt; is a failure.
+    /// Asserts that the <c>ValueTask&lt;Result&lt;T&gt;&gt;</c> is a failure and returns its error.
     /// </summary>
+    /// <typeparam name="T">The value type of the result.</typeparam>
+    /// <param name="task">The value task returning the result to inspect.</param>
+    /// <param name="message">Optional custom failure message.</param>
+    /// <returns>A value task representing the asynchronous assertion. The task result contains the error from the failed result.</returns>
     public static ValueTask<Error> ShouldBeFailureAsync<T>(this ValueTask<Result<T>> task, string? message = null)
     {
+        // Stryker disable once all : Fast path optimization
         if (task.IsCompletedSuccessfully) return new ValueTask<Error>(task.Result.ShouldBeFailure(message));
         return new ValueTask<Error>(AwaitAndAssert(task.AsTask(), r => r.ShouldBeFailure(message)));
     }
@@ -1251,242 +1680,394 @@ public static class ResultAssertions
     // --- Chained Async Error Assertions --------------------------------------
     // Eliminates the two-step "await result; result.ShouldHave*()" pattern.
 
-    /// <summary>Asserts that Task&lt;Result&gt; is a failure with the given error code.</summary>
+    /// <summary>Asserts that <c>Task&lt;Result&gt;</c> is a failure with the given error code.</summary>
+    /// <param name="task">The task returning the result to inspect.</param>
+    /// <param name="expectedCode">The expected error code string.</param>
+    /// <returns>A task representing the asynchronous assertion. The task result contains the error from the failed result.</returns>
     public static Task<Error> ShouldHaveErrorCodeAsync(this Task<Result> task, string expectedCode)
     {
+        // Stryker disable once all : Fast path optimization
         if (task.IsCompletedSuccessfully) return Task.FromResult(task.Result.ShouldHaveErrorCode(expectedCode));
         return AwaitAndAssert(task, r => r.ShouldHaveErrorCode(expectedCode));
     }
 
-    /// <summary>Asserts that Task&lt;Result&lt;T&gt;&gt; is a failure with the given error code.</summary>
+    /// <summary>Asserts that <c>Task&lt;Result&lt;T&gt;&gt;</c> is a failure with the given error code.</summary>
+    /// <typeparam name="T">The value type of the result.</typeparam>
+    /// <param name="task">The task returning the result to inspect.</param>
+    /// <param name="expectedCode">The expected error code string.</param>
+    /// <returns>A task representing the asynchronous assertion. The task result contains the error from the failed result.</returns>
     public static Task<Error> ShouldHaveErrorCodeAsync<T>(this Task<Result<T>> task, string expectedCode)
     {
+        // Stryker disable once all : Fast path optimization
         if (task.IsCompletedSuccessfully) return Task.FromResult(task.Result.ShouldHaveErrorCode(expectedCode));
         return AwaitAndAssert(task, r => r.ShouldHaveErrorCode(expectedCode));
     }
 
-    /// <summary>Asserts that ValueTask&lt;Result&gt; is a failure with the given error code.</summary>
+    /// <summary>Asserts that <c>ValueTask&lt;Result&gt;</c> is a failure with the given error code.</summary>
+    /// <param name="task">The value task returning the result to inspect.</param>
+    /// <param name="expectedCode">The expected error code string.</param>
+    /// <returns>A value task representing the asynchronous assertion. The task result contains the error from the failed result.</returns>
     public static ValueTask<Error> ShouldHaveErrorCodeAsync(this ValueTask<Result> task, string expectedCode)
     {
+        // Stryker disable once all : Fast path optimization
         if (task.IsCompletedSuccessfully) return new ValueTask<Error>(task.Result.ShouldHaveErrorCode(expectedCode));
         return new ValueTask<Error>(AwaitAndAssert(task.AsTask(), r => r.ShouldHaveErrorCode(expectedCode)));
     }
 
-    /// <summary>Asserts that ValueTask&lt;Result&lt;T&gt;&gt; is a failure with the given error code.</summary>
+    /// <summary>Asserts that <c>ValueTask&lt;Result&lt;T&gt;&gt;</c> is a failure with the given error code.</summary>
+    /// <typeparam name="T">The value type of the result.</typeparam>
+    /// <param name="task">The value task returning the result to inspect.</param>
+    /// <param name="expectedCode">The expected error code string.</param>
+    /// <returns>A value task representing the asynchronous assertion. The task result contains the error from the failed result.</returns>
     public static ValueTask<Error> ShouldHaveErrorCodeAsync<T>(this ValueTask<Result<T>> task, string expectedCode)
     {
+        // Stryker disable once all : Fast path optimization
         if (task.IsCompletedSuccessfully) return new ValueTask<Error>(task.Result.ShouldHaveErrorCode(expectedCode));
         return new ValueTask<Error>(AwaitAndAssert(task.AsTask(), r => r.ShouldHaveErrorCode(expectedCode)));
     }
 
-    /// <summary>Asserts that Task&lt;Result&gt; is a failure with the given error type.</summary>
+    /// <summary>Asserts that <c>Task&lt;Result&gt;</c> is a failure with the given error type.</summary>
+    /// <param name="task">The task returning the result to inspect.</param>
+    /// <param name="expectedType">The expected <see cref="ErrorType"/>.</param>
+    /// <returns>A task representing the asynchronous assertion. The task result contains the error from the failed result.</returns>
     public static Task<Error> ShouldHaveErrorTypeAsync(this Task<Result> task, ErrorType expectedType)
     {
+        // Stryker disable once all : Fast path optimization
         if (task.IsCompletedSuccessfully) return Task.FromResult(task.Result.ShouldHaveErrorType(expectedType));
         return AwaitAndAssert(task, r => r.ShouldHaveErrorType(expectedType));
     }
 
-    /// <summary>Asserts that Task&lt;Result&lt;T&gt;&gt; is a failure with the given error type.</summary>
+    /// <summary>Asserts that <c>Task&lt;Result&lt;T&gt;&gt;</c> is a failure with the given error type.</summary>
+    /// <typeparam name="T">The value type of the result.</typeparam>
+    /// <param name="task">The task returning the result to inspect.</param>
+    /// <param name="expectedType">The expected <see cref="ErrorType"/>.</param>
+    /// <returns>A task representing the asynchronous assertion. The task result contains the error from the failed result.</returns>
     public static Task<Error> ShouldHaveErrorTypeAsync<T>(this Task<Result<T>> task, ErrorType expectedType)
     {
+        // Stryker disable once all : Fast path optimization
         if (task.IsCompletedSuccessfully) return Task.FromResult(task.Result.ShouldHaveErrorType(expectedType));
         return AwaitAndAssert(task, r => r.ShouldHaveErrorType(expectedType));
     }
 
-    /// <summary>Asserts that ValueTask&lt;Result&gt; is a failure with the given error type.</summary>
+    /// <summary>Asserts that <c>ValueTask&lt;Result&gt;</c> is a failure with the given error type.</summary>
+    /// <param name="task">The value task returning the result to inspect.</param>
+    /// <param name="expectedType">The expected <see cref="ErrorType"/>.</param>
+    /// <returns>A value task representing the asynchronous assertion. The task result contains the error from the failed result.</returns>
     public static ValueTask<Error> ShouldHaveErrorTypeAsync(this ValueTask<Result> task, ErrorType expectedType)
     {
+        // Stryker disable once all : Fast path optimization
         if (task.IsCompletedSuccessfully) return new ValueTask<Error>(task.Result.ShouldHaveErrorType(expectedType));
         return new ValueTask<Error>(AwaitAndAssert(task.AsTask(), r => r.ShouldHaveErrorType(expectedType)));
     }
 
-    /// <summary>Asserts that ValueTask&lt;Result&lt;T&gt;&gt; is a failure with the given error type.</summary>
+    /// <summary>Asserts that <c>ValueTask&lt;Result&lt;T&gt;&gt;</c> is a failure with the given error type.</summary>
+    /// <typeparam name="T">The value type of the result.</typeparam>
+    /// <param name="task">The value task returning the result to inspect.</param>
+    /// <param name="expectedType">The expected <see cref="ErrorType"/>.</param>
+    /// <returns>A value task representing the asynchronous assertion. The task result contains the error from the failed result.</returns>
     public static ValueTask<Error> ShouldHaveErrorTypeAsync<T>(this ValueTask<Result<T>> task, ErrorType expectedType)
     {
+        // Stryker disable once all : Fast path optimization
         if (task.IsCompletedSuccessfully) return new ValueTask<Error>(task.Result.ShouldHaveErrorType(expectedType));
         return new ValueTask<Error>(AwaitAndAssert(task.AsTask(), r => r.ShouldHaveErrorType(expectedType)));
     }
 
-    /// <summary>Asserts that Task&lt;Result&lt;T&gt;&gt; is successful and has the expected value.</summary>
+    /// <summary>Asserts that <c>Task&lt;Result&lt;T&gt;&gt;</c> is successful and has the expected value.</summary>
+    /// <typeparam name="T">The value type of the result.</typeparam>
+    /// <param name="task">The task returning the result to inspect.</param>
+    /// <param name="expectedValue">The expected success value.</param>
+    /// <param name="message">Optional custom failure message.</param>
+    /// <returns>A task representing the asynchronous assertion. The task result contains the success value.</returns>
     public static Task<T> ShouldHaveValueAsync<T>(this Task<Result<T>> task, T expectedValue, string? message = null)
     {
+        // Stryker disable once all : Fast path optimization
         if (task.IsCompletedSuccessfully) return Task.FromResult(task.Result.ShouldHaveValue(expectedValue, message));
         return AwaitAndAssert(task, r => r.ShouldHaveValue(expectedValue, message));
     }
 
-    /// <summary>Asserts that ValueTask&lt;Result&lt;T&gt;&gt; is successful and has the expected value.</summary>
+    /// <summary>Asserts that <c>ValueTask&lt;Result&lt;T&gt;&gt;</c> is successful and has the expected value.</summary>
+    /// <typeparam name="T">The value type of the result.</typeparam>
+    /// <param name="task">The value task returning the result to inspect.</param>
+    /// <param name="expectedValue">The expected success value.</param>
+    /// <param name="message">Optional custom failure message.</param>
+    /// <returns>A value task representing the asynchronous assertion. The task result contains the success value.</returns>
     public static ValueTask<T> ShouldHaveValueAsync<T>(this ValueTask<Result<T>> task, T expectedValue, string? message = null)
     {
+        // Stryker disable once all : Fast path optimization
         if (task.IsCompletedSuccessfully) return new ValueTask<T>(task.Result.ShouldHaveValue(expectedValue, message));
         return new ValueTask<T>(AwaitAndAssert(task.AsTask(), r => r.ShouldHaveValue(expectedValue, message)));
     }
 
-    /// <summary>Asserts that Task&lt;Result&gt; is a failure and the error has the given metadata key and value.</summary>
+    /// <summary>Asserts that <c>Task&lt;Result&gt;</c> is a failure and the error has the given metadata key and value.</summary>
+    /// <param name="task">The task returning the result to inspect.</param>
+    /// <param name="key">The metadata key to look up.</param>
+    /// <param name="expectedValue">The expected metadata value.</param>
+    /// <returns>A task representing the asynchronous assertion. The task result contains the error from the failed result.</returns>
     public static Task<Error> ShouldHaveMetadataAsync(this Task<Result> task, string key, object expectedValue)
     {
+        // Stryker disable once all : Fast path optimization
         if (task.IsCompletedSuccessfully) return Task.FromResult(task.Result.ShouldHaveMetadata(key, expectedValue));
         return AwaitAndAssert(task, r => r.ShouldHaveMetadata(key, expectedValue));
     }
 
-    /// <summary>Asserts that Task&lt;Result&lt;T&gt;&gt; is a failure and the error has the given metadata key and value.</summary>
+    /// <summary>Asserts that <c>Task&lt;Result&lt;T&gt;&gt;</c> is a failure and the error has the given metadata key and value.</summary>
+    /// <typeparam name="T">The value type of the result.</typeparam>
+    /// <param name="task">The task returning the result to inspect.</param>
+    /// <param name="key">The metadata key to look up.</param>
+    /// <param name="expectedValue">The expected metadata value.</param>
+    /// <returns>A task representing the asynchronous assertion. The task result contains the error from the failed result.</returns>
     public static Task<Error> ShouldHaveMetadataAsync<T>(this Task<Result<T>> task, string key, object expectedValue)
     {
+        // Stryker disable once all : Fast path optimization
         if (task.IsCompletedSuccessfully) return Task.FromResult(task.Result.ShouldHaveMetadata(key, expectedValue));
         return AwaitAndAssert(task, r => r.ShouldHaveMetadata(key, expectedValue));
     }
 
-    /// <summary>Asserts that ValueTask&lt;Result&gt; is a failure and the error has the given metadata key and value.</summary>
+    /// <summary>Asserts that <c>ValueTask&lt;Result&gt;</c> is a failure and the error has the given metadata key and value.</summary>
+    /// <param name="task">The value task returning the result to inspect.</param>
+    /// <param name="key">The metadata key to look up.</param>
+    /// <param name="expectedValue">The expected metadata value.</param>
+    /// <returns>A value task representing the asynchronous assertion. The task result contains the error from the failed result.</returns>
     public static ValueTask<Error> ShouldHaveMetadataAsync(this ValueTask<Result> task, string key, object expectedValue)
     {
+        // Stryker disable once all : Fast path optimization
         if (task.IsCompletedSuccessfully) return new ValueTask<Error>(task.Result.ShouldHaveMetadata(key, expectedValue));
         return new ValueTask<Error>(AwaitAndAssert(task.AsTask(), r => r.ShouldHaveMetadata(key, expectedValue)));
     }
 
-    /// <summary>Asserts that ValueTask&lt;Result&lt;T&gt;&gt; is a failure and the error has the given metadata key and value.</summary>
+    /// <summary>Asserts that <c>ValueTask&lt;Result&lt;T&gt;&gt;</c> is a failure and the error has the given metadata key and value.</summary>
+    /// <typeparam name="T">The value type of the result.</typeparam>
+    /// <param name="task">The value task returning the result to inspect.</param>
+    /// <param name="key">The metadata key to look up.</param>
+    /// <param name="expectedValue">The expected metadata value.</param>
+    /// <returns>A value task representing the asynchronous assertion. The task result contains the error from the failed result.</returns>
     public static ValueTask<Error> ShouldHaveMetadataAsync<T>(this ValueTask<Result<T>> task, string key, object expectedValue)
     {
+        // Stryker disable once all : Fast path optimization
         if (task.IsCompletedSuccessfully) return new ValueTask<Error>(task.Result.ShouldHaveMetadata(key, expectedValue));
         return new ValueTask<Error>(AwaitAndAssert(task.AsTask(), r => r.ShouldHaveMetadata(key, expectedValue)));
     }
 
     // --- Additional Async Assertions -----------------------------------------
 
-    /// <summary>Asserts that Task&lt;Result&gt; is a failure with the given severity.</summary>
+    /// <summary>Asserts that <c>Task&lt;Result&gt;</c> is a failure with the given severity.</summary>
+    /// <param name="task">The task returning the result to inspect.</param>
+    /// <param name="expectedSeverity">The expected <see cref="ErrorSeverity"/>.</param>
+    /// <returns>A task representing the asynchronous assertion. The task result contains the error from the failed result.</returns>
     public static Task<Error> ShouldHaveSeverityAsync(this Task<Result> task, ErrorSeverity expectedSeverity)
     {
+        // Stryker disable once all : Fast path optimization
         if (task.IsCompletedSuccessfully) return Task.FromResult(task.Result.ShouldHaveSeverity(expectedSeverity));
         return AwaitAndAssert(task, r => r.ShouldHaveSeverity(expectedSeverity));
     }
 
-    /// <summary>Asserts that Task&lt;Result&lt;T&gt;&gt; is a failure with the given severity.</summary>
+    /// <summary>Asserts that <c>Task&lt;Result&lt;T&gt;&gt;</c> is a failure with the given severity.</summary>
+    /// <typeparam name="T">The value type of the result.</typeparam>
+    /// <param name="task">The task returning the result to inspect.</param>
+    /// <param name="expectedSeverity">The expected <see cref="ErrorSeverity"/>.</param>
+    /// <returns>A task representing the asynchronous assertion. The task result contains the error from the failed result.</returns>
     public static Task<Error> ShouldHaveSeverityAsync<T>(this Task<Result<T>> task, ErrorSeverity expectedSeverity)
     {
+        // Stryker disable once all : Fast path optimization
         if (task.IsCompletedSuccessfully) return Task.FromResult(task.Result.ShouldHaveSeverity(expectedSeverity));
         return AwaitAndAssert(task, r => r.ShouldHaveSeverity(expectedSeverity));
     }
 
-    /// <summary>Asserts that ValueTask&lt;Result&gt; is a failure with the given severity.</summary>
+    /// <summary>Asserts that <c>ValueTask&lt;Result&gt;</c> is a failure with the given severity.</summary>
+    /// <param name="task">The value task returning the result to inspect.</param>
+    /// <param name="expectedSeverity">The expected <see cref="ErrorSeverity"/>.</param>
+    /// <returns>A value task representing the asynchronous assertion. The task result contains the error from the failed result.</returns>
     public static ValueTask<Error> ShouldHaveSeverityAsync(this ValueTask<Result> task, ErrorSeverity expectedSeverity)
     {
+        // Stryker disable once all : Fast path optimization
         if (task.IsCompletedSuccessfully) return new ValueTask<Error>(task.Result.ShouldHaveSeverity(expectedSeverity));
         return new ValueTask<Error>(AwaitAndAssert(task.AsTask(), r => r.ShouldHaveSeverity(expectedSeverity)));
     }
 
-    /// <summary>Asserts that ValueTask&lt;Result&lt;T&gt;&gt; is a failure with the given severity.</summary>
+    /// <summary>Asserts that <c>ValueTask&lt;Result&lt;T&gt;&gt;</c> is a failure with the given severity.</summary>
+    /// <typeparam name="T">The value type of the result.</typeparam>
+    /// <param name="task">The value task returning the result to inspect.</param>
+    /// <param name="expectedSeverity">The expected <see cref="ErrorSeverity"/>.</param>
+    /// <returns>A value task representing the asynchronous assertion. The task result contains the error from the failed result.</returns>
     public static ValueTask<Error> ShouldHaveSeverityAsync<T>(this ValueTask<Result<T>> task, ErrorSeverity expectedSeverity)
     {
+        // Stryker disable once all : Fast path optimization
         if (task.IsCompletedSuccessfully) return new ValueTask<Error>(task.Result.ShouldHaveSeverity(expectedSeverity));
         return new ValueTask<Error>(AwaitAndAssert(task.AsTask(), r => r.ShouldHaveSeverity(expectedSeverity)));
     }
 
-    /// <summary>Asserts that Task&lt;Result&gt; error is retryable (Transient).</summary>
+    /// <summary>Asserts that <c>Task&lt;Result&gt;</c> error is retryable (Transient).</summary>
+    /// <param name="task">The task returning the result to inspect.</param>
+    /// <returns>A task representing the asynchronous assertion. The task result contains the error from the failed result.</returns>
     public static Task<Error> ShouldBeRetryableAsync(this Task<Result> task)
     {
+        // Stryker disable once all : Fast path optimization
         if (task.IsCompletedSuccessfully) return Task.FromResult(task.Result.ShouldBeRetryable());
         return AwaitAndAssert(task, r => r.ShouldBeRetryable());
     }
 
-    /// <summary>Asserts that Task&lt;Result&lt;T&gt;&gt; error is retryable (Transient).</summary>
+    /// <summary>Asserts that <c>Task&lt;Result&lt;T&gt;&gt;</c> error is retryable (Transient).</summary>
+    /// <typeparam name="T">The value type of the result.</typeparam>
+    /// <param name="task">The task returning the result to inspect.</param>
+    /// <returns>A task representing the asynchronous assertion. The task result contains the error from the failed result.</returns>
     public static Task<Error> ShouldBeRetryableAsync<T>(this Task<Result<T>> task)
     {
+        // Stryker disable once all : Fast path optimization
         if (task.IsCompletedSuccessfully) return Task.FromResult(task.Result.ShouldBeRetryable());
         return AwaitAndAssert(task, r => r.ShouldBeRetryable());
     }
 
-    /// <summary>Asserts that ValueTask&lt;Result&gt; error is retryable (Transient).</summary>
+    /// <summary>Asserts that <c>ValueTask&lt;Result&gt;</c> error is retryable (Transient).</summary>
+    /// <param name="task">The value task returning the result to inspect.</param>
+    /// <returns>A value task representing the asynchronous assertion. The task result contains the error from the failed result.</returns>
     public static ValueTask<Error> ShouldBeRetryableAsync(this ValueTask<Result> task)
     {
+        // Stryker disable once all : Fast path optimization
         if (task.IsCompletedSuccessfully) return new ValueTask<Error>(task.Result.ShouldBeRetryable());
         return new ValueTask<Error>(AwaitAndAssert(task.AsTask(), r => r.ShouldBeRetryable()));
     }
 
-    /// <summary>Asserts that ValueTask&lt;Result&lt;T&gt;&gt; error is retryable (Transient).</summary>
+    /// <summary>Asserts that <c>ValueTask&lt;Result&lt;T&gt;&gt;</c> error is retryable (Transient).</summary>
+    /// <typeparam name="T">The value type of the result.</typeparam>
+    /// <param name="task">The value task returning the result to inspect.</param>
+    /// <returns>A value task representing the asynchronous assertion. The task result contains the error from the failed result.</returns>
     public static ValueTask<Error> ShouldBeRetryableAsync<T>(this ValueTask<Result<T>> task)
     {
+        // Stryker disable once all : Fast path optimization
         if (task.IsCompletedSuccessfully) return new ValueTask<Error>(task.Result.ShouldBeRetryable());
         return new ValueTask<Error>(AwaitAndAssert(task.AsTask(), r => r.ShouldBeRetryable()));
     }
 
-    /// <summary>Asserts that Task&lt;Result&gt; error is permanent (not retryable).</summary>
+    /// <summary>Asserts that <c>Task&lt;Result&gt;</c> error is permanent (not retryable).</summary>
+    /// <param name="task">The task returning the result to inspect.</param>
+    /// <returns>A task representing the asynchronous assertion. The task result contains the error from the failed result.</returns>
     public static Task<Error> ShouldBePermanentAsync(this Task<Result> task)
     {
+        // Stryker disable once all : Fast path optimization
         if (task.IsCompletedSuccessfully) return Task.FromResult(task.Result.ShouldBePermanent());
         return AwaitAndAssert(task, r => r.ShouldBePermanent());
     }
 
-    /// <summary>Asserts that Task&lt;Result&lt;T&gt;&gt; error is permanent (not retryable).</summary>
+    /// <summary>Asserts that <c>Task&lt;Result&lt;T&gt;&gt;</c> error is permanent (not retryable).</summary>
+    /// <typeparam name="T">The value type of the result.</typeparam>
+    /// <param name="task">The task returning the result to inspect.</param>
+    /// <returns>A task representing the asynchronous assertion. The task result contains the error from the failed result.</returns>
     public static Task<Error> ShouldBePermanentAsync<T>(this Task<Result<T>> task)
     {
+        // Stryker disable once all : Fast path optimization
         if (task.IsCompletedSuccessfully) return Task.FromResult(task.Result.ShouldBePermanent());
         return AwaitAndAssert(task, r => r.ShouldBePermanent());
     }
 
-    /// <summary>Asserts that ValueTask&lt;Result&gt; error is permanent (not retryable).</summary>
+    /// <summary>Asserts that <c>ValueTask&lt;Result&gt;</c> error is permanent (not retryable).</summary>
+    /// <param name="task">The value task returning the result to inspect.</param>
+    /// <returns>A value task representing the asynchronous assertion. The task result contains the error from the failed result.</returns>
     public static ValueTask<Error> ShouldBePermanentAsync(this ValueTask<Result> task)
     {
+        // Stryker disable once all : Fast path optimization
         if (task.IsCompletedSuccessfully) return new ValueTask<Error>(task.Result.ShouldBePermanent());
         return new ValueTask<Error>(AwaitAndAssert(task.AsTask(), r => r.ShouldBePermanent()));
     }
 
-    /// <summary>Asserts that ValueTask&lt;Result&lt;T&gt;&gt; error is permanent (not retryable).</summary>
+    /// <summary>Asserts that <c>ValueTask&lt;Result&lt;T&gt;&gt;</c> error is permanent (not retryable).</summary>
+    /// <typeparam name="T">The value type of the result.</typeparam>
+    /// <param name="task">The value task returning the result to inspect.</param>
+    /// <returns>A value task representing the asynchronous assertion. The task result contains the error from the failed result.</returns>
     public static ValueTask<Error> ShouldBePermanentAsync<T>(this ValueTask<Result<T>> task)
     {
+        // Stryker disable once all : Fast path optimization
         if (task.IsCompletedSuccessfully) return new ValueTask<Error>(task.Result.ShouldBePermanent());
         return new ValueTask<Error>(AwaitAndAssert(task.AsTask(), r => r.ShouldBePermanent()));
     }
 
-    /// <summary>Asserts that Task&lt;Result&gt; has at least one inner error with the specified error code.</summary>
+    /// <summary>Asserts that <c>Task&lt;Result&gt;</c> has at least one inner error with the specified error code.</summary>
+    /// <param name="task">The task returning the result to inspect.</param>
+    /// <param name="errorCode">The error code to search for within the inner errors.</param>
+    /// <returns>A task representing the asynchronous assertion. The task result contains the root error from the failed result.</returns>
     public static Task<Error> ShouldContainInnerErrorAsync(this Task<Result> task, string errorCode)
     {
+        // Stryker disable once all : Fast path optimization
         if (task.IsCompletedSuccessfully) return Task.FromResult(task.Result.ShouldContainInnerError(errorCode));
         return AwaitAndAssert(task, r => r.ShouldContainInnerError(errorCode));
     }
 
-    /// <summary>Asserts that Task&lt;Result&lt;T&gt;&gt; has at least one inner error with the specified error code.</summary>
+    /// <summary>Asserts that <c>Task&lt;Result&lt;T&gt;&gt;</c> has at least one inner error with the specified error code.</summary>
+    /// <typeparam name="T">The value type of the result.</typeparam>
+    /// <param name="task">The task returning the result to inspect.</param>
+    /// <param name="errorCode">The error code to search for within the inner errors.</param>
+    /// <returns>A task representing the asynchronous assertion. The task result contains the root error from the failed result.</returns>
     public static Task<Error> ShouldContainInnerErrorAsync<T>(this Task<Result<T>> task, string errorCode)
     {
+        // Stryker disable once all : Fast path optimization
         if (task.IsCompletedSuccessfully) return Task.FromResult(task.Result.ShouldContainInnerError(errorCode));
         return AwaitAndAssert(task, r => r.ShouldContainInnerError(errorCode));
     }
 
-    /// <summary>Asserts that ValueTask&lt;Result&gt; has at least one inner error with the specified error code.</summary>
+    /// <summary>Asserts that <c>ValueTask&lt;Result&gt;</c> has at least one inner error with the specified error code.</summary>
+    /// <param name="task">The value task returning the result to inspect.</param>
+    /// <param name="errorCode">The error code to search for within the inner errors.</param>
+    /// <returns>A value task representing the asynchronous assertion. The task result contains the root error from the failed result.</returns>
     public static ValueTask<Error> ShouldContainInnerErrorAsync(this ValueTask<Result> task, string errorCode)
     {
+        // Stryker disable once all : Fast path optimization
         if (task.IsCompletedSuccessfully) return new ValueTask<Error>(task.Result.ShouldContainInnerError(errorCode));
         return new ValueTask<Error>(AwaitAndAssert(task.AsTask(), r => r.ShouldContainInnerError(errorCode)));
     }
 
-    /// <summary>Asserts that ValueTask&lt;Result&lt;T&gt;&gt; has at least one inner error with the specified error code.</summary>
+    /// <summary>Asserts that <c>ValueTask&lt;Result&lt;T&gt;&gt;</c> has at least one inner error with the specified error code.</summary>
+    /// <typeparam name="T">The value type of the result.</typeparam>
+    /// <param name="task">The value task returning the result to inspect.</param>
+    /// <param name="errorCode">The error code to search for within the inner errors.</param>
+    /// <returns>A value task representing the asynchronous assertion. The task result contains the root error from the failed result.</returns>
     public static ValueTask<Error> ShouldContainInnerErrorAsync<T>(this ValueTask<Result<T>> task, string errorCode)
     {
+        // Stryker disable once all : Fast path optimization
         if (task.IsCompletedSuccessfully) return new ValueTask<Error>(task.Result.ShouldContainInnerError(errorCode));
         return new ValueTask<Error>(AwaitAndAssert(task.AsTask(), r => r.ShouldContainInnerError(errorCode)));
     }
 
-    /// <summary>Asserts that Task&lt;Result&gt; has inner errors of expected count.</summary>
+    /// <summary>Asserts that <c>Task&lt;Result&gt;</c> has inner errors of expected count.</summary>
+    /// <param name="task">The task returning the result to inspect.</param>
+    /// <param name="expectedCount">The expected number of inner errors.</param>
+    /// <returns>A task representing the asynchronous assertion. The task result contains the error from the failed result.</returns>
     public static Task<Error> ShouldHaveInnerErrorsAsync(this Task<Result> task, int expectedCount)
     {
+        // Stryker disable once all : Fast path optimization
         if (task.IsCompletedSuccessfully) return Task.FromResult(task.Result.ShouldHaveInnerErrors(expectedCount));
         return AwaitAndAssert(task, r => r.ShouldHaveInnerErrors(expectedCount));
     }
 
-    /// <summary>Asserts that Task&lt;Result&lt;T&gt;&gt; has inner errors of expected count.</summary>
+    /// <summary>Asserts that <c>Task&lt;Result&lt;T&gt;&gt;</c> has inner errors of expected count.</summary>
+    /// <typeparam name="T">The value type of the result.</typeparam>
+    /// <param name="task">The task returning the result to inspect.</param>
+    /// <param name="expectedCount">The expected number of inner errors.</param>
+    /// <returns>A task representing the asynchronous assertion. The task result contains the error from the failed result.</returns>
     public static Task<Error> ShouldHaveInnerErrorsAsync<T>(this Task<Result<T>> task, int expectedCount)
     {
+        // Stryker disable once all : Fast path optimization
         if (task.IsCompletedSuccessfully) return Task.FromResult(task.Result.ShouldHaveInnerErrors(expectedCount));
         return AwaitAndAssert(task, r => r.ShouldHaveInnerErrors(expectedCount));
     }
 
-    /// <summary>Asserts that ValueTask&lt;Result&gt; has inner errors of expected count.</summary>
+    /// <summary>Asserts that <c>ValueTask&lt;Result&gt;</c> has inner errors of expected count.</summary>
+    /// <param name="task">The value task returning the result to inspect.</param>
+    /// <param name="expectedCount">The expected number of inner errors.</param>
+    /// <returns>A value task representing the asynchronous assertion. The task result contains the error from the failed result.</returns>
     public static ValueTask<Error> ShouldHaveInnerErrorsAsync(this ValueTask<Result> task, int expectedCount)
     {
+        // Stryker disable once all : Fast path optimization
         if (task.IsCompletedSuccessfully) return new ValueTask<Error>(task.Result.ShouldHaveInnerErrors(expectedCount));
         return new ValueTask<Error>(AwaitAndAssert(task.AsTask(), r => r.ShouldHaveInnerErrors(expectedCount)));
     }
 
-    /// <summary>Asserts that ValueTask&lt;Result&lt;T&gt;&gt; has inner errors of expected count.</summary>
+    /// <summary>Asserts that <c>ValueTask&lt;Result&lt;T&gt;&gt;</c> has inner errors of expected count.</summary>
+    /// <typeparam name="T">The value type of the result.</typeparam>
+    /// <param name="task">The value task returning the result to inspect.</param>
+    /// <param name="expectedCount">The expected number of inner errors.</param>
+    /// <returns>A value task representing the asynchronous assertion. The task result contains the error from the failed result.</returns>
     public static ValueTask<Error> ShouldHaveInnerErrorsAsync<T>(this ValueTask<Result<T>> task, int expectedCount)
     {
+        // Stryker disable once all : Fast path optimization
         if (task.IsCompletedSuccessfully) return new ValueTask<Error>(task.Result.ShouldHaveInnerErrors(expectedCount));
         return new ValueTask<Error>(AwaitAndAssert(task.AsTask(), r => r.ShouldHaveInnerErrors(expectedCount)));
     }
@@ -1495,30 +2076,48 @@ public static class ResultAssertions
     //  Async ShouldHaveDescription
     // ????????????????????????????????????????????????????????????????????????????
 
-    /// <summary>Asserts that Task&lt;Result&gt; error has the expected description.</summary>
+    /// <summary>Asserts that <c>Task&lt;Result&gt;</c> error has the expected description.</summary>
+    /// <param name="task">The task returning the result to inspect.</param>
+    /// <param name="expectedDescription">The expected error description string.</param>
+    /// <returns>A task representing the asynchronous assertion. The task result contains the error from the failed result.</returns>
     public static Task<Error> ShouldHaveDescriptionAsync(this Task<Result> task, string expectedDescription)
     {
+        // Stryker disable once all : Fast path optimization
         if (task.IsCompletedSuccessfully) return Task.FromResult(task.Result.ShouldHaveDescription(expectedDescription));
         return AwaitAndAssert(task, r => r.ShouldHaveDescription(expectedDescription));
     }
 
-    /// <summary>Asserts that Task&lt;Result&lt;T&gt;&gt; error has the expected description.</summary>
+    /// <summary>Asserts that <c>Task&lt;Result&lt;T&gt;&gt;</c> error has the expected description.</summary>
+    /// <typeparam name="T">The value type of the result.</typeparam>
+    /// <param name="task">The task returning the result to inspect.</param>
+    /// <param name="expectedDescription">The expected error description string.</param>
+    /// <returns>A task representing the asynchronous assertion. The task result contains the error from the failed result.</returns>
     public static Task<Error> ShouldHaveDescriptionAsync<T>(this Task<Result<T>> task, string expectedDescription)
     {
+        // Stryker disable once all : Fast path optimization
         if (task.IsCompletedSuccessfully) return Task.FromResult(task.Result.ShouldHaveDescription(expectedDescription));
         return AwaitAndAssert(task, r => r.ShouldHaveDescription(expectedDescription));
     }
 
-    /// <summary>Asserts that ValueTask&lt;Result&gt; error has the expected description.</summary>
+    /// <summary>Asserts that <c>ValueTask&lt;Result&gt;</c> error has the expected description.</summary>
+    /// <param name="task">The value task returning the result to inspect.</param>
+    /// <param name="expectedDescription">The expected error description string.</param>
+    /// <returns>A value task representing the asynchronous assertion. The task result contains the error from the failed result.</returns>
     public static ValueTask<Error> ShouldHaveDescriptionAsync(this ValueTask<Result> task, string expectedDescription)
     {
+        // Stryker disable once all : Fast path optimization
         if (task.IsCompletedSuccessfully) return new ValueTask<Error>(task.Result.ShouldHaveDescription(expectedDescription));
         return new ValueTask<Error>(AwaitAndAssert(task.AsTask(), r => r.ShouldHaveDescription(expectedDescription)));
     }
 
-    /// <summary>Asserts that ValueTask&lt;Result&lt;T&gt;&gt; error has the expected description.</summary>
+    /// <summary>Asserts that <c>ValueTask&lt;Result&lt;T&gt;&gt;</c> error has the expected description.</summary>
+    /// <typeparam name="T">The value type of the result.</typeparam>
+    /// <param name="task">The value task returning the result to inspect.</param>
+    /// <param name="expectedDescription">The expected error description string.</param>
+    /// <returns>A value task representing the asynchronous assertion. The task result contains the error from the failed result.</returns>
     public static ValueTask<Error> ShouldHaveDescriptionAsync<T>(this ValueTask<Result<T>> task, string expectedDescription)
     {
+        // Stryker disable once all : Fast path optimization
         if (task.IsCompletedSuccessfully) return new ValueTask<Error>(task.Result.ShouldHaveDescription(expectedDescription));
         return new ValueTask<Error>(AwaitAndAssert(task.AsTask(), r => r.ShouldHaveDescription(expectedDescription)));
     }
@@ -1527,30 +2126,48 @@ public static class ResultAssertions
     //  Async ShouldHaveTraceId
     // ????????????????????????????????????????????????????????????????????????????
 
-    /// <summary>Asserts that Task&lt;Result&gt; error has the expected trace ID.</summary>
+    /// <summary>Asserts that <c>Task&lt;Result&gt;</c> error has the expected trace ID.</summary>
+    /// <param name="task">The task returning the result to inspect.</param>
+    /// <param name="expectedTraceId">The expected trace ID string.</param>
+    /// <returns>A task representing the asynchronous assertion. The task result contains the error from the failed result.</returns>
     public static Task<Error> ShouldHaveTraceIdAsync(this Task<Result> task, string expectedTraceId)
     {
+        // Stryker disable once all : Fast path optimization
         if (task.IsCompletedSuccessfully) return Task.FromResult(task.Result.ShouldHaveTraceId(expectedTraceId));
         return AwaitAndAssert(task, r => r.ShouldHaveTraceId(expectedTraceId));
     }
 
-    /// <summary>Asserts that Task&lt;Result&lt;T&gt;&gt; error has the expected trace ID.</summary>
+    /// <summary>Asserts that <c>Task&lt;Result&lt;T&gt;&gt;</c> error has the expected trace ID.</summary>
+    /// <typeparam name="T">The value type of the result.</typeparam>
+    /// <param name="task">The task returning the result to inspect.</param>
+    /// <param name="expectedTraceId">The expected trace ID string.</param>
+    /// <returns>A task representing the asynchronous assertion. The task result contains the error from the failed result.</returns>
     public static Task<Error> ShouldHaveTraceIdAsync<T>(this Task<Result<T>> task, string expectedTraceId)
     {
+        // Stryker disable once all : Fast path optimization
         if (task.IsCompletedSuccessfully) return Task.FromResult(task.Result.ShouldHaveTraceId(expectedTraceId));
         return AwaitAndAssert(task, r => r.ShouldHaveTraceId(expectedTraceId));
     }
 
-    /// <summary>Asserts that ValueTask&lt;Result&gt; error has the expected trace ID.</summary>
+    /// <summary>Asserts that <c>ValueTask&lt;Result&gt;</c> error has the expected trace ID.</summary>
+    /// <param name="task">The value task returning the result to inspect.</param>
+    /// <param name="expectedTraceId">The expected trace ID string.</param>
+    /// <returns>A value task representing the asynchronous assertion. The task result contains the error from the failed result.</returns>
     public static ValueTask<Error> ShouldHaveTraceIdAsync(this ValueTask<Result> task, string expectedTraceId)
     {
+        // Stryker disable once all : Fast path optimization
         if (task.IsCompletedSuccessfully) return new ValueTask<Error>(task.Result.ShouldHaveTraceId(expectedTraceId));
         return new ValueTask<Error>(AwaitAndAssert(task.AsTask(), r => r.ShouldHaveTraceId(expectedTraceId)));
     }
 
-    /// <summary>Asserts that ValueTask&lt;Result&lt;T&gt;&gt; error has the expected trace ID.</summary>
+    /// <summary>Asserts that <c>ValueTask&lt;Result&lt;T&gt;&gt;</c> error has the expected trace ID.</summary>
+    /// <typeparam name="T">The value type of the result.</typeparam>
+    /// <param name="task">The value task returning the result to inspect.</param>
+    /// <param name="expectedTraceId">The expected trace ID string.</param>
+    /// <returns>A value task representing the asynchronous assertion. The task result contains the error from the failed result.</returns>
     public static ValueTask<Error> ShouldHaveTraceIdAsync<T>(this ValueTask<Result<T>> task, string expectedTraceId)
     {
+        // Stryker disable once all : Fast path optimization
         if (task.IsCompletedSuccessfully) return new ValueTask<Error>(task.Result.ShouldHaveTraceId(expectedTraceId));
         return new ValueTask<Error>(AwaitAndAssert(task.AsTask(), r => r.ShouldHaveTraceId(expectedTraceId)));
     }
@@ -1559,37 +2176,55 @@ public static class ResultAssertions
     //  Async ShouldHaveCorrelationId
     // ????????????????????????????????????????????????????????????????????????????
 
-    /// <summary>Asserts that Task&lt;Result&gt; error has the expected correlation ID.</summary>
+    /// <summary>Asserts that <c>Task&lt;Result&gt;</c> error has the expected correlation ID.</summary>
+    /// <param name="task">The task returning the result to inspect.</param>
+    /// <param name="expectedCorrelationId">The expected correlation ID string.</param>
+    /// <returns>A task representing the asynchronous assertion. The task result contains the error from the failed result.</returns>
     public static Task<Error> ShouldHaveCorrelationIdAsync(this Task<Result> task, string expectedCorrelationId)
     {
+        // Stryker disable once all : Fast path optimization
         if (task.IsCompletedSuccessfully) return Task.FromResult(task.Result.ShouldHaveCorrelationId(expectedCorrelationId));
         return AwaitAndAssert(task, r => r.ShouldHaveCorrelationId(expectedCorrelationId));
     }
 
-    /// <summary>Asserts that Task&lt;Result&lt;T&gt;&gt; error has the expected correlation ID.</summary>
+    /// <summary>Asserts that <c>Task&lt;Result&lt;T&gt;&gt;</c> error has the expected correlation ID.</summary>
+    /// <typeparam name="T">The value type of the result.</typeparam>
+    /// <param name="task">The task returning the result to inspect.</param>
+    /// <param name="expectedCorrelationId">The expected correlation ID string.</param>
+    /// <returns>A task representing the asynchronous assertion. The task result contains the error from the failed result.</returns>
     public static Task<Error> ShouldHaveCorrelationIdAsync<T>(this Task<Result<T>> task, string expectedCorrelationId)
     {
+        // Stryker disable once all : Fast path optimization
         if (task.IsCompletedSuccessfully) return Task.FromResult(task.Result.ShouldHaveCorrelationId(expectedCorrelationId));
         return AwaitAndAssert(task, r => r.ShouldHaveCorrelationId(expectedCorrelationId));
     }
 
-    /// <summary>Asserts that ValueTask&lt;Result&gt; error has the expected correlation ID.</summary>
+    /// <summary>Asserts that <c>ValueTask&lt;Result&gt;</c> error has the expected correlation ID.</summary>
+    /// <param name="task">The value task returning the result to inspect.</param>
+    /// <param name="expectedCorrelationId">The expected correlation ID string.</param>
+    /// <returns>A value task representing the asynchronous assertion. The task result contains the error from the failed result.</returns>
     public static ValueTask<Error> ShouldHaveCorrelationIdAsync(this ValueTask<Result> task, string expectedCorrelationId)
     {
+        // Stryker disable once all : Fast path optimization
         if (task.IsCompletedSuccessfully) return new ValueTask<Error>(task.Result.ShouldHaveCorrelationId(expectedCorrelationId));
         return new ValueTask<Error>(AwaitAndAssert(task.AsTask(), r => r.ShouldHaveCorrelationId(expectedCorrelationId)));
     }
 
-    /// <summary>Asserts that ValueTask&lt;Result&lt;T&gt;&gt; error has the expected correlation ID.</summary>
+    /// <summary>Asserts that <c>ValueTask&lt;Result&lt;T&gt;&gt;</c> error has the expected correlation ID.</summary>
+    /// <typeparam name="T">The value type of the result.</typeparam>
+    /// <param name="task">The value task returning the result to inspect.</param>
+    /// <param name="expectedCorrelationId">The expected correlation ID string.</param>
+    /// <returns>A value task representing the asynchronous assertion. The task result contains the error from the failed result.</returns>
     public static ValueTask<Error> ShouldHaveCorrelationIdAsync<T>(this ValueTask<Result<T>> task, string expectedCorrelationId)
     {
+        // Stryker disable once all : Fast path optimization
         if (task.IsCompletedSuccessfully) return new ValueTask<Error>(task.Result.ShouldHaveCorrelationId(expectedCorrelationId));
         return new ValueTask<Error>(AwaitAndAssert(task.AsTask(), r => r.ShouldHaveCorrelationId(expectedCorrelationId)));
     }
 
     // Maps CLR type names ? C# keyword aliases for readable assertion messages.
     // e.g. "Int32" ? "int", "String" ? "string", "Boolean" ? "bool"
-    private static readonly System.Collections.Generic.Dictionary<string, string> ClrToKeywordAlias =
+    private static readonly Dictionary<string, string> ClrToKeywordAlias =
         new(16, System.StringComparer.Ordinal)
         {
             { "Boolean", "bool" },
@@ -1624,7 +2259,7 @@ public static class ResultAssertions
 
         var genericName = type.Name;
         var backtickIdx = genericName.IndexOf('`');
-        if (backtickIdx > 0)
+        if (backtickIdx >= 0)
         {
             genericName = genericName[..backtickIdx];
         }
@@ -1633,6 +2268,7 @@ public static class ResultAssertions
         var args = type.GetGenericArguments();
 
         // Fast path: single generic argument (e.g. Result<T>, List<T>) — avoid StringBuilder allocation
+        // Stryker disable once Block : Fast path allocation optimization
         if (args.Length == 1)
         {
             return string.Concat(genericName, "<", GetFriendlyTypeName(args[0]), ">");
@@ -1650,6 +2286,11 @@ public static class ResultAssertions
         return sb.ToString();
     }
 }
+
+
+
+
+
 
 
 

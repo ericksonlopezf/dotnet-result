@@ -1,3 +1,4 @@
+// Copyright © Erickson Lopez. MIT License.
 namespace EricksonLopez.Result;
 
 /// <summary>
@@ -24,9 +25,10 @@ public interface IResultOutcome
     /// </remarks>
     bool IsUninitialized { get; }
 
-    /// <summary>Gets the error associated with a failed result, or null if successful.</summary>
+    /// <summary>Gets the error associated with a failed result, or <see langword="null"/> if successful.</summary>
     Error? Error { get; }
 
-    /// <summary>Gets the raw underlying value of a successful generic result, or null if non-generic or failed.</summary>
+    /// <summary>Gets the raw underlying value of a successful generic result, or <see langword="null"/> if non-generic or failed.</summary>
     object? RawValue { get; }
 }
+

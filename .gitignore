@@ -6,7 +6,7 @@ obj/
 *.bak
 
 # Strong Name Keys
-# *.snk (Permitido para proyectos Open Source)
+# *.snk (Allowed for Open Source projects)
 # Allow the public-key-only file (safe to commit — contains NO private key)
 !public.snk
 
@@ -31,15 +31,20 @@ nupkgs/
 *.DotSettings.user
 
 # Test & Analysis artifacts
-[Tt]est[Rr]esults/
+[Tt]est[Rr]esults*/
+[Cc]overage[Rr]eport*/
 *.trx
 *.coverage
 *.coveragexml
+*.cobertura.xml
+*.opencover.xml
 coverage.*/
+**/coverage.*.xml
+**/coverage.*.cobertura.xml
+**/coverage.*.opencover.xml
 BenchmarkDotNet.Artifacts/
 benchmarks/results/*.log
 StrykerOutput/
-CoverageReport/
 
 # Secrets & Local Config
 appsettings.Development.json
@@ -51,6 +56,7 @@ Thumbs.db
 Desktop.ini
 .DS_Store
 
-# Documentation
-AUDITORIA.md
+# Documentation & Generated Artifacts
+docs/*.html
+*.binlog
 aot-output/

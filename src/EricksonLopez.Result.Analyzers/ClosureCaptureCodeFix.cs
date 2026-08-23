@@ -1,9 +1,12 @@
+// Copyright © Erickson Lopez. MIT License.
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using EricksonLopez.Result;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
@@ -12,23 +15,28 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace EricksonLopez.Result.Analyzers;
 
+/// <summary>
+/// CodeFixProvider for <c>RESULT004</c> — Closure capture in Result pipeline methods.
+/// </summary>
 [ExportCodeFixProvider(LanguageNames.CSharp, Name = nameof(ClosureCaptureCodeFix)), Shared]
 public sealed class ClosureCaptureCodeFix : CodeFixProvider
 {
+    /// <inheritdoc/>
     public override ImmutableArray<string> FixableDiagnosticIds => ImmutableArray.Create(ClosureCaptureAnalyzer.DiagnosticId);
 
+    /// <inheritdoc/>
     public override FixAllProvider GetFixAllProvider() => WellKnownFixAllProviders.BatchFixer;
 
+    /// <inheritdoc/>
     public override async Task RegisterCodeFixesAsync(CodeFixContext context)
     {
-        var root = await context.Document.GetSyntaxRootAsync(context.CancellationToken).ConfigureAwait(false);
-        if (root == null) return;
-
-        var diagnostic = context.Diagnostics.First();
+        var root = (await context.Document.GetSyntaxRootAsync(context.CancellationToken).ConfigureAwait(false))!;
+        var diagnostic = context.Diagnostics[0];
         var diagnosticSpan = diagnostic.Location.SourceSpan;
 
-        var invocation = root.FindToken(diagnosticSpan.Start).Parent?.AncestorsAndSelf()
-            .OfType<InvocationExpressionSyntax>().FirstOrDefault();
+        var node = root.FindNode(diagnosticSpan);
+        var invocation = node.FirstAncestorOrSelf<InvocationExpressionSyntax>()
+            ?? node.DescendantNodes().OfType<InvocationExpressionSyntax>().FirstOrDefault();
         if (invocation == null) return;
 
         // Find the lambda(s) inside the invocation
@@ -74,13 +82,9 @@ public sealed class ClosureCaptureCodeFix : CodeFixProvider
         {
             var staticToken = SyntaxFactory.Token(SyntaxKind.StaticKeyword).WithTrailingTrivia(SyntaxFactory.Space);
             var newModifiers = lambda.Modifiers.Insert(0, staticToken);
-
-            LambdaExpressionSyntax newLambda = lambda switch
-            {
-                SimpleLambdaExpressionSyntax simple => simple.WithModifiers(newModifiers),
-                ParenthesizedLambdaExpressionSyntax parenthesized => parenthesized.WithModifiers(newModifiers),
-                _ => lambda
-            };
+            LambdaExpressionSyntax newLambda = lambda is SimpleLambdaExpressionSyntax simple
+                ? (LambdaExpressionSyntax)simple.WithModifiers(newModifiers)
+                : ((ParenthesizedLambdaExpressionSyntax)lambda).WithModifiers(newModifiers);
 
             editor.ReplaceNode(lambda, newLambda);
         }
@@ -103,13 +107,7 @@ public sealed class ClosureCaptureCodeFix : CodeFixProvider
             _ => "Method"
         };
 
-        // Determine the leading indentation so the comment aligns with existing code
-        var statement = invocation.FirstAncestorOrSelf<StatementSyntax>();
-        var indentation = statement != null
-            ? string.Concat(statement.GetLeadingTrivia()
-                .Where(t => t.IsKind(SyntaxKind.WhitespaceTrivia))
-                .Select(t => t.ToFullString()))
-            : string.Empty;
+        SyntaxNode targetNode = invocation.FirstAncestorOrSelf<StatementSyntax>() ?? (SyntaxNode)invocation;
 
         // Build a comment showing before/after with the actual method name
         var commentLines = new[]
@@ -124,14 +122,17 @@ public sealed class ClosureCaptureCodeFix : CodeFixProvider
         var triviaList = new List<SyntaxTrivia>();
         foreach (var line in commentLines)
         {
-            triviaList.Add(SyntaxFactory.Comment(indentation + line));
+            triviaList.Add(SyntaxFactory.Comment(line));
             triviaList.Add(SyntaxFactory.ElasticCarriageReturnLineFeed);
         }
 
-        SyntaxNode targetNode = statement ?? (SyntaxNode)invocation;
         var newLeading = SyntaxFactory.TriviaList(triviaList).AddRange(targetNode.GetLeadingTrivia());
         var newRoot = root.ReplaceNode(targetNode, targetNode.WithLeadingTrivia(newLeading));
 
         return Task.FromResult(document.WithSyntaxRoot(newRoot));
     }
 }
+
+
+
+

@@ -1,5 +1,8 @@
+// Copyright © Erickson Lopez. MIT License.
+using System;
 using System.Collections.Immutable;
 using System.Linq;
+using EricksonLopez.Result;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Operations;
@@ -30,6 +33,7 @@ namespace EricksonLopez.Result.Analyzers;
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
 public sealed class ErrorBuilderDiscardedReturnAnalyzer : DiagnosticAnalyzer
 {
+    /// <summary>The diagnostic identifier for this analyzer rule.</summary>
     public const string DiagnosticId = "RESULT003";
 
     private const string ErrorBuilderFullName = "EricksonLopez.Result.ErrorBuilder";
@@ -57,12 +61,14 @@ public sealed class ErrorBuilderDiscardedReturnAnalyzer : DiagnosticAnalyzer
         // an Error (not a Warning) to prevent silent data loss bugs from slipping through code review.
         defaultSeverity: DiagnosticSeverity.Error,
         isEnabledByDefault: true,
-        description: "ErrorBuilder is a readonly struct with copy-on-write semantics. Its With*() methods return a new copy with the requested change; they do NOT mutate the original. If the return value is not captured, the change is silently lost. Either reassign the result (builder = builder.WithType(...)) or chain calls fluently (Error.Create(...).WithType(...).Build()).",
-        helpLinkUri: "https://github.com/ericksonlopez/dotnet-result/blob/main/docs/error-builder.md");
+        description: "ErrorBuilder is a readonly struct with copy-on-write semantics. Its With methods return a new copy with the requested change and do not mutate the original. If the return value is not captured, the change is silently lost.",
+        helpLinkUri: "https://github.com/ericksonlopezf/dotnet-result/blob/main/docs/error-builder.md#discarded-return-analyzer");
 
+    /// <inheritdoc/>
     public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
         => ImmutableArray.Create(Rule);
 
+    /// <inheritdoc/>
     public override void Initialize(AnalysisContext context)
     {
         context.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.None);
@@ -76,7 +82,7 @@ public sealed class ErrorBuilderDiscardedReturnAnalyzer : DiagnosticAnalyzer
 
         // Check if the method is on ErrorBuilder
         var method = invocation.TargetMethod;
-        if (method.ContainingType?.ToDisplayString() != ErrorBuilderFullName) return;
+        if (method.ContainingType!.ToDisplayString() != ErrorBuilderFullName) return;
 
         // Check if it's one of the tracked With* methods
         if (!TrackedMethods.Contains(method.Name)) return;
@@ -92,8 +98,8 @@ public sealed class ErrorBuilderDiscardedReturnAnalyzer : DiagnosticAnalyzer
         {
             isDiscarded = true;
         }
-        else if (invocation.Parent is IVariableInitializerOperation initializer && 
-                 initializer.Parent is IVariableDeclaratorOperation declarator && 
+        else if (invocation.Parent is IVariableInitializerOperation initializer &&
+                 initializer.Parent is IVariableDeclaratorOperation declarator &&
                  declarator.Symbol.Name == "_")
         {
             isDiscarded = true;
@@ -109,3 +115,6 @@ public sealed class ErrorBuilderDiscardedReturnAnalyzer : DiagnosticAnalyzer
         }
     }
 }
+
+
+

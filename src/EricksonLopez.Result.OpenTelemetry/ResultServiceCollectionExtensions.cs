@@ -1,5 +1,7 @@
-
+// Copyright © Erickson Lopez. MIT License.
+using System;
 using System.Diagnostics.Metrics;
+using EricksonLopez.Result;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace EricksonLopez.Result.OpenTelemetry;
@@ -15,6 +17,7 @@ public static class ResultServiceCollectionExtensions
     /// </summary>
     /// <param name="services">The service collection.</param>
     /// <returns>The original service collection for chaining.</returns>
+    /// <exception cref="ArgumentNullException"><paramref name="services"/> is <see langword="null"/></exception>
     /// <remarks>
     /// The <see cref="Meter"/> is created via <see cref="IMeterFactory"/> and is disposed automatically
     /// when the host disposes the DI container. <see cref="ResultMetrics.Dispose"/> is a no-op for the
@@ -22,10 +25,11 @@ public static class ResultServiceCollectionExtensions
     /// <see cref="ResultMetrics.StaticTrackSuccess"/> / <see cref="ResultMetrics.StaticTrackFailure"/>
     /// methods in the same application — that would cause double-counting via two separate meters.
     /// </remarks>
-    [System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage]
     public static IServiceCollection AddResultMetrics(this IServiceCollection services)
     {
-        services.AddSingleton(sp => 
+        ArgumentNullException.ThrowIfNull(services);
+
+        services.AddSingleton(sp =>
         {
             var meterFactory = sp.GetRequiredService<IMeterFactory>();
             // IMeterFactory creates and owns the meter. Passing ownsMeter: false (explicit) ensures
@@ -37,4 +41,6 @@ public static class ResultServiceCollectionExtensions
         return services;
     }
 }
+
+
 

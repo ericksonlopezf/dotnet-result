@@ -1,8 +1,11 @@
+// Copyright © Erickson Lopez. MIT License.
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
+using System.Linq;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using EricksonLopez.Result;
 
 namespace EricksonLopez.Result.Serialization;
 
@@ -17,7 +20,7 @@ namespace EricksonLopez.Result.Serialization;
 /// numbers (<c>int</c>, <c>long</c>, <c>double</c>, etc.) are written as JSON numbers,
 /// booleans as JSON booleans, strings as JSON strings, and collections as JSON arrays.
 /// On deserialization, numbers are recovered as <c>long</c> or <c>double</c>, booleans as <c>bool</c>,
-/// and all other values (including <see cref="System.DateTime"/>, <see cref="System.Guid"/>, custom objects)
+/// and all other values (including <see cref="DateTime"/>, <see cref="Guid"/>, custom objects)
 /// are deserialized as <c>string</c>. The original CLR numeric type (e.g., <c>int</c> vs <c>long</c>) may differ.
 /// </para>
 /// <para>
@@ -25,7 +28,6 @@ namespace EricksonLopez.Result.Serialization;
 /// property on your domain object rather than relying on <see cref="Error.Metadata"/>.
 /// </para>
 /// </remarks>
-[System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage]
 public sealed class ErrorJsonConverter : JsonConverter<Error>
 {
     /// <inheritdoc/>
@@ -214,6 +216,7 @@ public sealed class ErrorJsonConverter : JsonConverter<Error>
     {
         // reader is at StartObject
         var dict = new Dictionary<string, object>(StringComparer.Ordinal);
+        // Stryker disable once Logical : Stream reader loop termination
         while (reader.Read() && reader.TokenType != JsonTokenType.EndObject)
         {
             if (reader.TokenType == JsonTokenType.PropertyName)
@@ -233,7 +236,6 @@ public sealed class ErrorJsonConverter : JsonConverter<Error>
     /// Reads a single metadata value from the current position of the <see cref="Utf8JsonReader"/>.
     /// Supports string, number (long/double), boolean, null, array, and nested object values.
     /// </summary>
-    [System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage]
     private static object? ReadMetadataValue(ref Utf8JsonReader reader) => reader.TokenType switch
     {
         JsonTokenType.String => reader.GetString(),
@@ -246,11 +248,11 @@ public sealed class ErrorJsonConverter : JsonConverter<Error>
         _ => null // Skip unknown token types
     };
 
-    [System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage]
     private static List<object?> ReadMetadataArray(ref Utf8JsonReader reader)
     {
         // reader is at StartArray
         var list = new List<object?>();
+        // Stryker disable once Logical : Stream reader loop termination
         while (reader.Read() && reader.TokenType != JsonTokenType.EndArray)
         {
             list.Add(ReadMetadataValue(ref reader));
@@ -258,11 +260,11 @@ public sealed class ErrorJsonConverter : JsonConverter<Error>
         return list;
     }
 
-    [System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage]
     private static Dictionary<string, object?> ReadMetadataNestedObject(ref Utf8JsonReader reader)
     {
         // reader is at StartObject
         var dict = new Dictionary<string, object?>(StringComparer.Ordinal);
+        // Stryker disable once Logical : Stream reader loop termination
         while (reader.Read() && reader.TokenType != JsonTokenType.EndObject)
         {
             if (reader.TokenType != JsonTokenType.PropertyName)
@@ -349,6 +351,7 @@ public sealed class ErrorJsonConverter : JsonConverter<Error>
                 writer.WriteStringValue(g.ToString());
                 break;
             case TimeSpan ts:
+                // Stryker disable once String : In .NET TimeSpan.ToString("") defaults to "c" invariant format
                 writer.WriteStringValue(ts.ToString("c", System.Globalization.CultureInfo.InvariantCulture));
                 break;
             // Collections: write as JSON array with recursive element handling
@@ -374,7 +377,6 @@ public sealed class ErrorJsonConverter : JsonConverter<Error>
 
     private static ErrorType ParseErrorType(string? value)
     {
-        if (string.Equals(value, "Failure", StringComparison.OrdinalIgnoreCase)) return ErrorType.Failure;
         if (string.Equals(value, "Validation", StringComparison.OrdinalIgnoreCase)) return ErrorType.Validation;
         if (string.Equals(value, "NotFound", StringComparison.OrdinalIgnoreCase) ||
             string.Equals(value, "not_found", StringComparison.OrdinalIgnoreCase)) return ErrorType.NotFound;
@@ -393,15 +395,12 @@ public sealed class ErrorJsonConverter : JsonConverter<Error>
     {
         if (string.Equals(value, "Info", StringComparison.OrdinalIgnoreCase)) return ErrorSeverity.Info;
         if (string.Equals(value, "Warning", StringComparison.OrdinalIgnoreCase)) return ErrorSeverity.Warning;
-        if (string.Equals(value, "Error", StringComparison.OrdinalIgnoreCase)) return ErrorSeverity.Error;
         if (string.Equals(value, "Critical", StringComparison.OrdinalIgnoreCase)) return ErrorSeverity.Critical;
         return ErrorSeverity.Error;
     }
 
     private static ErrorRetryability ParseErrorRetryability(string? value)
     {
-        if (string.Equals(value, "NotApplicable", StringComparison.OrdinalIgnoreCase) ||
-            string.Equals(value, "not_applicable", StringComparison.OrdinalIgnoreCase)) return ErrorRetryability.NotApplicable;
         if (string.Equals(value, "Transient", StringComparison.OrdinalIgnoreCase)) return ErrorRetryability.Transient;
         if (string.Equals(value, "Permanent", StringComparison.OrdinalIgnoreCase)) return ErrorRetryability.Permanent;
         return ErrorRetryability.NotApplicable;
@@ -418,5 +417,8 @@ public sealed class ErrorJsonConverter : JsonConverter<Error>
     private static string ErrorRetryabilityToString(ErrorRetryability retryability)
         => ErrorEnumStrings.ErrorRetryabilityToString(retryability);
 } // Stryker restore all
+
+
+
 
 

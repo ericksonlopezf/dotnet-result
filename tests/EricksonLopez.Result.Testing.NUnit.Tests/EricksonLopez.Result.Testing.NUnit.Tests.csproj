@@ -1,0 +1,12 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!-- Copyright © Erickson Lopez. MIT License. -->
+
+  <ItemGroup>
+    <PackageReference Include="NUnit" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\EricksonLopez.Result.Testing.NUnit\EricksonLopez.Result.Testing.NUnit.csproj" />
+  </ItemGroup>
+
+</Project>

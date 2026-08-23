@@ -13,12 +13,18 @@ A clear and concise description of what the problem is. Ex. I'm always frustrate
 ## Affected Package(s)
 
 - [ ] `EricksonLopez.Result` (Core)
+- [ ] `EricksonLopez.Result.Generic`
+- [ ] `EricksonLopez.Result.Maybe`
 - [ ] `EricksonLopez.Result.AspNetCore`
+- [ ] `EricksonLopez.Result.OpenApi`
 - [ ] `EricksonLopez.Result.OpenTelemetry`
 - [ ] `EricksonLopez.Result.Serialization`
+- [ ] `EricksonLopez.Result.Serialization.Generators`
 - [ ] `EricksonLopez.Result.FluentValidation`
 - [ ] `EricksonLopez.Result.MediatR`
 - [ ] `EricksonLopez.Result.Testing`
+- [ ] `EricksonLopez.Result.Testing.XUnit`
+- [ ] `EricksonLopez.Result.Testing.NUnit`
 - [ ] `EricksonLopez.Result.Analyzers`
 - [ ] New package (describe below)
 

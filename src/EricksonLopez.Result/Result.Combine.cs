@@ -1,9 +1,10 @@
-#pragma warning disable RESULT001 // Result.Combine creates large ValueTuples, which is acceptable
+// Copyright © Erickson Lopez. MIT License.
 using System;
 using System.Buffers;
 using System.Collections.Generic;
 using System.Diagnostics.Contracts;
 
+#pragma warning disable RESULT001 // Result.Combine creates large ValueTuples, which is acceptable
 namespace EricksonLopez.Result;
 
 public readonly partial struct Result
@@ -11,9 +12,11 @@ public readonly partial struct Result
     // ─── Combine (Zero Allocation with ReadOnlySpan and ArrayPool) ────────────
 
     /// <summary>
-    /// Aggregates multiple results using ReadOnlySpan. Returns success if all succeed,
+    /// Aggregates multiple results using a read-only span. Returns success if all succeed,
     /// or a compound failure containing all errors when one or more fail.
     /// </summary>
+    /// <param name="results">The span of results to aggregate.</param>
+    /// <returns>A successful <see cref="Result"/> if all inputs succeed; otherwise, a compound failure containing all errors.</returns>
     [Pure]
     public static Result Combine(params ReadOnlySpan<Result> results)
     {
@@ -26,6 +29,8 @@ public readonly partial struct Result
         {
             foreach (ref readonly var result in results)
             {
+                // Stryker disable once Statement : Equivalent mutation, Value property also throws InvalidOperationException
+                if (result.IsUninitialized) ResultThrowHelper.ThrowUninitialized();
                 if (result.IsFailure)
                 {
                     failureCount++;
@@ -57,24 +62,27 @@ public readonly partial struct Result
                 $"{failureCount} errors occurred",
                 finalErrors));
         }
+        // Stryker disable all : ArrayPool cleanup (cannot assert ArrayPool internal state)
         finally
         {
             if (pooledArray is not null)
-            // Stryker disable once all : Equivalent mutation
             {
                 // clearArray: true — Error is a reference type; clearing slots allows the GC to reclaim
                 // Error objects (and their InnerErrors/Metadata graphs) promptly after returning to the pool.
                 // Leaving references in pooled arrays can cause unintentional root retention.
-                // Stryker disable all
                 ArrayPool<Error>.Shared.Return(pooledArray, clearArray: true);
             }
         }
+        // Stryker restore all
     }
 
     /// <summary>
-    /// Aggregates homogeneous typed results using ReadOnlySpan.
+    /// Aggregates homogeneous typed results using a read-only span.
     /// Returns all values on success, or a compound failure on any error.
     /// </summary>
+    /// <typeparam name="T">The type of the successful values.</typeparam>
+    /// <param name="results">The span of typed results to aggregate.</param>
+    /// <returns>A successful <see cref="Result{TValue}"/> containing a list of all values if all inputs succeed; otherwise, a compound failure containing all errors.</returns>
     [Pure]
     public static Result<IReadOnlyList<T>> Combine<T>(params ReadOnlySpan<Result<T>> results)
     {
@@ -92,6 +100,8 @@ public readonly partial struct Result
             for (int i = 0; i < results.Length; i++)
             {
                 ref readonly var result = ref results[i];
+                // Stryker disable once Statement : Equivalent mutation, Value property also throws InvalidOperationException
+                if (result.IsUninitialized) ResultThrowHelper.ThrowUninitialized();
                 if (result.IsFailure)
                 {
                     failureCount++;
@@ -152,7 +162,7 @@ public readonly partial struct Result
             if (pooledErrors is not null)
             // Stryker disable once all : Equivalent mutation
             {
-                // Stryker disable all
+                // Stryker disable once all
                 ArrayPool<Error>.Shared.Return(pooledErrors, clearArray: true);
             }
             if (rentedValues is not null)
@@ -160,7 +170,7 @@ public readonly partial struct Result
             {
                 // clearArray: true — T may be a reference type; clear slots to allow GC
                 // to reclaim objects promptly after returning to the pool.
-                // Stryker disable all
+                // Stryker disable once all
                 ArrayPool<T>.Shared.Return(rentedValues, clearArray: true);
             }
         }
@@ -170,6 +180,8 @@ public readonly partial struct Result
     /// Aggregates multiple results. Returns success if all succeed,
     /// or a compound failure containing all errors when one or more fail.
     /// </summary>
+    /// <param name="results">The array of results to aggregate.</param>
+    /// <returns>A successful <see cref="Result"/> if all inputs succeed; otherwise, a compound failure containing all errors.</returns>
     /// <remarks>
     /// This overload accepts <c>params Result[]</c> for compatibility with C# 12 and earlier,
     /// which do not support <c>params ReadOnlySpan&lt;T&gt;</c>. It delegates to the
@@ -183,6 +195,9 @@ public readonly partial struct Result
     /// Aggregates homogeneous typed results.
     /// Returns all values on success, or a compound failure on any error.
     /// </summary>
+    /// <typeparam name="T">The type of the successful values.</typeparam>
+    /// <param name="results">The array of typed results to aggregate.</param>
+    /// <returns>A successful <see cref="Result{TValue}"/> containing a list of all values if all inputs succeed; otherwise, a compound failure containing all errors.</returns>
     /// <remarks>
     /// This overload accepts <c>params Result&lt;T&gt;[]</c> for compatibility with C# 12 and earlier,
     /// which do not support <c>params ReadOnlySpan&lt;T&gt;</c>. It delegates to the
@@ -195,9 +210,16 @@ public readonly partial struct Result
     /// <summary>
     /// Aggregates two typed results into a value tuple.
     /// </summary>
+    /// <typeparam name="T1">The type of the first value.</typeparam>
+    /// <typeparam name="T2">The type of the second value.</typeparam>
+    /// <param name="r1">The first result, passed by readonly reference.</param>
+    /// <param name="r2">The second result, passed by readonly reference.</param>
+    /// <returns>A successful <see cref="Result{TValue}"/> containing a tuple of values if all inputs succeed; otherwise, a compound failure containing all errors.</returns>
     [Pure]
     public static Result<(T1, T2)> Combine<T1, T2>(in Result<T1> r1, in Result<T2> r2)
     {
+        // Stryker disable once all : Equivalent mutation, properties also throw InvalidOperationException
+        if (r1.IsUninitialized || r2.IsUninitialized) ResultThrowHelper.ThrowUninitialized();
         if (r1.IsSuccess && r2.IsSuccess)
             return Success((r1.Value, r2.Value));
 
@@ -221,10 +243,19 @@ public readonly partial struct Result
     /// <summary>
     /// Aggregates three typed results into a value tuple.
     /// </summary>
+    /// <typeparam name="T1">The type of the first value.</typeparam>
+    /// <typeparam name="T2">The type of the second value.</typeparam>
+    /// <typeparam name="T3">The type of the third value.</typeparam>
+    /// <param name="r1">The first result, passed by readonly reference.</param>
+    /// <param name="r2">The second result, passed by readonly reference.</param>
+    /// <param name="r3">The third result, passed by readonly reference.</param>
+    /// <returns>A successful <see cref="Result{TValue}"/> containing a tuple of values if all inputs succeed; otherwise, a compound failure containing all errors.</returns>
     [Pure]
     public static Result<(T1, T2, T3)> Combine<T1, T2, T3>(
         in Result<T1> r1, in Result<T2> r2, in Result<T3> r3)
     {
+        // Stryker disable once all : Equivalent mutation, properties also throw InvalidOperationException
+        if (r1.IsUninitialized || r2.IsUninitialized || r3.IsUninitialized) ResultThrowHelper.ThrowUninitialized();
         if (r1.IsSuccess && r2.IsSuccess && r3.IsSuccess)
             return Success((r1.Value, r2.Value, r3.Value));
 
@@ -257,10 +288,21 @@ public readonly partial struct Result
     /// <summary>
     /// Aggregates four typed results into a value tuple.
     /// </summary>
+    /// <typeparam name="T1">The type of the first value.</typeparam>
+    /// <typeparam name="T2">The type of the second value.</typeparam>
+    /// <typeparam name="T3">The type of the third value.</typeparam>
+    /// <typeparam name="T4">The type of the fourth value.</typeparam>
+    /// <param name="r1">The first result, passed by readonly reference.</param>
+    /// <param name="r2">The second result, passed by readonly reference.</param>
+    /// <param name="r3">The third result, passed by readonly reference.</param>
+    /// <param name="r4">The fourth result, passed by readonly reference.</param>
+    /// <returns>A successful <see cref="Result{TValue}"/> containing a tuple of values if all inputs succeed; otherwise, a compound failure containing all errors.</returns>
     [Pure]
     public static Result<(T1, T2, T3, T4)> Combine<T1, T2, T3, T4>(
         in Result<T1> r1, in Result<T2> r2, in Result<T3> r3, in Result<T4> r4)
     {
+        // Stryker disable once all : Equivalent mutation, properties also throw InvalidOperationException
+        if (r1.IsUninitialized || r2.IsUninitialized || r3.IsUninitialized || r4.IsUninitialized) ResultThrowHelper.ThrowUninitialized();
         if (r1.IsSuccess && r2.IsSuccess && r3.IsSuccess && r4.IsSuccess)
             return Success((r1.Value, r2.Value, r3.Value, r4.Value));
 
@@ -293,10 +335,23 @@ public readonly partial struct Result
     /// <summary>
     /// Aggregates five typed results into a value tuple.
     /// </summary>
+    /// <typeparam name="T1">The type of the first value.</typeparam>
+    /// <typeparam name="T2">The type of the second value.</typeparam>
+    /// <typeparam name="T3">The type of the third value.</typeparam>
+    /// <typeparam name="T4">The type of the fourth value.</typeparam>
+    /// <typeparam name="T5">The type of the fifth value.</typeparam>
+    /// <param name="r1">The first result, passed by readonly reference.</param>
+    /// <param name="r2">The second result, passed by readonly reference.</param>
+    /// <param name="r3">The third result, passed by readonly reference.</param>
+    /// <param name="r4">The fourth result, passed by readonly reference.</param>
+    /// <param name="r5">The fifth result, passed by readonly reference.</param>
+    /// <returns>A successful <see cref="Result{TValue}"/> containing a tuple of values if all inputs succeed; otherwise, a compound failure containing all errors.</returns>
     [Pure]
     public static Result<(T1, T2, T3, T4, T5)> Combine<T1, T2, T3, T4, T5>(
         in Result<T1> r1, in Result<T2> r2, in Result<T3> r3, in Result<T4> r4, in Result<T5> r5)
     {
+        // Stryker disable once all : Equivalent mutation, properties also throw InvalidOperationException
+        if (r1.IsUninitialized || r2.IsUninitialized || r3.IsUninitialized || r4.IsUninitialized || r5.IsUninitialized) ResultThrowHelper.ThrowUninitialized();
         if (r1.IsSuccess && r2.IsSuccess && r3.IsSuccess && r4.IsSuccess && r5.IsSuccess)
             return Success((r1.Value, r2.Value, r3.Value, r4.Value, r5.Value));
 
@@ -330,12 +385,19 @@ public readonly partial struct Result
     }
 
     /// <summary>
-    /// Merges a guard non-generic Result with a typed Result, returning the typed Result if guard succeeds.
+    /// Merges a guard non-generic result with a typed result, returning the typed result if the guard succeeds.
     /// </summary>
+    /// <typeparam name="T">The value type of the typed result.</typeparam>
+    /// <param name="guard">The guard result to check first, passed by readonly reference.</param>
+    /// <param name="next">The typed result to return if the guard succeeds, passed by readonly reference.</param>
+    /// <returns>The failure from <paramref name="guard"/> if it failed; otherwise, <paramref name="next"/>.</returns>
     [Pure]
     public static Result<T> Merge<T>(in Result guard, in Result<T> next)
     {
+        if (guard.IsUninitialized || next.IsUninitialized) ResultThrowHelper.ThrowUninitialized();
         return guard.IsFailure ? Failure<T>(guard.Error) : next;
     }
 }
+
+
 

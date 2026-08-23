@@ -1,12 +1,13 @@
+// Copyright © Erickson Lopez. MIT License.
+// Attributes removed in favor of MSBuild <InternalsVisibleTo> items.
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Diagnostics.Contracts;
+using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading;
-
-// Attributes removed in favor of MSBuild <InternalsVisibleTo> items.
 
 namespace EricksonLopez.Result;
 
@@ -85,26 +86,26 @@ public sealed class Error : IEquatable<Error>
     // Now always available (no longer nullable) — simplifies the fast-path in the builder.
     internal ImmutableArray<Error> RawInnerErrors => _innerErrors;
 
-    /// <summary>Gets the machine-readable error code.</summary>
+    /// <summary>Gets the unique machine-readable error code.</summary>
     public string Code { get; }
 
-    /// <summary>Gets the human-readable technical description for diagnostic logging.</summary>
+    /// <summary>Gets the technical description of the error for diagnostics and logging.</summary>
     public string Description { get; }
 
-    /// <summary>Gets the optional resource key for localized messages.</summary>
+    /// <summary>Gets the optional localization resource key for the error message.</summary>
     public string? DescriptionKey { get; }
 
-    /// <summary>Gets the error category type.</summary>
+    /// <summary>Gets the classification category of the error.</summary>
     public ErrorType Type { get; }
 
-    /// <summary>Gets the error severity level.</summary>
+    /// <summary>Gets the severity level of the error.</summary>
     public ErrorSeverity Severity { get; }
 
-    /// <summary>Gets the retryability semantics of the error.</summary>
+    /// <summary>Gets the retry classification indicating whether the operation may be retried.</summary>
     public ErrorRetryability Retryability { get; }
 
     /// <summary>
-    /// Gets the OpenTelemetry trace ID associated with this error.
+    /// Gets the OpenTelemetry trace identifier associated with this error.
     /// The string is materialized lazily on first access and cached to avoid repeated
     /// heap allocations for the 32-character trace ID string in concurrent scenarios.
     /// </summary>
@@ -127,18 +128,29 @@ public sealed class Error : IEquatable<Error>
         }
     }
 
-    /// <summary>Gets the distributed correlation ID associated with this error.</summary>
+    /// <summary>Gets the distributed correlation identifier associated with this error.</summary>
     public string? CorrelationId { get; }
 
     /// <summary>
-    /// Initializes a new instance of <see cref="Error"/>.
+    /// Initializes a new instance of the <see cref="Error"/> class.
     /// </summary>
+    /// <param name="code">The unique machine-readable error code. Must not be null or whitespace.</param>
+    /// <param name="description">The human-readable description for diagnostic logging. Must not be null or whitespace.</param>
+    /// <param name="type">The error category type. Defaults to <see cref="ErrorType.Failure"/>.</param>
+    /// <param name="severity">The error severity level. Defaults to <see cref="ErrorSeverity.Error"/>.</param>
+    /// <param name="retryability">The retry classification. Defaults to <see cref="ErrorRetryability.NotApplicable"/>.</param>
+    /// <param name="descriptionKey">The optional resource key for localized messages.</param>
+    /// <param name="traceId">The optional distributed trace identifier string.</param>
+    /// <param name="correlationId">The optional distributed correlation identifier string.</param>
+    /// <param name="innerErrors">The optional collection of child errors composing this error.</param>
+    /// <param name="metadata">The optional key-value metadata dictionary.</param>
+    /// <exception cref="ArgumentException"><paramref name="code"/> or <paramref name="description"/> is <see langword="null"/>, empty, or consists only of white-space characters</exception>
     /// <remarks>
     /// <para>
     /// <b>⚠️ Prefer factory methods over this constructor.</b>
     /// Use <see cref="Failure(string, string)"/>, <see cref="Validation(string, string)"/>,
     /// <see cref="NotFound(string, string)"/>, or <see cref="Create(string, string)"/> + <see cref="ErrorBuilder"/>
-    /// for fluent construction. This 9-parameter constructor is hidden from IntelliSense to avoid confusion,
+    /// for fluent construction. This 10-parameter constructor is hidden from IntelliSense to avoid confusion,
     /// but remains public for advanced and serialization scenarios.
     /// </para>
     /// <para>
@@ -171,16 +183,18 @@ public sealed class Error : IEquatable<Error>
         Retryability = retryability;
         DescriptionKey = descriptionKey;
         CorrelationId = correlationId;
-        // Convert IReadOnlyList<Error> → ImmutableArray<Error> at construction time.
-        // Fast-path: if the caller already passes an ImmutableArray<Error> (which implements
-        // IReadOnlyList<Error>), reuse it directly to avoid an O(n) copy.
-        // Otherwise, CreateRange is O(n) but only pays cost once at creation, not on every InnerErrors access.
-        // Stryker disable once Equality : Count >= 0 is equivalent since Count is never negative, and 0 creates empty which is same as null conceptually here.
-        _innerErrors = innerErrors is { Count: > 0 }
-            ? innerErrors is ImmutableArray<Error> immutableArray ? immutableArray : ImmutableArray.CreateRange(innerErrors)
-            : ImmutableArray<Error>.Empty;
-        // Stryker disable once Equality : Count >= 0 is equivalent.
-        _metadata = metadata is { Count: > 0 } ? ImmutableDictionary.CreateRange(metadata) : null;
+
+        _innerErrors = innerErrors switch
+        {
+            null or { Count: 0 } => ImmutableArray<Error>.Empty,
+            ImmutableArray<Error> arr => arr,
+            _ => ImmutableArray.CreateRange(innerErrors)
+        };
+        _metadata = metadata switch
+        {
+            null or { Count: 0 } => null,
+            _ => ImmutableDictionary.CreateRange(metadata)
+        };
 
         if (traceId is not null)
         {
@@ -246,22 +260,18 @@ public sealed class Error : IEquatable<Error>
         ImmutableArray<Error> innerErrors,
         ImmutableDictionary<string, object>? metadata)
     {
-        // traceId here is already a string (or null) — use as override, no Activity re-capture.
-        // The metadata ImmutableDictionary and ImmutableArray<Error> are already built by the builder.
         return new Error(
             code, description, type, severity, retryability,
             descriptionKey,
             traceIdOverride: traceId,
             traceIdValue: null,
             correlationId,
-            // Stryker disable Equality : Count >= 0 is equivalent. 
-            // Stryker disable Conditional : Conditional is equivalent because IsDefaultOrEmpty handles null.
             innerErrors.IsDefaultOrEmpty ? ImmutableArray<Error>.Empty : innerErrors,
-            // Stryker disable all : Count >= 0 is equivalent.
-            metadata is { Count: > 0 } ? metadata : null);
-            // Stryker restore all
-            // Stryker restore Conditional
-            // Stryker restore Equality
+            metadata switch
+            {
+                null or { Count: 0 } => null,
+                _ => metadata
+            });
     }
 
     /// <summary>
@@ -286,12 +296,12 @@ public sealed class Error : IEquatable<Error>
     /// </remarks>
     public ImmutableArray<Error> InnerErrors => _innerErrors;
 
-    /// <summary>Gets key-value metadata associated with this error.</summary>
+    /// <summary>Gets the immutable key-value metadata dictionary associated with this error.</summary>
     /// <remarks>
     /// <para>
     /// Metadata values accept any <see langword="object"/> and are stored as-is in memory.
     /// Prefer simple, serializable types (<see langword="string"/>, <see langword="int"/>,
-    /// <see langword="bool"/>, <see cref="System.Guid"/>) for values you intend to serialize.
+    /// <see langword="bool"/>, <see cref="Guid"/>) for values you intend to serialize.
     /// </para>
     /// <para>
     /// <b>⚠️ Serialization type-loss warning:</b> When this error is serialized and deserialized
@@ -300,7 +310,7 @@ public sealed class Error : IEquatable<Error>
     /// <list type="bullet">
     ///   <item>JSON numbers are deserialized as <see langword="long"/> or <see langword="double"/> —
     ///         casting <c>(int)error.Metadata["orderId"]</c> will throw <see cref="System.InvalidCastException"/>.</item>
-    ///   <item><see cref="System.Guid"/>, <see cref="System.DateTime"/>, and other complex types
+    ///   <item><see cref="Guid"/>, <see cref="DateTime"/>, and other complex types
     ///         are serialized as strings and deserialized as <see langword="string"/> —
     ///         casting back to the original type will throw.</item>
     ///   <item>Only <see langword="bool"/>, <see langword="long"/>, <see langword="double"/>,
@@ -312,39 +322,33 @@ public sealed class Error : IEquatable<Error>
     /// </remarks>
     public IReadOnlyDictionary<string, object> Metadata => _metadata ?? ImmutableDictionary<string, object>.Empty;
 
-    /// <summary>Indicates whether this error contains inner child errors.</summary>
+    /// <summary>Gets a value indicating whether this error contains one or more child errors.</summary>
     public bool HasInnerErrors => !_innerErrors.IsDefaultOrEmpty;
 
-    /// <summary>Indicates whether this error contains metadata attributes.</summary>
-    // Stryker disable once Equality : Count >= 0 is equivalent since _metadata is either null or has items.
-    public bool HasMetadata => _metadata is { Count: > 0 };
+    /// <summary>Gets a value indicating whether this error contains metadata entries.</summary>
+    public bool HasMetadata => _metadata is not null;
 
     /// <summary>
-    /// Retrieves a metadata value by key and attempts to cast it to <typeparamref name="T"/>.
+    /// Attempts to retrieve a metadata value by key and cast it to the specified type.
     /// </summary>
     /// <typeparam name="T">The expected type of the metadata value.</typeparam>
-    /// <param name="key">The metadata key to look up.</param>
+    /// <param name="key">The metadata key to look up. Must not be null or whitespace.</param>
     /// <param name="value">
-    /// When this method returns <see langword="true"/>, contains the value cast to
-    /// <typeparamref name="T"/>. When <see langword="false"/>, contains the default value.
+    /// When this method returns, contains the metadata value cast to <typeparamref name="T"/> if found and valid;
+    /// otherwise, the default value for the type.
     /// </param>
     /// <returns>
-    /// <see langword="true"/> if the key exists and the value can be cast to <typeparamref name="T"/>;
-    /// <see langword="false"/> if the key does not exist or the value is <see langword="null"/>.
+    /// <see langword="true"/> if the key exists; otherwise, <see langword="false"/>.
     /// </returns>
-    /// <exception cref="InvalidCastException">
-    /// Thrown when the key exists but the stored value cannot be cast to <typeparamref name="T"/>.
-    /// The exception message includes the actual runtime type to aid debugging, including
-    /// post-deserialization type narrowing (e.g., <see cref="int"/> stored as <see cref="long"/>
-    /// after JSON round-trip).
-    /// </exception>
+    /// <exception cref="ArgumentException"><paramref name="key"/> is <see langword="null"/>, empty, or consists only of white-space characters</exception>
+    /// <exception cref="InvalidCastException">The metadata key exists but the stored value cannot be cast to <typeparamref name="T"/></exception>
     /// <remarks>
     /// <para>
     /// <b>⚠️ Post-deserialization type narrowing:</b> JSON deserialization via
     /// <c>EricksonLopez.Result.Serialization</c> narrows metadata types:
     /// <list type="bullet">
     ///   <item>JSON integers → <see langword="long"/> (not <see langword="int"/>)</item>
-    ///   <item><see cref="Guid"/>, <see cref="System.DateTime"/> → <see langword="string"/></item>
+    ///   <item><see cref="Guid"/>, <see cref="DateTime"/> → <see langword="string"/></item>
     ///   <item>Only <see langword="bool"/>, <see langword="long"/>, <see langword="double"/>,
     ///         and <see langword="string"/> survive a JSON round-trip without type loss.</item>
     /// </list>
@@ -366,14 +370,7 @@ public sealed class Error : IEquatable<Error>
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(key);
 
-        bool hasNoMeta = HasNoMetadata(key, out var raw);
-        if (hasNoMeta)
-        {
-            value = default;
-            return false;
-        }
-
-        if (raw is null)
+        if (_metadata is null || !_metadata.TryGetValue(key, out var raw) || raw is null)
         {
             value = default;
             return false;
@@ -385,25 +382,22 @@ public sealed class Error : IEquatable<Error>
             return true;
         }
 
-        // Stryker disable String : Exception messages are not critical for mutation testing
         throw new InvalidCastException(
             $"Metadata key '{key}' has value of type '{raw.GetType().FullName}' which cannot be cast to '{typeof(T).FullName}'. " +
             "If this Error was deserialized from JSON, numeric types are narrowed to 'long'/'double' and " +
             "complex types (Guid, DateTime) are narrowed to 'string'. " +
             "Use the narrowed type in TryGetMetadata<T>, or avoid type-specific casts after deserialization.");
-        // Stryker restore String
     }
 
     /// <summary>
-    /// Retrieves a metadata value by key and casts it to <typeparamref name="T"/>.
-    /// Throws if the key does not exist or the value cannot be cast.
-    /// For a non-throwing variant, use <see cref="TryGetMetadata{T}"/>.
+    /// Retrieves a metadata value by key and casts it to the specified type.
     /// </summary>
     /// <typeparam name="T">The expected type of the metadata value.</typeparam>
-    /// <param name="key">The metadata key to look up.</param>
+    /// <param name="key">The metadata key to look up. Must not be null or whitespace.</param>
     /// <returns>The metadata value cast to <typeparamref name="T"/>.</returns>
-    /// <exception cref="KeyNotFoundException">Thrown when the key does not exist in metadata.</exception>
-    /// <exception cref="InvalidCastException">Thrown when the value cannot be cast to <typeparamref name="T"/>.</exception>
+    /// <exception cref="ArgumentException"><paramref name="key"/> is <see langword="null"/>, empty, or consists only of white-space characters</exception>
+    /// <exception cref="KeyNotFoundException">The metadata key does not exist in this error</exception>
+    /// <exception cref="InvalidCastException">The metadata key exists but the stored value is <see langword="null"/> or cannot be cast to <typeparamref name="T"/></exception>
     [System.Diagnostics.Contracts.Pure]
     public T GetMetadata<T>(string key)
     {
@@ -448,12 +442,11 @@ public sealed class Error : IEquatable<Error>
     // ─── Factory Methods ──────────────────────────────────────────────────────
 
     /// <summary>
-    /// Starts building an <see cref="Error"/> using the fluent <see cref="ErrorBuilder"/> API.
-    /// Use this when you need to set multiple optional properties (type, severity, metadata, etc.).
+    /// Creates an <see cref="ErrorBuilder"/> initialized with the specified error code and description.
     /// </summary>
-    /// <param name="code">The machine-readable error code. Must not be null or whitespace.</param>
-    /// <param name="description">The human-readable description. Must not be null or whitespace.</param>
-    /// <returns>An <see cref="ErrorBuilder"/> pre-seeded with the given code and description.</returns>
+    /// <param name="code">The unique machine-readable error code. Must not be null or whitespace.</param>
+    /// <param name="description">The human-readable technical description. Must not be null or whitespace.</param>
+    /// <returns>An <see cref="ErrorBuilder"/> pre-seeded with the specified code and description.</returns>
     /// <example>
     /// <code>
     /// var error = Error.Create("Order.Expired", "The order has expired.")
@@ -470,6 +463,17 @@ public sealed class Error : IEquatable<Error>
         => new(code, description);
 
     /// <summary>Creates a custom error with specified attributes.</summary>
+    /// <param name="code">The unique machine-readable error code.</param>
+    /// <param name="description">The human-readable technical description.</param>
+    /// <param name="type">The error category type.</param>
+    /// <param name="severity">The error severity level. Defaults to <see cref="ErrorSeverity.Error"/>.</param>
+    /// <param name="retryability">The retry classification. Defaults to <see cref="ErrorRetryability.NotApplicable"/>.</param>
+    /// <param name="descriptionKey">The optional resource key for localized messages.</param>
+    /// <param name="traceId">The optional distributed trace identifier string.</param>
+    /// <param name="correlationId">The optional distributed correlation identifier string.</param>
+    /// <param name="innerErrors">The optional collection of child errors composing this error.</param>
+    /// <param name="metadata">The optional key-value metadata dictionary.</param>
+    /// <returns>A new <see cref="Error"/> instance configured with the specified attributes.</returns>
     /// <remarks>
     /// For most use cases, prefer <see cref="Create(string, string)"/> with the fluent <see cref="ErrorBuilder"/> pattern.
     /// </remarks>
@@ -488,7 +492,15 @@ public sealed class Error : IEquatable<Error>
         IReadOnlyDictionary<string, object>? metadata = null)
         => new(code, description, type, severity, retryability, descriptionKey, traceId, correlationId, innerErrors, metadata);
 
-    /// <summary>Creates a custom error with specified metadata and inner errors.</summary>
+    /// <summary>Creates a custom error with specified metadata and child errors.</summary>
+    /// <param name="code">The unique machine-readable error code.</param>
+    /// <param name="description">The human-readable technical description.</param>
+    /// <param name="type">The error category type.</param>
+    /// <param name="severity">The error severity level.</param>
+    /// <param name="retryability">The retry classification.</param>
+    /// <param name="metadata">The optional key-value metadata dictionary.</param>
+    /// <param name="innerErrors">The child errors composing this error.</param>
+    /// <returns>A new <see cref="Error"/> instance configured with the specified attributes.</returns>
     /// <remarks>
     /// For most use cases, prefer <see cref="Create(string, string)"/> with the fluent <see cref="ErrorBuilder"/> pattern.
     /// </remarks>
@@ -504,69 +516,111 @@ public sealed class Error : IEquatable<Error>
         params Error[] innerErrors)
         => new(code, description, type, severity, retryability, metadata: metadata, innerErrors: innerErrors);
 
-    /// <summary>Creates a failure error.</summary>
+    /// <summary>Creates a new <see cref="Error"/> representing a general failure.</summary>
+    /// <param name="code">The unique machine-readable error code.</param>
+    /// <param name="description">The human-readable technical description.</param>
+    /// <returns>A new <see cref="Error"/> instance with <see cref="ErrorType.Failure"/> type and <see cref="ErrorSeverity.Error"/> severity.</returns>
     [Pure]
     public static Error Failure(string code, string description)
         => new(code, description, ErrorType.Failure, ErrorSeverity.Error);
 
-    /// <summary>Creates a failure error wrapping child inner errors.</summary>
+    /// <summary>Creates a new <see cref="Error"/> representing a general failure wrapping child errors.</summary>
+    /// <param name="code">The unique machine-readable error code.</param>
+    /// <param name="description">The human-readable technical description.</param>
+    /// <param name="innerErrors">The child errors caused by or contributing to this failure.</param>
+    /// <returns>A new <see cref="Error"/> instance containing the specified child errors.</returns>
     [Pure]
     public static Error Failure(string code, string description, params Error[] innerErrors)
         => new(code, description, ErrorType.Failure, ErrorSeverity.Error, innerErrors: innerErrors);
 
-    /// <summary>Creates a validation error.</summary>
+    /// <summary>Creates a new <see cref="Error"/> representing an input validation failure.</summary>
+    /// <param name="code">The unique machine-readable error code.</param>
+    /// <param name="description">The human-readable technical description.</param>
+    /// <returns>A new <see cref="Error"/> instance with <see cref="ErrorType.Validation"/> type and <see cref="ErrorSeverity.Warning"/> severity.</returns>
     [Pure]
     public static Error Validation(string code, string description)
         => new(code, description, ErrorType.Validation, ErrorSeverity.Warning);
 
-    /// <summary>Creates a validation error wrapping child inner errors.</summary>
+    /// <summary>Creates a new <see cref="Error"/> representing an input validation failure wrapping child errors.</summary>
+    /// <param name="code">The unique machine-readable error code.</param>
+    /// <param name="description">The human-readable technical description.</param>
+    /// <param name="innerErrors">The validation child errors.</param>
+    /// <returns>A new <see cref="Error"/> instance containing the specified child errors.</returns>
     [Pure]
     public static Error Validation(string code, string description, params Error[] innerErrors)
         => new(code, description, ErrorType.Validation, ErrorSeverity.Warning, innerErrors: innerErrors);
 
-    /// <summary>Creates a not found error.</summary>
+    /// <summary>Creates a new <see cref="Error"/> representing a missing or nonexistent resource.</summary>
+    /// <param name="code">The unique machine-readable error code.</param>
+    /// <param name="description">The human-readable technical description.</param>
+    /// <returns>A new <see cref="Error"/> instance with <see cref="ErrorType.NotFound"/> type and <see cref="ErrorSeverity.Warning"/> severity.</returns>
     [Pure]
     public static Error NotFound(string code, string description)
         => new(code, description, ErrorType.NotFound, ErrorSeverity.Warning);
 
-    /// <summary>Creates a conflict error.</summary>
+    /// <summary>Creates a new <see cref="Error"/> representing a state conflict with existing resources.</summary>
+    /// <param name="code">The unique machine-readable error code.</param>
+    /// <param name="description">The human-readable technical description.</param>
+    /// <returns>A new <see cref="Error"/> instance with <see cref="ErrorType.Conflict"/> type and <see cref="ErrorSeverity.Warning"/> severity.</returns>
     [Pure]
     public static Error Conflict(string code, string description)
         => new(code, description, ErrorType.Conflict, ErrorSeverity.Warning);
 
-    /// <summary>Creates an unauthorized error.</summary>
+    /// <summary>Creates a new <see cref="Error"/> representing an unauthenticated request requiring authentication.</summary>
+    /// <param name="code">The unique machine-readable error code.</param>
+    /// <param name="description">The human-readable technical description.</param>
+    /// <returns>A new <see cref="Error"/> instance with <see cref="ErrorType.Unauthorized"/> type and <see cref="ErrorSeverity.Error"/> severity.</returns>
     [Pure]
     public static Error Unauthorized(string code, string description)
         => new(code, description, ErrorType.Unauthorized, ErrorSeverity.Error);
 
-    /// <summary>Creates a forbidden error.</summary>
+    /// <summary>Creates a new <see cref="Error"/> representing an authorization or permission denial failure.</summary>
+    /// <param name="code">The unique machine-readable error code.</param>
+    /// <param name="description">The human-readable technical description.</param>
+    /// <returns>A new <see cref="Error"/> instance with <see cref="ErrorType.Forbidden"/> type and <see cref="ErrorSeverity.Error"/> severity.</returns>
     [Pure]
     public static Error Forbidden(string code, string description)
         => new(code, description, ErrorType.Forbidden, ErrorSeverity.Error);
 
-    /// <summary>Creates an unavailable error (marked as transient for retry policies).</summary>
+    /// <summary>Creates a new <see cref="Error"/> representing a transient external service unavailability failure.</summary>
+    /// <param name="code">The unique machine-readable error code.</param>
+    /// <param name="description">The human-readable technical description.</param>
+    /// <returns>A new <see cref="Error"/> instance with <see cref="ErrorType.Unavailable"/> type, <see cref="ErrorSeverity.Error"/> severity, and <see cref="ErrorRetryability.Transient"/> retryability.</returns>
     [Pure]
     public static Error Unavailable(string code, string description)
         => new(code, description, ErrorType.Unavailable, ErrorSeverity.Error, retryability: ErrorRetryability.Transient);
 
-    /// <summary>Creates an unexpected critical error.</summary>
+    /// <summary>Creates a new <see cref="Error"/> representing an unexpected critical system failure.</summary>
+    /// <param name="code">The unique machine-readable error code.</param>
+    /// <param name="description">The human-readable technical description.</param>
+    /// <returns>A new <see cref="Error"/> instance with <see cref="ErrorType.Unexpected"/> type and <see cref="ErrorSeverity.Critical"/> severity.</returns>
     [Pure]
     public static Error Unexpected(string code, string description)
         => new(code, description, ErrorType.Unexpected, ErrorSeverity.Critical);
 
-    /// <summary>Creates a domain logic error.</summary>
+    /// <summary>Creates a new <see cref="Error"/> representing a business rule or domain invariant violation.</summary>
+    /// <param name="code">The unique machine-readable error code.</param>
+    /// <param name="description">The human-readable technical description.</param>
+    /// <returns>A new <see cref="Error"/> instance with <see cref="ErrorType.Domain"/> type and <see cref="ErrorSeverity.Error"/> severity.</returns>
     [Pure]
     public static Error Domain(string code, string description)
         => new(code, description, ErrorType.Domain, ErrorSeverity.Error);
 
-    /// <summary>Creates an infrastructure error (marked as transient for retry policies).</summary>
+    /// <summary>Creates a new <see cref="Error"/> representing an infrastructure, network, or database connectivity failure.</summary>
+    /// <param name="code">The unique machine-readable error code.</param>
+    /// <param name="description">The human-readable technical description.</param>
+    /// <returns>A new <see cref="Error"/> instance with <see cref="ErrorType.Infrastructure"/> type, <see cref="ErrorSeverity.Error"/> severity, and <see cref="ErrorRetryability.Transient"/> retryability.</returns>
     [Pure]
     public static Error Infrastructure(string code, string description)
         => new(code, description, ErrorType.Infrastructure, ErrorSeverity.Error, retryability: ErrorRetryability.Transient);
 
     // ─── Fluent Builders ──────────────────────────────────────────────────────
 
-    /// <summary>Returns a new Error copy containing the specified metadata entry.</summary>
+    /// <summary>Creates a new <see cref="Error"/> copy containing the specified metadata entry.</summary>
+    /// <param name="key">The metadata key to add or update. Must not be null or whitespace.</param>
+    /// <param name="value">The metadata value to associate with the key.</param>
+    /// <returns>A new <see cref="Error"/> instance with the added or updated metadata entry.</returns>
+    /// <exception cref="ArgumentException"><paramref name="key"/> is <see langword="null"/>, empty, or consists only of white-space characters</exception>
     /// <remarks>
     /// <para>
     /// <b>⚠️ Performance Warning:</b> Each call to <c>WithMetadata</c> creates a new <see cref="Error"/>
@@ -595,7 +649,10 @@ public sealed class Error : IEquatable<Error>
         return new Error(Code, Description, Type, Severity, Retryability, DescriptionKey, _traceIdOverride, _traceIdValue, CorrelationId, _innerErrors, builder.ToImmutable());
     }
 
-    /// <summary>Returns a new Error copy containing the specified metadata entries.</summary>
+    /// <summary>Creates a new <see cref="Error"/> copy containing the specified metadata entries.</summary>
+    /// <param name="metadata">The dictionary of metadata entries to add. Cannot be null.</param>
+    /// <returns>A new <see cref="Error"/> instance containing the merged metadata entries.</returns>
+    /// <exception cref="ArgumentNullException"><paramref name="metadata"/> is <see langword="null"/></exception>
     /// <remarks>
     /// This overload adds all entries in a single Error copy, using <c>ImmutableDictionary.Builder</c>
     /// to batch all additions before calling <c>ToImmutable()</c> once. Prefer this over chaining
@@ -617,7 +674,10 @@ public sealed class Error : IEquatable<Error>
         return new Error(Code, Description, Type, Severity, Retryability, DescriptionKey, _traceIdOverride, _traceIdValue, CorrelationId, _innerErrors, builder.ToImmutable());
     }
 
-    /// <summary>Returns a new Error copy containing the specified metadata entries from an enumerable source.</summary>
+    /// <summary>Creates a new <see cref="Error"/> copy containing the specified metadata entries from an enumerable source.</summary>
+    /// <param name="metadata">The sequence of metadata entries to add. Cannot be null.</param>
+    /// <returns>A new <see cref="Error"/> instance containing the merged metadata entries.</returns>
+    /// <exception cref="ArgumentNullException"><paramref name="metadata"/> is <see langword="null"/></exception>
     /// <remarks>
     /// This overload adds all entries in a single Error copy, using <c>ImmutableDictionary.Builder</c>
     /// to batch all additions before calling <c>ToImmutable()</c> once. Prefer this over chaining
@@ -640,9 +700,11 @@ public sealed class Error : IEquatable<Error>
     }
 
     /// <summary>
-    /// Returns a new Error copy with the specified OpenTelemetry trace ID string.
+    /// Creates a new <see cref="Error"/> copy with the specified OpenTelemetry trace identifier string.
     /// This overrides both the ambient <see cref="Activity"/> trace ID and any previously captured value.
     /// </summary>
+    /// <param name="traceId">The distributed trace identifier string, or <see langword="null"/> to clear the override.</param>
+    /// <returns>A new <see cref="Error"/> instance with the updated trace identifier.</returns>
     /// <remarks>
     /// <b>⚠️ Note:</b> Passing <see langword="null"/> clears the trace ID override, removing it from
     /// serialized output and reverting to the ambient <see cref="Activity.Current"/> behavior.
@@ -656,40 +718,50 @@ public sealed class Error : IEquatable<Error>
         => new(Code, Description, Type, Severity, Retryability, DescriptionKey, traceId, null, CorrelationId, _innerErrors, _metadata);
 
     /// <summary>
-    /// Returns a new Error copy with the specified strongly-typed <see cref="ActivityTraceId"/>.
+    /// Creates a new <see cref="Error"/> copy with the specified strongly-typed <see cref="ActivityTraceId"/>.
     /// Avoids string allocation compared to <see cref="WithTraceId(string?)"/>.
     /// </summary>
+    /// <param name="traceId">The strongly-typed OpenTelemetry trace identifier.</param>
+    /// <returns>A new <see cref="Error"/> instance with the updated trace identifier.</returns>
     public Error WithTraceId(ActivityTraceId traceId)
         => new(Code, Description, Type, Severity, Retryability, DescriptionKey, null, traceId, CorrelationId, _innerErrors, _metadata);
 
     /// <summary>
-    /// Returns a new Error copy with the trace ID override cleared.
+    /// Creates a new <see cref="Error"/> copy with the trace ID override cleared.
     /// After this call, <see cref="TraceId"/> will return the ambient
     /// <see cref="Activity.Current"/> trace ID (if any), or <see langword="null"/>.
     /// </summary>
+    /// <returns>A new <see cref="Error"/> instance without a trace identifier override.</returns>
     /// <remarks>
     /// This is a more intention-revealing alternative to <c>WithTraceId(null)</c>.
     /// </remarks>
     public Error ClearTraceId()
         => new(Code, Description, Type, Severity, Retryability, DescriptionKey, null, null, CorrelationId, _innerErrors, _metadata);
 
-    /// <summary>Returns a new Error copy with the specified correlation ID.</summary>
+    /// <summary>Creates a new <see cref="Error"/> copy with the specified correlation identifier.</summary>
+    /// <param name="correlationId">The correlation identifier to associate with the error, or <see langword="null"/> to clear it.</param>
+    /// <returns>A new <see cref="Error"/> instance with the updated correlation identifier.</returns>
     public Error WithCorrelationId(string? correlationId)
         => new(Code, Description, Type, Severity, Retryability, DescriptionKey, _traceIdOverride, _traceIdValue, correlationId, _innerErrors, _metadata);
 
-    /// <summary>Returns a new Error copy with the specified localization description key.</summary>
+    /// <summary>Creates a new <see cref="Error"/> copy with the specified localization description key.</summary>
+    /// <param name="descriptionKey">The localization resource key, or <see langword="null"/> to clear it.</param>
+    /// <returns>A new <see cref="Error"/> instance with the updated description key.</returns>
     public Error WithDescriptionKey(string? descriptionKey)
         => new(Code, Description, Type, Severity, Retryability, descriptionKey, _traceIdOverride, _traceIdValue, CorrelationId, _innerErrors, _metadata);
 
-    /// <summary>Returns a new Error copy with the specified retryability setting.</summary>
+    /// <summary>Creates a new <see cref="Error"/> copy with the specified retryability classification.</summary>
+    /// <param name="retryability">The retry classification to apply.</param>
+    /// <returns>A new <see cref="Error"/> instance with the updated retryability classification.</returns>
     public Error WithRetryability(ErrorRetryability retryability)
         => new(Code, Description, Type, Severity, retryability, DescriptionKey, _traceIdOverride, _traceIdValue, CorrelationId, _innerErrors, _metadata);
 
     /// <summary>
-    /// Returns an <see cref="ErrorBuilder"/> pre-seeded with all fields of this <see cref="Error"/>,
+    /// Creates an <see cref="ErrorBuilder"/> pre-seeded with all fields of this <see cref="Error"/>,
     /// allowing efficient construction of a modified copy without chaining multiple <c>With*</c> calls
     /// (which each copy the full Error state).
     /// </summary>
+    /// <returns>An <see cref="ErrorBuilder"/> configured with this error's state.</returns>
     /// <example>
     /// <code>
     /// var enriched = existingError.ToBuilder()
@@ -704,10 +776,12 @@ public sealed class Error : IEquatable<Error>
     // ─── Equality ─────────────────────────────────────────────────────────────
 
     /// <summary>
-    /// Determines whether this Error is semantically equal to another Error based on
+    /// Determines whether this error is semantically equal to another <see cref="Error"/> based on
     /// <see cref="Code"/>, <see cref="Description"/>, <see cref="Type"/>, <see cref="Severity"/>,
     /// and <see cref="Retryability"/>.
     /// </summary>
+    /// <param name="other">The other <see cref="Error"/> to compare with this instance.</param>
+    /// <returns><see langword="true"/> if both errors share the same semantic values; otherwise, <see langword="false"/>.</returns>
     /// <remarks>
     /// <b>This is a shallow equality check.</b> The following diagnostic/contextual fields are
     /// intentionally excluded because they vary per request and do not determine whether two errors
@@ -719,7 +793,7 @@ public sealed class Error : IEquatable<Error>
     /// itself, not a per-request identifier. Two errors that differ only in retry classification
     /// (e.g., one <see cref="ErrorRetryability.Transient"/>, one <see cref="ErrorRetryability.Permanent"/>)
     /// represent fundamentally different failure semantics and must not be considered equal in
-    /// collections such as <see cref="System.Collections.Generic.HashSet{T}"/>.
+    /// collections such as <see cref="HashSet{T}"/>.
     /// </para>
     /// <para>
     /// Use <see cref="StrictEquals"/> for deep structural equality that includes all fields
@@ -751,8 +825,8 @@ public sealed class Error : IEquatable<Error>
     /// <see cref="CorrelationId"/>, <see cref="Metadata"/>, and <see cref="InnerErrors"/> are NOT included.
     /// </para>
     /// <para>
-    /// This means that a <see cref="System.Collections.Generic.HashSet{T}"/> or
-    /// <see cref="System.Collections.Generic.Dictionary{TKey,TValue}"/> using the default
+    /// This means that a <see cref="HashSet{T}"/> or
+    /// <see cref="Dictionary{TKey,TValue}"/> using the default
     /// <see cref="IEqualityComparer{T}"/> will treat two <see cref="Error"/> instances as
     /// <i>equal</i> (and deduplicate them) when they share the same 5 semantic fields but
     /// differ in trace ID or metadata. For example:
@@ -781,6 +855,8 @@ public sealed class Error : IEquatable<Error>
     /// <see cref="Retryability"/>, <see cref="TraceId"/>, <see cref="CorrelationId"/>,
     /// <see cref="DescriptionKey"/>, <see cref="InnerErrors"/>, and <see cref="Metadata"/>.
     /// </summary>
+    /// <param name="other">The other <see cref="Error"/> to compare with this instance.</param>
+    /// <returns><see langword="true"/> if all fields and metadata match exactly; otherwise, <see langword="false"/>.</returns>
     /// <remarks>
     /// Delegates the shallow check (<see cref="Code"/>, <see cref="Description"/>, <see cref="Type"/>,
     /// <see cref="Severity"/>, and <see cref="Retryability"/>) to <see cref="Equals(Error?)"/> and
@@ -832,13 +908,14 @@ public sealed class Error : IEquatable<Error>
         return true;
     }
 
-
-    /// <summary>Equality operator for Error.</summary>
+    /// <summary>Determines whether two <see cref="Error"/> instances are semantically equal.</summary>
+    /// <param name="left">The first error to compare.</param>
+    /// <param name="right">The second error to compare.</param>
+    /// <returns><see langword="true"/> if both instances are equal; otherwise, <see langword="false"/>.</returns>
     /// <remarks>
     /// Checks <c>ReferenceEquals</c> first (fast path for same-instance comparisons),
     /// then delegates to <see cref="Equals(Error?)"/> for field-by-field shallow equality.
     /// </remarks>
-    [System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage]
     public static bool operator ==(Error? left, Error? right)
     {
         if (ReferenceEquals(left, right)) return true;
@@ -846,25 +923,20 @@ public sealed class Error : IEquatable<Error>
         return left.Equals(right);
     }
 
-    /// <summary>Inequality operator for Error.</summary>
-    [System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage]
-    public static bool operator !=(Error? left, Error? right) => !(left == right);
+    /// <summary>Determines whether two <see cref="Error"/> instances are not equal.</summary>
+    /// <param name="left">The first error to compare.</param>
+    /// <param name="right">The second error to compare.</param>
+    /// <returns><see langword="true"/> if the instances are not equal; otherwise, <see langword="false"/>.</returns>
+    public static bool operator !=(Error? left, Error? right)
+    {
+        if (ReferenceEquals(left, right)) return false;
+        if (left is null || right is null) return true;
+        return !left.Equals(right);
+    }
 
     /// <inheritdoc/>
     public override string ToString() => $"[{Type}] {Code}: {Description}";
 
-    [System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage]
-    private bool HasNoMetadata(string key, out object? raw)
-    {
-        if (_metadata is null)
-        {
-            raw = null;
-            return true;
-        }
-        return !_metadata.TryGetValue(key, out raw);
-    }
-
-    [System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage]
     private bool IsStrictContextDifferent(Error other)
     {
         return DescriptionKey != other.DescriptionKey
@@ -873,56 +945,3 @@ public sealed class Error : IEquatable<Error>
             || CorrelationId != other.CorrelationId;
     }
 }
-
-/// <summary>Categorizes the functional scope of an error.</summary>
-public enum ErrorType : byte
-{
-    /// <summary>General failure error.</summary>
-    Failure = 0,
-    /// <summary>Input validation error.</summary>
-    Validation = 1,
-    /// <summary>Resource not found error.</summary>
-    NotFound = 2,
-    /// <summary>Resource state conflict error.</summary>
-    Conflict = 3,
-    /// <summary>Authentication required error.</summary>
-    Unauthorized = 4,
-    /// <summary>Authorization permission denied error.</summary>
-    Forbidden = 5,
-    /// <summary>Service unavailable or transient error.</summary>
-    Unavailable = 6,
-    /// <summary>Unexpected internal system error.</summary>
-    Unexpected = 7,
-    /// <summary>Domain rule violation error.</summary>
-    Domain = 8,
-    /// <summary>Infrastructure failure error.</summary>
-    Infrastructure = 9,
-    /// <summary>Custom application error type.</summary>
-    Custom = 10
-}
-
-/// <summary>Indicates the severity level of an error.</summary>
-public enum ErrorSeverity : byte
-{
-    /// <summary>Informational event.</summary>
-    Info = 0,
-    /// <summary>Warning condition.</summary>
-    Warning = 1,
-    /// <summary>Standard error condition.</summary>
-    Error = 2,
-    /// <summary>Critical system failure.</summary>
-    Critical = 3
-}
-
-/// <summary>Indicates the retryability classification of an error.</summary>
-public enum ErrorRetryability : byte
-{
-    /// <summary>Not applicable or non-retriable error.</summary>
-    NotApplicable = 0,
-    /// <summary>Transient error that may succeed if retried.</summary>
-    Transient = 1,
-    /// <summary>Permanent error that will not succeed if retried.</summary>
-    Permanent = 2
-}
-
-

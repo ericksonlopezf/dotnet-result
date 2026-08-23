@@ -1,4 +1,7 @@
+// Copyright © Erickson Lopez. MIT License.
+using System;
 using System.Collections.Immutable;
+using EricksonLopez.Result;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Operations;
@@ -12,6 +15,7 @@ namespace EricksonLopez.Result.Analyzers;
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
 public sealed class ResultExceptionBehaviorMessageAnalyzer : DiagnosticAnalyzer
 {
+    /// <summary>The diagnostic identifier for this analyzer rule.</summary>
     public const string DiagnosticId = "RESULT010";
 
     private const string ExtensionClassName = "ResultMediatRExtensions";
@@ -25,11 +29,13 @@ public sealed class ResultExceptionBehaviorMessageAnalyzer : DiagnosticAnalyzer
         defaultSeverity: DiagnosticSeverity.Warning,
         isEnabledByDefault: true,
         description: "Directly exposing Exception.Message into the Result Error description can leak PII or internal system details if returned via HTTP responses. Use a safe static description instead.",
-        helpLinkUri: "https://github.com/ericksonlopez/dotnet-result/blob/main/docs/analyzers.md#RESULT010");
+        helpLinkUri: "https://github.com/ericksonlopezf/dotnet-result/blob/main/docs/analyzers.md#RESULT010");
 
+    /// <inheritdoc/>
     public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
         => ImmutableArray.Create(Rule);
 
+    /// <inheritdoc/>
     public override void Initialize(AnalysisContext context)
     {
         context.EnableConcurrentExecution();
@@ -43,15 +49,15 @@ public sealed class ResultExceptionBehaviorMessageAnalyzer : DiagnosticAnalyzer
         var invocation = (IInvocationOperation)context.Operation;
         var method = invocation.TargetMethod;
 
-        if (method.Name != MethodName)
+        if (!string.Equals(method.Name, MethodName, StringComparison.Ordinal))
             return;
 
-        if (method.ContainingType?.Name != ExtensionClassName)
+        if (!string.Equals(method.ContainingType.Name, ExtensionClassName, StringComparison.Ordinal))
             return;
 
         foreach (var arg in invocation.Arguments)
         {
-            if (arg.Parameter?.Name == "errorFactory" && arg.Value != null)
+            if (string.Equals(arg.Parameter!.Name, "errorFactory", StringComparison.Ordinal))
             {
                 var walker = new ExceptionMessageWalker();
                 walker.Visit(arg.Value);
@@ -71,21 +77,28 @@ public sealed class ResultExceptionBehaviorMessageAnalyzer : DiagnosticAnalyzer
 
         public override void VisitPropertyReference(IPropertyReferenceOperation operation)
         {
-            if (operation.Property.Name == "Message")
+            if (string.Equals(operation.Property.Name, "Message", StringComparison.Ordinal) &&
+                IsOrDerivesFromException(operation.Property.ContainingType))
             {
-                var type = operation.Property.ContainingType;
-                while (type != null)
+                FoundExceptionMessage = true;
+            }
+
+            base.VisitPropertyReference(operation);
+        }
+
+        private static bool IsOrDerivesFromException(INamedTypeSymbol? type)
+        {
+            for (var current = type; current != null; current = current.BaseType)
+            {
+                if (string.Equals(current.Name, "Exception", StringComparison.Ordinal) &&
+                    string.Equals(current.ContainingNamespace!.Name, "System", StringComparison.Ordinal))
                 {
-                    if (type.Name == "Exception" && type.ContainingNamespace?.Name == "System")
-                    {
-                        FoundExceptionMessage = true;
-                        break;
-                    }
-                    type = type.BaseType;
+                    return true;
                 }
             }
-            
-            base.VisitPropertyReference(operation);
+
+            return false;
         }
     }
 }
+

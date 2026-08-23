@@ -27,4 +27,4 @@
 /CONTRIBUTING.md            @ericksonlopezf
 
 # Architecture Decision Records — require design approval
-/docs/decisions/            @ericksonlopezf
+/docs/adr/                  @ericksonlopezf

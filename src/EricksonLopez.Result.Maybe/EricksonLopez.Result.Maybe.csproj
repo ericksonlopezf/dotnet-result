@@ -1,0 +1,29 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!-- Copyright © Erickson Lopez. MIT License. -->
+  <PropertyGroup>
+    <TargetFrameworks>net8.0;net9.0;net10.0</TargetFrameworks>
+    <LangVersion>latest</LangVersion>
+    <AssemblyName>EricksonLopez.Result.Maybe</AssemblyName>
+    <RootNamespace>EricksonLopez.Result.Maybe</RootNamespace>
+    <IsPackable>true</IsPackable>
+    <PackageId>EricksonLopez.Result.Maybe</PackageId>
+    <Authors>Erickson Lopez</Authors>
+    <Company>Erickson Lopez</Company>
+    <Copyright>Copyright © 2026 Erickson Lopez</Copyright>
+    <Description>High-performance struct-based Maybe&lt;T&gt; option type for DDD repositories and query layers with seamless EricksonLopez.Result interop.</Description>
+    <PackageProjectUrl>https://github.com/ericksonlopezf/dotnet-result</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/ericksonlopezf/dotnet-result</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageTags>$(CommonPackageTags);maybe;option;option-type;optional;null-safety;monad;struct;zero-allocation;native-aot;domain-driven-design;ddd</PackageTags>
+    <ImplicitUsings>disable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <IsAotCompatible>true</IsAotCompatible>
+    <EnableTrimAnalyzer>true</EnableTrimAnalyzer>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\EricksonLopez.Result\EricksonLopez.Result.csproj" />
+  </ItemGroup>
+</Project>

@@ -1,6 +1,8 @@
+// Copyright © Erickson Lopez. MIT License.
 using System;
 using System.Collections.Immutable;
 using System.Linq;
+using EricksonLopez.Result;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Operations;
@@ -20,6 +22,7 @@ namespace EricksonLopez.Result.Analyzers;
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
 public sealed class LargeResultValueAnalyzer : DiagnosticAnalyzer
 {
+    /// <summary>The diagnostic identifier for this analyzer rule.</summary>
     public const string DiagnosticId = "RESULT001";
 
     // The .NET Runtime Team recommends pass-by-value structs be at most ~16 bytes for optimal
@@ -43,11 +46,13 @@ public sealed class LargeResultValueAnalyzer : DiagnosticAnalyzer
         defaultSeverity: DiagnosticSeverity.Warning,
         isEnabledByDefault: true,
         description: "Result<T> is a readonly struct that copies the entire TValue on every pipeline operation. The .NET Runtime Team recommends structs intended for pass-by-value be at most ~16 bytes. When TValue causes the total Result<T> size to exceed 32 bytes (the practical warning threshold), copying overhead becomes significant in hot-path code. Common types like decimal, Guid, and DateTimeOffset (all 16B) do NOT trigger this warning. Consider wrapping larger value types in a class.",
-        helpLinkUri: "https://github.com/ericksonlopez/dotnet-result/blob/main/docs/performance.md#large-struct-warning");
+        helpLinkUri: "https://github.com/ericksonlopezf/dotnet-result/blob/main/docs/performance.md#large-struct-warning");
 
+    /// <inheritdoc/>
     public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
         => ImmutableArray.Create(Rule);
 
+    /// <inheritdoc/>
     public override void Initialize(AnalysisContext context)
     {
         context.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.None);
@@ -82,25 +87,21 @@ public sealed class LargeResultValueAnalyzer : DiagnosticAnalyzer
     {
         if (type is not INamedTypeSymbol namedType) return;
         if (namedType.OriginalDefinition.MetadataName != ResultOfTMetadataName) return;
-        if (namedType.OriginalDefinition.ContainingNamespace?.ToDisplayString() != ResultNamespace) return;
-        if (namedType.TypeArguments.Length != 1) return;
+        if (namedType.OriginalDefinition.ContainingNamespace.ToDisplayString() != ResultNamespace) return;
+
 
         var valueType = namedType.TypeArguments[0];
 
         // Only warn for struct types
-        if (!valueType.IsValueType) return;
-
-        // Skip primitive types — they're always small
-        if (valueType.SpecialType != SpecialType.None) return;
+        if (valueType is not INamedTypeSymbol valueNamedType || !valueNamedType.IsValueType) return;
 
         // Estimate the struct size
-        var estimatedSize = EstimateStructSize(valueType);
+        var estimatedSize = EstimateStructSize(valueNamedType);
         if (estimatedSize > MaxRecommendedStructSize)
         {
-            var location = locations.FirstOrDefault() ?? Location.None;
             var diagnostic = Diagnostic.Create(
                 Rule,
-                location,
+                locations[0],
                 valueType.ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat),
                 estimatedSize);
             context.ReportDiagnostic(diagnostic);
@@ -112,44 +113,35 @@ public sealed class LargeResultValueAnalyzer : DiagnosticAnalyzer
     /// Accounts for padding between fields based on natural alignment rules.
     /// This is a conservative heuristic that approximates the CLR's actual layout.
     /// </summary>
-    private static int EstimateStructSize(ITypeSymbol type)
+    private static int EstimateStructSize(INamedTypeSymbol namedType)
     {
-        if (type is not INamedTypeSymbol namedType) return 0;
-
         int currentOffset = 0;
         int maxAlignment = 1;
 
         foreach (var member in namedType.GetMembers())
         {
-            if (member is not IFieldSymbol field) continue;
-            if (field.IsStatic) continue;
-            if (field.IsConst) continue;
-
-            var fieldSize = GetFieldSize(field.Type);
-            // Natural alignment: fields are aligned to their own size (capped at 8 for pointer-sized)
-            var fieldAlignment = System.Math.Min(fieldSize, 8);
-            if (fieldAlignment > 0)
+            if (member is IFieldSymbol field && !field.IsStatic && !field.IsConst)
             {
+                var fieldSize = GetFieldSize(field.Type);
+                // Natural alignment: fields are aligned to their own size (capped between 1 and 8)
+                var fieldAlignment = System.Math.Max(1, System.Math.Min(fieldSize, 8));
                 // Round up currentOffset to the next multiple of fieldAlignment
                 currentOffset = (currentOffset + fieldAlignment - 1) / fieldAlignment * fieldAlignment;
+                currentOffset += fieldSize;
+                maxAlignment = System.Math.Max(maxAlignment, fieldAlignment);
             }
-            currentOffset += fieldSize;
-            if (fieldAlignment > maxAlignment) maxAlignment = fieldAlignment;
         }
 
         // Round up total size to the largest field alignment (struct alignment)
-        if (maxAlignment > 0)
-        {
-            currentOffset = (currentOffset + maxAlignment - 1) / maxAlignment * maxAlignment;
-        }
+        currentOffset = (currentOffset + maxAlignment - 1) / maxAlignment * maxAlignment;
 
         return currentOffset;
     }
 
     private static int GetFieldSize(ITypeSymbol type)
     {
-        // Reference types are pointer-sized
-        if (!type.IsValueType) return 8;
+        // Reference types and pointers are pointer-sized (8 bytes on 64-bit)
+        if (!type.IsValueType || type.TypeKind == TypeKind.Pointer) return 8;
 
         return type.SpecialType switch
         {
@@ -167,7 +159,9 @@ public sealed class LargeResultValueAnalyzer : DiagnosticAnalyzer
             SpecialType.System_Double => 8,
             SpecialType.System_Decimal => 16,
             SpecialType.System_DateTime => 8,
-            _ => type.IsValueType ? EstimateStructSize(type) : 8,
+            _ => EstimateStructSize((INamedTypeSymbol)type),
         };
     }
 }
+
+

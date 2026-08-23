@@ -1,4 +1,6 @@
+// Copyright © Erickson Lopez. MIT License.
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Diagnostics.Contracts;
@@ -87,6 +89,8 @@ public readonly partial struct Result<TValue> : IResultOutcome, IEquatable<Resul
     /// <summary>
     /// Creates a success result wrapping <paramref name="value"/>.
     /// </summary>
+    /// <param name="value">The value to wrap in a successful result.</param>
+    /// <returns>A new successful <see cref="Result{TValue}"/> instance containing <paramref name="value"/>.</returns>
     /// <remarks>
     /// <para>
     /// <b>Null values:</b> If <typeparamref name="TValue"/> is a nullable reference type
@@ -102,12 +106,21 @@ public readonly partial struct Result<TValue> : IResultOutcome, IEquatable<Resul
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static Result<TValue> Success(TValue value) => new(ResultState.Success, value, null);
 
+    /// <summary>Creates a new failed <see cref="Result{TValue}"/> with the specified error.</summary>
+    /// <param name="error">The error describing the failure.</param>
+    /// <returns>A failed <see cref="Result{TValue}"/> containing <paramref name="error"/>.</returns>
+    /// <exception cref="ArgumentNullException"><paramref name="error"/> is <see langword="null"/></exception>
     [Pure]
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static Result<TValue> Failure(Error error) => new(ResultState.Failure, default, error ?? throw new ArgumentNullException(nameof(error)));
 
     // ─── Monadic operations ───────────────────────────────────────────────────
 
+    /// <summary>Transforms the success value using the specified mapper function.</summary>
+    /// <typeparam name="TNext">The return type of the mapper function.</typeparam>
+    /// <param name="mapper">The mapping function applied to the success value.</param>
+    /// <returns>A new <see cref="Result{TNext}"/> containing the mapped value on success, or the original error on failure.</returns>
+    /// <exception cref="InvalidOperationException">The result is an uninitialized default value</exception>
     [Pure]
     public Result<TNext> Map<TNext>(Func<TValue, TNext> mapper)
     {
@@ -115,6 +128,13 @@ public readonly partial struct Result<TValue> : IResultOutcome, IEquatable<Resul
         return _state == ResultState.Success ? Result.Success(mapper(_value!)) : Result.Failure<TNext>(_error!);
     }
 
+    /// <summary>Transforms the success value using the specified mapper function and captured state.</summary>
+    /// <typeparam name="TState">The type of the state object passed to the mapper function.</typeparam>
+    /// <typeparam name="TNext">The return type of the mapper function.</typeparam>
+    /// <param name="state">The state value passed to the mapper function.</param>
+    /// <param name="mapper">The mapping function applied to the state and success value.</param>
+    /// <returns>A new <see cref="Result{TNext}"/> containing the mapped value on success, or the original error on failure.</returns>
+    /// <exception cref="InvalidOperationException">The result is an uninitialized default value</exception>
     [Pure]
     public Result<TNext> Map<TState, TNext>(TState state, Func<TState, TValue, TNext> mapper)
     {
@@ -122,6 +142,11 @@ public readonly partial struct Result<TValue> : IResultOutcome, IEquatable<Resul
         return _state == ResultState.Success ? Result.Success(mapper(state, _value!)) : Result.Failure<TNext>(_error!);
     }
 
+    /// <summary>Chains another generic operation if this result is successful.</summary>
+    /// <typeparam name="TNext">The value type of the chained result.</typeparam>
+    /// <param name="bind">The operation to execute with the success value.</param>
+    /// <returns>The result of executing <paramref name="bind"/> on success; otherwise, a typed failure with the original error.</returns>
+    /// <exception cref="InvalidOperationException">The result is an uninitialized default value</exception>
     [Pure]
     public Result<TNext> Bind<TNext>(Func<TValue, Result<TNext>> bind)
     {
@@ -129,6 +154,13 @@ public readonly partial struct Result<TValue> : IResultOutcome, IEquatable<Resul
         return _state == ResultState.Success ? bind(_value!) : Result.Failure<TNext>(_error!);
     }
 
+    /// <summary>Chains another generic operation using captured state if this result is successful.</summary>
+    /// <typeparam name="TState">The type of the state object passed to the bind function.</typeparam>
+    /// <typeparam name="TNext">The value type of the chained result.</typeparam>
+    /// <param name="state">The state value passed to the bind function.</param>
+    /// <param name="bind">The operation to execute with state and the success value.</param>
+    /// <returns>The result of executing <paramref name="bind"/> on success; otherwise, a typed failure with the original error.</returns>
+    /// <exception cref="InvalidOperationException">The result is an uninitialized default value</exception>
     [Pure]
     public Result<TNext> Bind<TState, TNext>(TState state, Func<TState, TValue, Result<TNext>> bind)
     {
@@ -136,6 +168,10 @@ public readonly partial struct Result<TValue> : IResultOutcome, IEquatable<Resul
         return _state == ResultState.Success ? bind(state, _value!) : Result.Failure<TNext>(_error!);
     }
 
+    /// <summary>Chains a non-generic operation if this result is successful.</summary>
+    /// <param name="bind">The operation to execute with the success value.</param>
+    /// <returns>The non-generic result of executing <paramref name="bind"/> on success; otherwise, a failure with the original error.</returns>
+    /// <exception cref="InvalidOperationException">The result is an uninitialized default value</exception>
     [Pure]
     public Result Bind(Func<TValue, Result> bind)
     {
@@ -143,6 +179,12 @@ public readonly partial struct Result<TValue> : IResultOutcome, IEquatable<Resul
         return _state == ResultState.Success ? bind(_value!) : Result.Failure(_error!);
     }
 
+    /// <summary>Chains a non-generic operation using captured state if this result is successful.</summary>
+    /// <typeparam name="TState">The type of the state object passed to the bind function.</typeparam>
+    /// <param name="state">The state value passed to the bind function.</param>
+    /// <param name="bind">The operation to execute with state and the success value.</param>
+    /// <returns>The non-generic result of executing <paramref name="bind"/> on success; otherwise, a failure with the original error.</returns>
+    /// <exception cref="InvalidOperationException">The result is an uninitialized default value</exception>
     [Pure]
     public Result Bind<TState>(TState state, Func<TState, TValue, Result> bind)
     {
@@ -152,6 +194,12 @@ public readonly partial struct Result<TValue> : IResultOutcome, IEquatable<Resul
 
     // ─── Match & Switch ───────────────────────────────────────────────────────
 
+    /// <summary>Evaluates the corresponding branch depending on whether the result is a success or failure.</summary>
+    /// <typeparam name="TOut">The output type produced by the matching functions.</typeparam>
+    /// <param name="onSuccess">The function to evaluate with the value if the result is successful.</param>
+    /// <param name="onFailure">The function to evaluate with the <see cref="Error"/> if the result is a failure.</param>
+    /// <returns>The value produced by either <paramref name="onSuccess"/> or <paramref name="onFailure"/>.</returns>
+    /// <exception cref="InvalidOperationException">The result is an uninitialized default value</exception>
     [Pure]
     public TOut Match<TOut>(Func<TValue, TOut> onSuccess, Func<Error, TOut> onFailure)
     {
@@ -159,6 +207,14 @@ public readonly partial struct Result<TValue> : IResultOutcome, IEquatable<Resul
         return _state == ResultState.Success ? onSuccess(_value!) : onFailure(_error!);
     }
 
+    /// <summary>Evaluates the corresponding branch using captured state to avoid closure allocations.</summary>
+    /// <typeparam name="TState">The type of the state object passed to the matching functions.</typeparam>
+    /// <typeparam name="TOut">The output type produced by the matching functions.</typeparam>
+    /// <param name="state">The state value passed to the matching delegates.</param>
+    /// <param name="onSuccess">The function to evaluate with state and value if the result is successful.</param>
+    /// <param name="onFailure">The function to evaluate with state and <see cref="Error"/> if the result is a failure.</param>
+    /// <returns>The value produced by either <paramref name="onSuccess"/> or <paramref name="onFailure"/>.</returns>
+    /// <exception cref="InvalidOperationException">The result is an uninitialized default value</exception>
     [Pure]
     public TOut Match<TState, TOut>(TState state, Func<TState, TValue, TOut> onSuccess, Func<TState, Error, TOut> onFailure)
     {
@@ -170,6 +226,9 @@ public readonly partial struct Result<TValue> : IResultOutcome, IEquatable<Resul
     /// Invokes <paramref name="onSuccess"/> with the value when successful,
     /// or <paramref name="onFailure"/> with the error when failed — without returning a value.
     /// </summary>
+    /// <param name="onSuccess">The action to invoke with the value on success.</param>
+    /// <param name="onFailure">The action to invoke with the error on failure.</param>
+    /// <exception cref="InvalidOperationException">The result is an uninitialized default value</exception>
     /// <remarks>
     /// <para>
     /// <c>Execute</c> is the void side-effect counterpart to <see cref="Match{TOut}"/>:
@@ -193,6 +252,11 @@ public readonly partial struct Result<TValue> : IResultOutcome, IEquatable<Resul
     /// Invokes <paramref name="onSuccess"/> or <paramref name="onFailure"/> for their side-effects,
     /// forwarding <paramref name="state"/> to avoid a closure allocation.
     /// </summary>
+    /// <typeparam name="TState">The type of the state object passed to the actions.</typeparam>
+    /// <param name="state">The state value passed to the actions.</param>
+    /// <param name="onSuccess">The action to invoke with state and value on success.</param>
+    /// <param name="onFailure">The action to invoke with state and error on failure.</param>
+    /// <exception cref="InvalidOperationException">The result is an uninitialized default value</exception>
     /// <remarks>
     /// Use this overload in hot paths where capturing variables in a closure would cause heap allocation.
     /// </remarks>
@@ -213,6 +277,7 @@ public readonly partial struct Result<TValue> : IResultOutcome, IEquatable<Resul
     /// <returns>
     /// The result of invoking <paramref name="onFailure"/> on failure, or <paramref name="successDefault"/> on success.
     /// </returns>
+    /// <exception cref="InvalidOperationException">The result is an uninitialized default value</exception>
     /// <remarks>
     /// Use this when you only need to handle the failure branch without mapping the success value.
     /// For transforming both branches, use <see cref="Match{TOut}(Func{TValue, TOut}, Func{Error, TOut})"/>.
@@ -235,6 +300,13 @@ public readonly partial struct Result<TValue> : IResultOutcome, IEquatable<Resul
     /// captured <paramref name="state"/> to avoid closure allocation.
     /// Returns <paramref name="successDefault"/> when this result is successful.
     /// </summary>
+    /// <typeparam name="TState">The type of the state object passed to the mapper function.</typeparam>
+    /// <typeparam name="TOut">The output type of the transformation.</typeparam>
+    /// <param name="state">The state value passed to the failure mapping function.</param>
+    /// <param name="onFailure">A function that produces a <typeparamref name="TOut"/> from state and the <see cref="Error"/>.</param>
+    /// <param name="successDefault">The value to return when the result is successful.</param>
+    /// <returns>The result of invoking <paramref name="onFailure"/> on failure, or <paramref name="successDefault"/> on success.</returns>
+    /// <exception cref="InvalidOperationException">The result is an uninitialized default value</exception>
     [Pure]
     public TOut MapFailure<TState, TOut>(TState state, Func<TState, Error, TOut> onFailure, TOut successDefault)
     {
@@ -243,25 +315,15 @@ public readonly partial struct Result<TValue> : IResultOutcome, IEquatable<Resul
         return _state == ResultState.Failure ? onFailure(state, _error!) : successDefault;
     }
 
-    /// <summary>Obsolete. Use <see cref="MapFailure{TOut}(Func{Error, TOut}, TOut)"/> instead.</summary>
-    [Pure]
-    [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-    [Obsolete("FoldError is replaced by MapFailure, which provides identical semantics with a more discoverable .NET-idiomatic name. Replace FoldError(onFailure, successDefault) with MapFailure(onFailure, successDefault).", error: true)]
-    public TOut FoldError<TOut>(Func<Error, TOut> onFailure, TOut successDefault)
-        => MapFailure(onFailure, successDefault);
-
-    /// <summary>Obsolete. Use <see cref="MapFailure{TState, TOut}(TState, Func{TState, Error, TOut}, TOut)"/> instead.</summary>
-    [Pure]
-    [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-    [Obsolete("FoldError is replaced by MapFailure, which provides identical semantics with a more discoverable .NET-idiomatic name. Replace FoldError(state, onFailure, successDefault) with MapFailure(state, onFailure, successDefault).", error: true)]
-    public TOut FoldError<TState, TOut>(TState state, Func<TState, Error, TOut> onFailure, TOut successDefault)
-        => MapFailure(state, onFailure, successDefault);
 
     // ——— Side effects —————————————————————————————————————————————————————————
 
     /// <summary>
     /// Executes <paramref name="action"/> if this result is successful, then returns this result unchanged.
     /// </summary>
+    /// <param name="action">The action to execute with the success value.</param>
+    /// <returns>The current result instance unchanged.</returns>
+    /// <exception cref="InvalidOperationException">The result is an uninitialized default value</exception>
     /// <remarks>
     /// This method executes the action <b>only on success</b> and is symmetric with <see cref="TapOnFailure(Action{Error})"/>.
     /// Use <see cref="Inspect(Action{Result{TValue}})"/> for unconditional execution (both success and failure).
@@ -277,6 +339,12 @@ public readonly partial struct Result<TValue> : IResultOutcome, IEquatable<Resul
         return this;
     }
 
+    /// <summary>Executes <paramref name="action"/> with captured state if this result is successful, then returns this result unchanged.</summary>
+    /// <typeparam name="TState">The type of the state object passed to the action.</typeparam>
+    /// <param name="state">The state value passed to the action.</param>
+    /// <param name="action">The action to execute with state and the success value.</param>
+    /// <returns>The current result instance unchanged.</returns>
+    /// <exception cref="InvalidOperationException">The result is an uninitialized default value</exception>
     /// <remarks>
     /// <b>💡 Allocation tip:</b> This overload passes context via <paramref name="state"/> instead of
     /// a captured closure.
@@ -289,6 +357,9 @@ public readonly partial struct Result<TValue> : IResultOutcome, IEquatable<Resul
     }
 
     /// <summary>Executes <paramref name="action"/> if this result is a failure, then returns this result unchanged.</summary>
+    /// <param name="action">The action to execute with the <see cref="Error"/> if the result is a failure.</param>
+    /// <returns>The current result instance unchanged.</returns>
+    /// <exception cref="InvalidOperationException">The result is an uninitialized default value</exception>
     /// <remarks>
     /// This method executes the action <b>only on failure</b> and is symmetric with <see cref="TapOnSuccess(Action{TValue})"/>.
     /// <para>
@@ -304,6 +375,11 @@ public readonly partial struct Result<TValue> : IResultOutcome, IEquatable<Resul
     }
 
     /// <summary>Executes <paramref name="action"/> with captured state if this result is a failure, then returns this result unchanged.</summary>
+    /// <typeparam name="TState">The type of the state object passed to the action.</typeparam>
+    /// <param name="state">The state value passed to the action.</param>
+    /// <param name="action">The action to execute with state and the error if the result is a failure.</param>
+    /// <returns>The current result instance unchanged.</returns>
+    /// <exception cref="InvalidOperationException">The result is an uninitialized default value</exception>
     /// <remarks>
     /// <b>💡 Allocation tip:</b> This overload passes context via <paramref name="state"/> instead of a captured closure.
     /// </remarks>
@@ -316,12 +392,25 @@ public readonly partial struct Result<TValue> : IResultOutcome, IEquatable<Resul
 
     // ─── Composition ──────────────────────────────────────────────────────────
 
+    /// <summary>Validates that the success value satisfies the specified predicate.</summary>
+    /// <param name="predicate">The condition to test on the success value.</param>
+    /// <param name="error">The error to return if the condition evaluates to <see langword="false"/>.</param>
+    /// <returns>The current result if the condition is met or if the result is already a failure; otherwise, a failure with <paramref name="error"/>.</returns>
+    /// <exception cref="InvalidOperationException">The result is an uninitialized default value</exception>
     public Result<TValue> Ensure(Func<TValue, bool> predicate, Error error)
     {
         ThrowIfUninitialized();
         if (_state != ResultState.Success) return this;
         return predicate(_value!) ? this : Failure(error);
     }
+
+    /// <summary>Validates that the success value satisfies the specified predicate using captured state.</summary>
+    /// <typeparam name="TState">The type of the state object passed to the predicate.</typeparam>
+    /// <param name="state">The state value passed to the predicate.</param>
+    /// <param name="predicate">The condition to test on state and the success value.</param>
+    /// <param name="error">The error to return if the condition evaluates to <see langword="false"/>.</param>
+    /// <returns>The current result if the condition is met or if the result is already a failure; otherwise, a failure with <paramref name="error"/>.</returns>
+    /// <exception cref="InvalidOperationException">The result is an uninitialized default value</exception>
     public Result<TValue> Ensure<TState>(TState state, Func<TState, TValue, bool> predicate, Error error)
     {
         ThrowIfUninitialized();
@@ -333,6 +422,10 @@ public readonly partial struct Result<TValue> : IResultOutcome, IEquatable<Resul
     /// Validates a successful result using <paramref name="predicate"/>, constructing the error lazily
     /// via <paramref name="errorFactory"/> only when the predicate fails.
     /// </summary>
+    /// <param name="predicate">The condition to test on the success value.</param>
+    /// <param name="errorFactory">A factory that generates the error if the condition evaluates to <see langword="false"/>.</param>
+    /// <returns>The current result if the condition is met or if the result is already a failure; otherwise, a failure with the generated error.</returns>
+    /// <exception cref="InvalidOperationException">The result is an uninitialized default value</exception>
     /// <remarks>
     /// Prefer this overload over <see cref="Ensure(Func{TValue, bool}, Error)"/> when error construction is
     /// expensive (e.g., captures <see cref="System.Diagnostics.Activity.Current"/>, allocates metadata,
@@ -349,6 +442,12 @@ public readonly partial struct Result<TValue> : IResultOutcome, IEquatable<Resul
     /// Validates a successful result using <paramref name="predicate"/> with captured state,
     /// constructing the error lazily via <paramref name="errorFactory"/> only when the predicate fails.
     /// </summary>
+    /// <typeparam name="TState">The type of the state object passed to the predicate.</typeparam>
+    /// <param name="state">The state value passed to the predicate.</param>
+    /// <param name="predicate">The condition to test on state and the success value.</param>
+    /// <param name="errorFactory">A factory that generates the error if the condition evaluates to <see langword="false"/>.</param>
+    /// <returns>The current result if the condition is met or if the result is already a failure; otherwise, a failure with the generated error.</returns>
+    /// <exception cref="InvalidOperationException">The result is an uninitialized default value</exception>
     public Result<TValue> Ensure<TState>(TState state, Func<TState, TValue, bool> predicate, Func<Error> errorFactory)
     {
         ThrowIfUninitialized();
@@ -361,6 +460,10 @@ public readonly partial struct Result<TValue> : IResultOutcome, IEquatable<Resul
     /// via <paramref name="errorFactory"/> only when the predicate fails. The error factory receives
     /// the current value to allow contextual error messages.
     /// </summary>
+    /// <param name="predicate">The condition to test on the success value.</param>
+    /// <param name="errorFactory">A factory that receives the value and generates the error if the condition evaluates to <see langword="false"/>.</param>
+    /// <returns>The current result if the condition is met or if the result is already a failure; otherwise, a failure with the generated error.</returns>
+    /// <exception cref="InvalidOperationException">The result is an uninitialized default value</exception>
     /// <remarks>
     /// Use this overload when the error message depends on the value, for example:
     /// <code>
@@ -387,6 +490,12 @@ public readonly partial struct Result<TValue> : IResultOutcome, IEquatable<Resul
     /// constructing the error lazily via <paramref name="errorFactory"/> only when the predicate fails.
     /// The error factory receives both the state and the current value.
     /// </summary>
+    /// <typeparam name="TState">The type of the state object passed to the predicate and error factory.</typeparam>
+    /// <param name="state">The state value passed to the predicate and error factory.</param>
+    /// <param name="predicate">The condition to test on state and the success value.</param>
+    /// <param name="errorFactory">A factory that receives state and value to generate the error if the condition evaluates to <see langword="false"/>.</param>
+    /// <returns>The current result if the condition is met or if the result is already a failure; otherwise, a failure with the generated error.</returns>
+    /// <exception cref="InvalidOperationException">The result is an uninitialized default value</exception>
     public Result<TValue> Ensure<TState>(TState state, Func<TState, TValue, bool> predicate, Func<TState, TValue, Error> errorFactory)
     {
         ThrowIfUninitialized();
@@ -397,6 +506,9 @@ public readonly partial struct Result<TValue> : IResultOutcome, IEquatable<Resul
     // ─── Recovery ─────────────────────────────────────────────────────────────
 
     /// <summary>If this result is a failure, invokes <paramref name="recovery"/> to attempt a corrective result.</summary>
+    /// <param name="recovery">The recovery function producing a corrective typed result from the failure <see cref="Error"/>.</param>
+    /// <returns>The recovery result if this instance is a failure; otherwise, this instance unchanged.</returns>
+    /// <exception cref="InvalidOperationException">The result is an uninitialized default value</exception>
     [Pure]
     public Result<TValue> Recover(Func<Error, Result<TValue>> recovery)
     {
@@ -405,6 +517,11 @@ public readonly partial struct Result<TValue> : IResultOutcome, IEquatable<Resul
     }
 
     /// <summary>If this result is a failure, invokes <paramref name="recovery"/> with captured state to attempt a corrective result.</summary>
+    /// <typeparam name="TState">The type of the state object passed to the recovery function.</typeparam>
+    /// <param name="state">The state value passed to the recovery function.</param>
+    /// <param name="recovery">The recovery function producing a corrective typed result from state and the failure <see cref="Error"/>.</param>
+    /// <returns>The recovery result if this instance is a failure; otherwise, this instance unchanged.</returns>
+    /// <exception cref="InvalidOperationException">The result is an uninitialized default value</exception>
     [Pure]
     public Result<TValue> Recover<TState>(TState state, Func<TState, Error, Result<TValue>> recovery)
     {
@@ -412,21 +529,32 @@ public readonly partial struct Result<TValue> : IResultOutcome, IEquatable<Resul
         return _state == ResultState.Failure ? recovery(state, _error!) : this;
     }
 
-    /// <summary>Gets the error associated with a failed result, or null if successful.</summary>
+    /// <summary>Gets the error associated with a failed result, or <see langword="null"/> if successful.</summary>
     // Stryker disable once all : Equivalent mutation
     Error? IResultOutcome.Error => _state == ResultState.Failure ? _error : null;
 
-    /// <summary>Gets the raw underlying value of a successful result, or null if failed.</summary>
+    /// <summary>Gets the raw underlying value of a successful result, or <see langword="null"/> if failed.</summary>
     object? IResultOutcome.RawValue => _state == ResultState.Success ? _value : null;
 
     // ─── Inspection ───────────────────────────────────────────────────────────
 
+    /// <summary>Executes the specified action unconditionally with the current result, then returns this result unchanged.</summary>
+    /// <param name="action">The action to execute with this result.</param>
+    /// <returns>The current result instance unchanged.</returns>
+    /// <exception cref="InvalidOperationException">The result is an uninitialized default value</exception>
     public Result<TValue> Inspect(Action<Result<TValue>> action)
     {
         ThrowIfUninitialized();
         action(this);
         return this;
     }
+
+    /// <summary>Executes the specified action unconditionally with captured state and the current result, then returns this result unchanged.</summary>
+    /// <typeparam name="TState">The type of the state object passed to the action.</typeparam>
+    /// <param name="state">The state value passed to the action.</param>
+    /// <param name="action">The action to execute with state and this result.</param>
+    /// <returns>The current result instance unchanged.</returns>
+    /// <exception cref="InvalidOperationException">The result is an uninitialized default value</exception>
     public Result<TValue> Inspect<TState>(TState state, Action<TState, Result<TValue>> action)
     {
         ThrowIfUninitialized();
@@ -434,8 +562,6 @@ public readonly partial struct Result<TValue> : IResultOutcome, IEquatable<Resul
         return this;
     }
 
-    [Obsolete("Use Inspect instead to clarify that the pipeline continues after execution.", error: true)]
-    public Result<TValue> Finally(Action<Result<TValue>> action) => Inspect(action);
 
     // ─── Try-pattern ──────────────────────────────────────────────────────────
 
@@ -517,8 +643,11 @@ public readonly partial struct Result<TValue> : IResultOutcome, IEquatable<Resul
     }
 
     /// <summary>
-    /// Attempts to get the error, distinguishing between Failure and Uninitialized states.
+    /// Attempts to retrieve the error, distinguishing between failure and uninitialized states.
     /// </summary>
+    /// <param name="error">When this method returns, contains the associated <see cref="Error"/> if the result is a failure; otherwise, <see langword="null"/>.</param>
+    /// <param name="isUninitialized">When this method returns, contains <see langword="true"/> if the result is an uninitialized default value; otherwise, <see langword="false"/>.</param>
+    /// <returns><see langword="true"/> if the result is a failure and <paramref name="error"/> is populated; otherwise, <see langword="false"/>.</returns>
     public bool TryGetError(
         [System.Diagnostics.CodeAnalysis.MaybeNullWhen(false)] out Error error,
         out bool isUninitialized)
@@ -535,6 +664,9 @@ public readonly partial struct Result<TValue> : IResultOutcome, IEquatable<Resul
 
     // ─── Safe access ──────────────────────────────────────────────────────────
 
+    /// <summary>Returns the success value if successful; otherwise, returns the specified default value.</summary>
+    /// <param name="defaultValue">The fallback value to return if the result is a failure or uninitialized.</param>
+    /// <returns>The success value if successful; otherwise, <paramref name="defaultValue"/>.</returns>
     /// <remarks>
     /// Returns <paramref name="defaultValue"/> for failure and uninitialized states.
     /// This method <b>never throws</b>, consistent with the BCL convention for
@@ -557,6 +689,9 @@ public readonly partial struct Result<TValue> : IResultOutcome, IEquatable<Resul
     /// Named <c>GetValueOrFallback</c> (not an overload of <c>GetValueOrDefault</c>) to avoid ambiguity
     /// when <typeparamref name="TValue"/> is itself a delegate type.
     /// </summary>
+    /// <param name="fallback">The function generating a fallback value from the failure <see cref="Error"/>.</param>
+    /// <returns>The success value if successful; otherwise, the fallback value produced by <paramref name="fallback"/>.</returns>
+    /// <exception cref="InvalidOperationException">The result is an uninitialized default value</exception>
     [Pure]
     public TValue GetValueOrFallback(Func<Error, TValue> fallback)
     {
@@ -564,6 +699,14 @@ public readonly partial struct Result<TValue> : IResultOutcome, IEquatable<Resul
         return _state == ResultState.Success ? _value! : fallback(_error!);
     }
 
+    /// <summary>
+    /// Returns the success value, or invokes <paramref name="fallback"/> with captured state and error to produce a default value.
+    /// </summary>
+    /// <typeparam name="TState">The type of the state object passed to the fallback function.</typeparam>
+    /// <param name="state">The state value passed to the fallback function.</param>
+    /// <param name="fallback">The function generating a fallback value from state and the failure <see cref="Error"/>.</param>
+    /// <returns>The success value if successful; otherwise, the fallback value produced by <paramref name="fallback"/>.</returns>
+    /// <exception cref="InvalidOperationException">The result is an uninitialized default value</exception>
     [Pure]
     public TValue GetValueOrFallback<TState>(TState state, Func<TState, Error, TValue> fallback)
     {
@@ -574,6 +717,9 @@ public readonly partial struct Result<TValue> : IResultOutcome, IEquatable<Resul
     // ─── Error transformation ─────────────────────────────────────────────────
 
     /// <summary>Transforms the error of a failed result using the provided <paramref name="mapper"/>. Returns the same success result unchanged.</summary>
+    /// <param name="mapper">The function used to map the error if this result is a failure.</param>
+    /// <returns>A new failed result with the transformed error, or the current success result unchanged.</returns>
+    /// <exception cref="InvalidOperationException">The result is an uninitialized default value</exception>
     [Pure]
     public Result<TValue> MapError(Func<Error, Error> mapper)
     {
@@ -582,6 +728,11 @@ public readonly partial struct Result<TValue> : IResultOutcome, IEquatable<Resul
     }
 
     /// <summary>Transforms the error of a failed result using the provided <paramref name="mapper"/> and captured state. Returns the same success result unchanged.</summary>
+    /// <typeparam name="TState">The type of the state object passed to the mapper function.</typeparam>
+    /// <param name="state">The state value passed to the mapper function.</param>
+    /// <param name="mapper">The function used to map the error if this result is a failure.</param>
+    /// <returns>A new failed result with the transformed error, or the current success result unchanged.</returns>
+    /// <exception cref="InvalidOperationException">The result is an uninitialized default value</exception>
     [Pure]
     public Result<TValue> MapError<TState>(TState state, Func<TState, Error, Error> mapper)
     {
@@ -595,6 +746,8 @@ public readonly partial struct Result<TValue> : IResultOutcome, IEquatable<Resul
     /// Discards the typed value and returns a non-generic <see cref="Result"/>.
     /// Preserves success or failure state and any associated <see cref="Error"/>.
     /// </summary>
+    /// <returns>A non-generic <see cref="Result"/> with equivalent success or failure state.</returns>
+    /// <exception cref="InvalidOperationException">The result is an uninitialized default value</exception>
     /// <remarks>
     /// Use this when you need to pass a result to a method that accepts a non-generic <see cref="Result"/>,
     /// for example when aggregating results with <see cref="Result.Combine(System.ReadOnlySpan{Result})"/>.
@@ -606,17 +759,13 @@ public readonly partial struct Result<TValue> : IResultOutcome, IEquatable<Resul
         return _state == ResultState.Success ? Result.Success() : Result.Failure(_error!);
     }
 
-    /// <inheritdoc cref="DiscardValue"/>
-    [Pure]
-    [Obsolete("Use DiscardValue() instead. ToResult() is ambiguous because Result<T> is already a result; DiscardValue() clearly expresses that the value is being dropped.", error: true)]
-    public Result ToResult() => DiscardValue();
-
-    [Pure]
-    [Obsolete("Use DiscardValue() instead. WithoutValue() was an alias and has been removed for API clarity.", error: true)]
-    public Result WithoutValue() => DiscardValue();
 
     // ─── Deconstruct ──────────────────────────────────────────────────────────
 
+    /// <summary>Deconstructs the result into its success state, value, and optional error.</summary>
+    /// <param name="isSuccess">When this method returns, contains <see langword="true"/> if the result succeeded; otherwise, <see langword="false"/>.</param>
+    /// <param name="value">When this method returns, contains the success value if successful; otherwise, the default value for <typeparamref name="TValue"/>.</param>
+    /// <param name="error">When this method returns, contains the associated <see cref="Error"/> if failed; otherwise, <see langword="null"/>.</param>
     public void Deconstruct(out bool isSuccess, out TValue? value, out Error? error)
     {
         isSuccess = _state == ResultState.Success;
@@ -625,6 +774,8 @@ public readonly partial struct Result<TValue> : IResultOutcome, IEquatable<Resul
     }
 
     /// <summary>Deconstructs the result into success flag and error, ignoring the value. Useful when the value is not needed.</summary>
+    /// <param name="isSuccess">When this method returns, contains <see langword="true"/> if the result succeeded; otherwise, <see langword="false"/>.</param>
+    /// <param name="error">When this method returns, contains the associated <see cref="Error"/> if failed; otherwise, <see langword="null"/>.</param>
     public void Deconstruct(out bool isSuccess, out Error? error)
     {
         isSuccess = _state == ResultState.Success;
@@ -637,6 +788,8 @@ public readonly partial struct Result<TValue> : IResultOutcome, IEquatable<Resul
     /// Determines whether this result is equal to another result by comparing state,
     /// error (when both are failures), and value (when both are successes).
     /// </summary>
+    /// <param name="other">The other result to compare against, passed by readonly reference.</param>
+    /// <returns><see langword="true"/> if both results represent the same outcome; otherwise, <see langword="false"/>.</returns>
     /// <remarks>
     /// The parameter is passed by reference (<c>in</c>) to avoid copying the struct,
     /// which is important for large value types such as <c>Result&lt;decimal&gt;</c> or
@@ -646,13 +799,15 @@ public readonly partial struct Result<TValue> : IResultOutcome, IEquatable<Resul
     {
         if (_state != other._state) return false;
         if (_state == ResultState.Failure) return Equals(_error, other._error);
-        if (_state == ResultState.Success) return System.Collections.Generic.EqualityComparer<TValue>.Default.Equals(_value, other._value);
+        if (_state == ResultState.Success) return EqualityComparer<TValue>.Default.Equals(_value, other._value);
         return true;
     }
 
     /// <summary>
     /// Satisfies <see cref="IEquatable{T}"/> by forwarding to the <c>in</c> overload.
     /// </summary>
+    /// <param name="other">The other result to compare against.</param>
+    /// <returns><see langword="true"/> if both results represent the same outcome; otherwise, <see langword="false"/>.</returns>
     /// <remarks>
     /// This overload exists solely to satisfy the <see cref="IEquatable{T}"/> interface contract,
     /// which does not allow <c>in</c> parameters. The actual comparison logic lives in
@@ -661,8 +816,10 @@ public readonly partial struct Result<TValue> : IResultOutcome, IEquatable<Resul
     /// </remarks>
     public bool Equals(Result<TValue> other) => Equals(in other);
 
+    /// <inheritdoc/>
     public override bool Equals(object? obj) => obj is Result<TValue> other && Equals(in other);
 
+    /// <inheritdoc/>
     public override int GetHashCode()
     {
         return _state switch
@@ -670,19 +827,31 @@ public readonly partial struct Result<TValue> : IResultOutcome, IEquatable<Resul
             // Stryker disable once all : Equivalent mutation
             ResultState.Failure => HashCode.Combine(_state, _error?.GetHashCode() ?? 0),
             // Stryker disable once all : Equivalent mutation
-            ResultState.Success => HashCode.Combine(_state, _value is null ? 0 : System.Collections.Generic.EqualityComparer<TValue>.Default.GetHashCode(_value)),
+            ResultState.Success => HashCode.Combine(_state, _value is null ? 0 : EqualityComparer<TValue>.Default.GetHashCode(_value)),
             _ => HashCode.Combine(_state)
         };
     }
 
-    [System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage]
+    /// <summary>Determines whether two <see cref="Result{TValue}"/> instances are equal.</summary>
+    /// <param name="left">The first result to compare.</param>
+    /// <param name="right">The second result to compare.</param>
+    /// <returns><see langword="true"/> if both instances are equal; otherwise, <see langword="false"/>.</returns>
     public static bool operator ==(in Result<TValue> left, in Result<TValue> right) => left.Equals(in right);
-    [System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage]
+
+    /// <summary>Determines whether two <see cref="Result{TValue}"/> instances are not equal.</summary>
+    /// <param name="left">The first result to compare.</param>
+    /// <param name="right">The second result to compare.</param>
+    /// <returns><see langword="true"/> if the instances are not equal; otherwise, <see langword="false"/>.</returns>
     public static bool operator !=(in Result<TValue> left, in Result<TValue> right) => !left.Equals(in right);
 
     // ─── Implicit conversions ─────────────────────────────────────────────────
 
+    /// <summary>Converts a value implicitly into a successful <see cref="Result{TValue}"/>.</summary>
+    /// <param name="value">The value to wrap in a successful result.</param>
     public static implicit operator Result<TValue>(TValue value) => Success(value);
+
+    /// <summary>Converts an <see cref="Error"/> implicitly into a failed <see cref="Result{TValue}"/>.</summary>
+    /// <param name="error">The error to wrap in a failed result.</param>
     public static implicit operator Result<TValue>(Error error) => Failure(error);
 
     private string GetDebuggerDisplay() => _state switch
@@ -699,4 +868,6 @@ public readonly partial struct Result<TValue> : IResultOutcome, IEquatable<Resul
             ResultThrowHelper.ThrowUninitializedOfT();
     }
 }
+
+
 

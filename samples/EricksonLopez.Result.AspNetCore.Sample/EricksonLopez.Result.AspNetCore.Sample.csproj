@@ -1,0 +1,16 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+  <!-- Copyright © Erickson Lopez. MIT License. -->
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>disable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\EricksonLopez.Result\EricksonLopez.Result.csproj" />
+    <ProjectReference Include="..\..\src\EricksonLopez.Result.AspNetCore\EricksonLopez.Result.AspNetCore.csproj" />
+  </ItemGroup>
+
+</Project>
+

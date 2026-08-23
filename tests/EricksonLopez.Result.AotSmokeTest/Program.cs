@@ -1,3 +1,4 @@
+// Copyright © Erickson Lopez. MIT License.
 // ============================================================================
 // NativeAOT Smoke Test — EricksonLopez.Result
 // ============================================================================
@@ -14,7 +15,6 @@
 //   0  — all validations passed
 //   1  — a validation assertion failed (prints the failure message to stderr)
 // ============================================================================
-
 using System;
 using System.Collections.Immutable;
 using EricksonLopez.Result;
@@ -226,13 +226,12 @@ Assert(!isFail && failDecError != null, $"Deconstruct failure: isFail={isFail}, 
 // ─── Final Summary ────────────────────────────────────────────────────────
 
 Console.WriteLine();
-if (failureCount == 0)
-{
-    Console.WriteLine($"=== ALL VALIDATIONS PASSED ===");
-    return 0;
-}
-else
+if (failureCount > 0)
 {
     Console.Error.WriteLine($"=== {failureCount} VALIDATION(S) FAILED ===");
     return 1;
 }
+
+Console.WriteLine("=== ALL VALIDATIONS PASSED ===");
+return 0;
+

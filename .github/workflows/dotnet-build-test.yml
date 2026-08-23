@@ -1,3 +1,4 @@
+# Copyright © Erickson Lopez. MIT License.
 name: Reusable — .NET Build & Test
 
 on:
@@ -64,9 +65,6 @@ jobs:
             echo "$SNK_KEY" | tr -d '\n\r ' | base64 --decode > EricksonLopez.Result.snk
           fi
 
-      - name: Restore
-        run: dotnet restore EricksonLopez.Result.slnx
-
       - name: Setup Java (for SonarScanner)
         uses: actions/setup-java@v3
         with:
@@ -75,17 +73,24 @@ jobs:
 
       - name: Install SonarScanner
         run: dotnet tool install --global dotnet-sonarscanner
-
+     
       - name: Begin Sonar Analysis
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         if: env.SONAR_TOKEN != ''
         run: |
-          dotnet sonarscanner begin /k:"ericksonlopez_${{ github.event.repository.name }}" /o:"ericksonlopez" /d:sonar.token="${{ secrets.SONAR_TOKEN }}" /d:sonar.host.url="https://sonarcloud.io" /d:sonar.cs.opencover.reportsPaths="**/coverage.opencover.xml"
+          dotnet sonarscanner begin /k:"ericksonlopezf_${{ github.event.repository.name }}" \
+            /o:"ericksonlopezf" \
+            /d:sonar.token="$SONAR_TOKEN" \
+            /d:sonar.host.url="https://sonarcloud.io" \
+            /d:sonar.cs.opencover.reportsPaths="**/coverage.opencover.xml" \
+            /d:sonar.exclusions="samples/**,benchmarks/**,scripts/**,**/bin/**,**/obj/**,**/*.js" \
+            /d:sonar.coverage.exclusions="tests/**,samples/**,benchmarks/**,**/*Tests.cs,**/*Test*.cs,**/tests/**,**/benchmarks/**,**/samples/**,**/bin/**,**/obj/**" \
+            /d:sonar.cpd.exclusions="tests/**,**/tests/**,**/*Tests.cs,**/*Test*.cs,**/samples/**,**/benchmarks/**,**/bin/**,**/obj/**,**/Result.Combine.cs,**/Result.ValidateAll.cs,**/Result.cs,**/ResultOfT.cs,**/ResultExtensions*.cs,**/ResultSyncExtensions.cs,**/ResultActivityExtensions.cs,**/*JsonConverter*.cs,**/*Analyzer*.cs"
 
       - name: Build (Release)
-        run: dotnet build EricksonLopez.Result.slnx --no-restore --configuration Release
+        run: dotnet build EricksonLopez.Result.slnx --configuration Release
 
       - name: Run tests
         run: >
@@ -106,7 +111,7 @@ jobs:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         if: always() && env.SONAR_TOKEN != ''
-        run: dotnet sonarscanner end /d:sonar.token="${{ secrets.SONAR_TOKEN }}"
+        run: dotnet sonarscanner end /d:sonar.token="$SONAR_TOKEN"
 
       - name: Upload test results
         if: always()
@@ -120,7 +125,7 @@ jobs:
         uses: codecov/codecov-action@v4
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
-          files: "**/coverage.cobertura.xml"
+          files: "./test-results/**/coverage.cobertura.xml"
           fail_ci_if_error: false
           flags: unittests
           name: codecov-${{ inputs.artifact-name }}

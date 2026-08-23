@@ -1,8 +1,11 @@
+// Copyright © Erickson Lopez. MIT License.
 using System;
 using System.Collections.Frozen;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Threading;
+using System.Threading.Tasks;
+using EricksonLopez.Result;
 using Microsoft.AspNetCore.Http;
 
 namespace EricksonLopez.Result.AspNetCore;
@@ -41,7 +44,7 @@ namespace EricksonLopez.Result.AspNetCore;
 /// </remarks>
 public sealed class ResultHttpOptions
 {
-    private volatile FrozenDictionary<ErrorType, int>? _frozenStatusCodeMap;
+    private FrozenDictionary<ErrorType, int>? _frozenStatusCodeMap;
     // Frozen snapshot of TitleOverrides, captured alongside _frozenStatusCodeMap in GetFrozenStatusCodeMap().
     // Accessed on the hot path (every request) without locks via the volatile read.
     private volatile FrozenDictionary<ErrorType, string>? _frozenTitleOverrides;
@@ -86,20 +89,8 @@ public sealed class ResultHttpOptions
     /// <see cref="ConfigureStatusCode"/> freeze guard. The wrapper is cached to avoid heap allocation
     /// on every access. The cache is invalidated when <see cref="ConfigureStatusCode"/> is called.
     /// </remarks>
-    public IReadOnlyDictionary<ErrorType, int> StatusCodeMap
-    {
-        get
-        {
-            var cached = _cachedReadOnlyMap;
-            if (cached != null)
-            {
-                return cached;
-            }
-            var wrapper = new ReadOnlyDictionary<ErrorType, int>(_statusCodeMap);
-            Interlocked.CompareExchange(ref _cachedReadOnlyMap, wrapper, null);
-            return _cachedReadOnlyMap!;
-        }
-    }
+    public IReadOnlyDictionary<ErrorType, int> StatusCodeMap =>
+        _cachedReadOnlyMap ??= new ReadOnlyDictionary<ErrorType, int>(_statusCodeMap);
 
     /// <summary>
     /// Overrides the HTTP status code for a specific <see cref="ErrorType"/>.
@@ -237,7 +228,7 @@ public sealed class ResultHttpOptions
     /// or security policy requirements. For example:
     /// <code>
     /// services.Configure&lt;ResultHttpOptions&gt;(options =>
-    ///     options.DefaultFallbackDescription = "Se produjo un error. Contacte al soporte.");
+    ///     options.DefaultFallbackDescription = "An unexpected error occurred. Please contact support.");
     /// </code>
     /// </remarks>
     public string DefaultFallbackDescription
@@ -297,20 +288,8 @@ public sealed class ResultHttpOptions
     /// All mutations must go through <see cref="ConfigureTitleOverride"/> during application startup.
     /// </para>
     /// </remarks>
-    public IReadOnlyDictionary<ErrorType, string> TitleOverrides
-    {
-        get
-        {
-            var cached = _cachedReadOnlyTitleOverrides;
-            if (cached != null)
-            {
-                return cached;
-            }
-            var wrapper = new ReadOnlyDictionary<ErrorType, string>(_titleOverrides);
-            Interlocked.CompareExchange(ref _cachedReadOnlyTitleOverrides, wrapper, null);
-            return _cachedReadOnlyTitleOverrides!;
-        }
-    }
+    public IReadOnlyDictionary<ErrorType, string> TitleOverrides =>
+        _cachedReadOnlyTitleOverrides ??= new ReadOnlyDictionary<ErrorType, string>(_titleOverrides);
 
     /// <summary>
     /// Configures a title override for the specified <see cref="ErrorType"/>.
@@ -327,7 +306,6 @@ public sealed class ResultHttpOptions
     ///        .ConfigureTitleOverride(ErrorType.Domain, "Business Rule Violation");
     /// </code>
     /// </remarks>
-    [System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage]
     public ResultHttpOptions ConfigureTitleOverride(ErrorType type, string title)
     {
         Monitor.Enter(_freezeLock);
@@ -400,31 +378,19 @@ public sealed class ResultHttpOptions
     /// snapshot is taken so that any concurrent <see cref="ConfigureStatusCode"/> call that passes the
     /// guard will throw rather than mutate the underlying dictionary after the snapshot has been captured.
     /// </remarks>
+    [System.Diagnostics.CodeAnalysis.SuppressMessage("Major Bug", "S2583:Change this condition so that it does not always evaluate to 'False'", Justification = "Double-checked locking pattern requires re-checking volatile field inside lock")]
     internal FrozenDictionary<ErrorType, int> GetFrozenStatusCodeMap()
     {
-        if (IsAlreadyFrozen()) return _frozenStatusCodeMap!;
+        var frozen = Volatile.Read(ref _frozenStatusCodeMap);
+        if (frozen != null) return frozen;
 
         Monitor.Enter(_freezeLock);
         try
         {
-            // Stryker disable all
-            [System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage]
-            bool TryGetFrozenStatusCodeMapInsideLock(out FrozenDictionary<ErrorType, int>? frozenMap)
-            {
-                if (IsAlreadyFrozen())
-                {
-                    frozenMap = _frozenStatusCodeMap;
-                    return true;
-                }
-                frozenMap = null;
-                return false;
-            }
-
-            if (TryGetFrozenStatusCodeMapInsideLock(out var frozenInside))
-            {
-                return frozenInside!;
-            }
-            // Stryker restore all
+#pragma warning disable S2583 // Double-checked locking pattern requires re-checking volatile field inside lock
+            frozen = Volatile.Read(ref _frozenStatusCodeMap);
+            if (frozen != null) return frozen;
+#pragma warning restore S2583
 
             // Create both snapshots into local variables FIRST. If either ToFrozenDictionary() call
             // throws (pathological edge case), _isFrozen stays false and options remain mutable.
@@ -441,7 +407,7 @@ public sealed class ResultHttpOptions
 
             _frozenTitleOverrides = titleSnapshot;
             _frozenStatusCodeMap = statusSnapshot;
-            return _frozenStatusCodeMap;
+            return statusSnapshot;
         }
         finally
         {
@@ -449,14 +415,10 @@ public sealed class ResultHttpOptions
         }
     }
 
-    [System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage]
-    private bool IsAlreadyFrozen() => _frozenStatusCodeMap != null;
-
     /// <summary>
     /// Gets the frozen (lock-free) snapshot of <see cref="TitleOverrides"/> for use on the hot path.
     /// Returns <see langword="null"/> before the first request (before freeze).
     /// </summary>
-    [System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage]
     internal FrozenDictionary<ErrorType, string>? GetFrozenTitleOverrides() => _frozenTitleOverrides;
 
     /// <summary>
@@ -475,9 +437,7 @@ public sealed class ResultHttpOptions
         var frozen = _frozenTitleOverrides;
         if (frozen != null)
         {
-            if (frozen.TryGetValue(type, out var frozenTitle))
-                return frozenTitle;
-            return null;
+            return frozen.TryGetValue(type, out var frozenTitle) ? frozenTitle : null;
         }
 
         // Pre-freeze path: must acquire the lock because ConfigureTitleOverride() may be writing
@@ -485,32 +445,7 @@ public sealed class ResultHttpOptions
         Monitor.Enter(_freezeLock);
         try
         {
-            // Re-check frozen inside the lock in case freeze occurred between the volatile read and here.
-            [System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage]
-            bool TryGetFrozenTitleInsideLock(out string? overrideTitle)
-            {
-                if (_frozenTitleOverrides != null)
-                {
-                    if (_frozenTitleOverrides.TryGetValue(type, out var ft))
-                    {
-                        overrideTitle = ft;
-                        return true;
-                    }
-                    overrideTitle = null;
-                    return true;
-                }
-                overrideTitle = null;
-                return false;
-            }
-
-            if (TryGetFrozenTitleInsideLock(out var ft))
-            {
-                return ft;
-            }
-
-            if (_titleOverrides.TryGetValue(type, out var overrideTitle))
-                return overrideTitle;
-            return null;
+            return _titleOverrides.TryGetValue(type, out var overrideTitle) ? overrideTitle : null;
         }
         finally
         {
@@ -522,28 +457,7 @@ public sealed class ResultHttpOptions
     /// For internal test observation of the race condition logic, internal callers can check
     /// whether the snapshot is currently initialized.
     /// </summary>
-    [System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage] internal FrozenDictionary<ErrorType, int>? GetInternalFrozenStatusCodeMap()
-    {
-        // Fast path
-        var frozen = _frozenStatusCodeMap;
-        if (frozen != null)
-            return frozen;
-
-        Monitor.Enter(_freezeLock);
-        try
-        {
-            // Re-check
-            var frozenAfterLock = _frozenStatusCodeMap;
-            if (frozenAfterLock != null)
-                return frozenAfterLock;
-
-            return null;
-        }
-        finally
-        {
-            Monitor.Exit(_freezeLock);
-        }
-    }
+    internal FrozenDictionary<ErrorType, int>? GetInternalFrozenStatusCodeMap() => _frozenStatusCodeMap;
 
     /// <summary>
     /// Returns whether the options have already been frozen (i.e., first request was processed).
@@ -583,3 +497,7 @@ public sealed class ResultHttpOptions
         }
     }
 }
+
+
+
+

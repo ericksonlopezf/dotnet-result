@@ -94,7 +94,7 @@ public static Result Combine(params ReadOnlySpan<Result> results)
     var errors = rented.AsSpan(0, errorCount).ToArray();
     ArrayPool<Error>.Shared.Return(rented!);
     
-    return Error.Validation("Result.CombineFailed", "One or more operations failed.", errors);
+    return Failure(Error.Failure(WellKnownErrors.CombinedFailuresCode, $"{errorCount} errors occurred", errors));
 }
 ```
 
@@ -106,10 +106,10 @@ Every `Error` instance captures the ambient OpenTelemetry trace ID when created 
 
 Standard implementations call `Activity.Current.TraceId.ToString()` immediately, allocating a 32-character `string` on the heap even if the `TraceId` is never inspected.
 
-`EricksonLopez.Result` stores the raw 32-byte `ActivityTraceId` struct on the stack/class layout and materializes the string lazily:
+`EricksonLopez.Result` stores the raw 16-byte `ActivityTraceId` struct on the stack/class layout and materializes the 32-character string lazily:
 
 ```csharp
-private readonly ActivityTraceId? _traceIdValue; // 32-byte struct
+private readonly ActivityTraceId? _traceIdValue; // 16-byte struct (128-bit trace ID)
 private readonly string? _traceIdOverride;
 
 // String stringified ONLY when accessed

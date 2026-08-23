@@ -1,9 +1,12 @@
+// Copyright © Erickson Lopez. MIT License.
 using System;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Diagnostics.Contracts;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace EricksonLopez.Result;
 
@@ -59,12 +62,15 @@ public readonly partial struct Result : IResultOutcome, IEquatable<Result>
 
     // ─── Implicit Operators & Casts ──────────────────────────────────────────────
 
-    /// <summary>Implicitly converts an Error into a failed Result.</summary>
+    /// <summary>Converts an <see cref="Error"/> implicitly into a failed <see cref="Result"/>.</summary>
+    /// <param name="error">The error to wrap in a failed result.</param>
     public static implicit operator Result(Error error) => Failure(error);
 
     /// <summary>
-    /// Allows using Result in boolean contexts (e.g., if(result)). Returns <see langword="true"/> if successful.
+    /// Evaluates whether the specified result is a success in a boolean condition.
     /// </summary>
+    /// <param name="result">The result to evaluate.</param>
+    /// <returns><see langword="true"/> if the result is successful; otherwise, <see langword="false"/>.</returns>
     /// <remarks>
     /// <b>⚠ Uninitialized gotcha:</b> A <see langword="default"/><c>(Result)</c> (state = Uninitialized)
     /// returns <see langword="false"/> here — it does NOT throw. This means an uninitialized
@@ -74,7 +80,9 @@ public readonly partial struct Result : IResultOutcome, IEquatable<Result>
     [Pure]
     public static bool operator true(Result result) => result.IsSuccess;
 
-    /// <summary>Allows using Result in boolean contexts. Returns <see langword="true"/> if failed, <see langword="false"/> if successful or uninitialized.</summary>
+    /// <summary>Evaluates whether the specified result is a failure in a boolean condition.</summary>
+    /// <param name="result">The result to evaluate.</param>
+    /// <returns><see langword="true"/> if the result is a failure; otherwise, <see langword="false"/>.</returns>
     /// <remarks>
     /// <b>⚠ Uninitialized gotcha:</b> A <see langword="default"/><c>(Result)</c> (state = Uninitialized)
     /// returns <see langword="false"/> here — the same as <see cref="IsFailure"/>, because
@@ -91,28 +99,45 @@ public readonly partial struct Result : IResultOutcome, IEquatable<Result>
 
     // ─── Factory methods ──────────────────────────────────────────────────────
 
-    /// <summary>Returns a success result.</summary>
+    /// <summary>Creates a new successful <see cref="Result"/>.</summary>
+    /// <returns>A successful <see cref="Result"/> instance.</returns>
     [Pure]
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static Result Success() => new(ResultState.Success, null);
 
-    /// <summary>Creates a failure result with the specified error.</summary>
+    /// <summary>Creates a new failed <see cref="Result"/> with the specified error.</summary>
+    /// <param name="error">The error describing the failure.</param>
+    /// <returns>A failed <see cref="Result"/> instance containing <paramref name="error"/>.</returns>
+    /// <exception cref="ArgumentNullException"><paramref name="error"/> is <see langword="null"/></exception>
     [Pure]
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static Result Failure(Error error) => new(ResultState.Failure, error ?? throw new ArgumentNullException(nameof(error)));
 
-    /// <summary>Creates a success result wrapping the specified value.</summary>
+    /// <summary>Creates a new successful <see cref="Result{TValue}"/> wrapping the specified value.</summary>
+    /// <typeparam name="TValue">The type of the successful value.</typeparam>
+    /// <param name="value">The value to wrap.</param>
+    /// <returns>A successful <see cref="Result{TValue}"/> instance containing <paramref name="value"/>.</returns>
     [Pure]
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static Result<TValue> Success<TValue>(TValue value) => Result<TValue>.Success(value);
 
-    /// <summary>Creates a typed failure result with the specified error.</summary>
+    /// <summary>Creates a new failed <see cref="Result{TValue}"/> with the specified error.</summary>
+    /// <typeparam name="TValue">The type of the expected successful value.</typeparam>
+    /// <param name="error">The error describing the failure.</param>
+    /// <returns>A failed <see cref="Result{TValue}"/> instance containing <paramref name="error"/>.</returns>
+    /// <exception cref="ArgumentNullException"><paramref name="error"/> is <see langword="null"/></exception>
     [Pure]
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static Result<TValue> Failure<TValue>(Error error) => Result<TValue>.Failure(error);
 
     // ─── Match & Switch ───────────────────────────────────────────────────────
 
+    /// <summary>Evaluates the corresponding branch depending on whether the result is a success or failure.</summary>
+    /// <typeparam name="TOut">The output type produced by the matching functions.</typeparam>
+    /// <param name="onSuccess">The function to evaluate if the result is successful.</param>
+    /// <param name="onFailure">The function to evaluate with the <see cref="Error"/> if the result is a failure.</param>
+    /// <returns>The value produced by either <paramref name="onSuccess"/> or <paramref name="onFailure"/>.</returns>
+    /// <exception cref="InvalidOperationException">The result is an uninitialized default value</exception>
     [Pure]
     public TOut Match<TOut>(Func<TOut> onSuccess, Func<Error, TOut> onFailure)
     {
@@ -120,6 +145,14 @@ public readonly partial struct Result : IResultOutcome, IEquatable<Result>
         return _state == ResultState.Success ? onSuccess() : onFailure(_error!);
     }
 
+    /// <summary>Evaluates the corresponding branch using captured state to avoid closure allocations.</summary>
+    /// <typeparam name="TState">The type of the state object passed to the matching functions.</typeparam>
+    /// <typeparam name="TOut">The output type produced by the matching functions.</typeparam>
+    /// <param name="state">The state value passed to the matching delegates.</param>
+    /// <param name="onSuccess">The function to evaluate if the result is successful.</param>
+    /// <param name="onFailure">The function to evaluate with the state and <see cref="Error"/> if the result is a failure.</param>
+    /// <returns>The value produced by either <paramref name="onSuccess"/> or <paramref name="onFailure"/>.</returns>
+    /// <exception cref="InvalidOperationException">The result is an uninitialized default value</exception>
     [Pure]
     public TOut Match<TState, TOut>(TState state, Func<TState, TOut> onSuccess, Func<TState, Error, TOut> onFailure)
     {
@@ -188,6 +221,7 @@ public readonly partial struct Result : IResultOutcome, IEquatable<Result>
     /// to pass the captured values as a <c>TState</c> parameter and avoid closure allocation.
     /// </para>
     /// </remarks>
+    /// <exception cref="InvalidOperationException">The result is an uninitialized default value.</exception>
     [Pure]
     public TOut MapFailure<TOut>(Func<Error, TOut> onFailure, TOut successDefault)
     {
@@ -200,6 +234,16 @@ public readonly partial struct Result : IResultOutcome, IEquatable<Result>
     /// captured <paramref name="state"/> to avoid closure allocation.
     /// Returns <paramref name="successDefault"/> when this result is successful.
     /// </summary>
+    /// <typeparam name="TState">The type of the state argument passed to <paramref name="onFailure"/>.</typeparam>
+    /// <typeparam name="TOut">The output type produced by the failure mapping function.</typeparam>
+    /// <param name="state">An external value passed to <paramref name="onFailure"/> to avoid capturing it in a closure.</param>
+    /// <param name="onFailure">A function that maps the captured state and the <see cref="Error"/> to a <typeparamref name="TOut"/> value.</param>
+    /// <param name="successDefault">The value to return when the result is successful.</param>
+    /// <returns>
+    /// The result of invoking <paramref name="onFailure"/> with <paramref name="state"/> and the error on failure,
+    /// or <paramref name="successDefault"/> on success.
+    /// </returns>
+    /// <exception cref="InvalidOperationException">The result is an uninitialized default value</exception>
     [Pure]
     public TOut MapFailure<TState, TOut>(TState state, Func<TState, Error, TOut> onFailure, TOut successDefault)
     {
@@ -208,19 +252,6 @@ public readonly partial struct Result : IResultOutcome, IEquatable<Result>
         return _state == ResultState.Failure ? onFailure(state, _error!) : successDefault;
     }
 
-    /// <summary>Obsolete. Use <see cref="MapFailure{TOut}(Func{Error, TOut}, TOut)"/> instead.</summary>
-    [Pure]
-    [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-    [Obsolete("FoldError is replaced by MapFailure, which provides identical semantics with a more discoverable .NET-idiomatic name. Replace FoldError(onFailure, successDefault) with MapFailure(onFailure, successDefault).", error: true)]
-    public TOut FoldError<TOut>(Func<Error, TOut> onFailure, TOut successDefault)
-        => MapFailure(onFailure, successDefault);
-
-    /// <summary>Obsolete. Use <see cref="MapFailure{TState, TOut}(TState, Func{TState, Error, TOut}, TOut)"/> instead.</summary>
-    [Pure]
-    [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-    [Obsolete("FoldError is replaced by MapFailure, which provides identical semantics with a more discoverable .NET-idiomatic name. Replace FoldError(state, onFailure, successDefault) with MapFailure(state, onFailure, successDefault).", error: true)]
-    public TOut FoldError<TState, TOut>(TState state, Func<TState, Error, TOut> onFailure, TOut successDefault)
-        => MapFailure(state, onFailure, successDefault);
 
     // ─── Monadic Operations ───────────────────────────────────────────────────
 
@@ -250,6 +281,8 @@ public readonly partial struct Result : IResultOutcome, IEquatable<Result>
     /// <typeparam name="TNext">The output value type.</typeparam>
     /// <param name="state">An external value passed to <paramref name="mapper"/> to avoid a closure.</param>
     /// <param name="mapper">A function that receives the state and produces the result value.</param>
+    /// <returns>A <see cref="Result{TNext}"/> with the mapped value on success, or the original error on failure.</returns>
+    /// <exception cref="InvalidOperationException">The result is an uninitialized default value</exception>
     [Pure]
     public Result<TNext> Map<TState, TNext>(TState state, Func<TState, TNext> mapper)
     {
@@ -257,22 +290,46 @@ public readonly partial struct Result : IResultOutcome, IEquatable<Result>
         return _state == ResultState.Success ? Result.Success(mapper(state)) : Result.Failure<TNext>(_error!);
     }
 
+    /// <summary>Chains another non-generic operation if this result is successful.</summary>
+    /// <param name="bind">The operation to execute on success.</param>
+    /// <returns>The result of executing <paramref name="bind"/> if this result is successful; otherwise, a failure with the original error.</returns>
+    /// <exception cref="InvalidOperationException">The result is an uninitialized default value</exception>
     public Result Bind(Func<Result> bind)
     {
         ThrowIfUninitialized();
         return _state == ResultState.Success ? bind() : Failure(_error!);
     }
+
+    /// <summary>Chains another non-generic operation using captured state if this result is successful.</summary>
+    /// <typeparam name="TState">The type of the state object passed to the bind function.</typeparam>
+    /// <param name="state">The state value passed to the bind function.</param>
+    /// <param name="bind">The operation to execute on success.</param>
+    /// <returns>The result of executing <paramref name="bind"/> if this result is successful; otherwise, a failure with the original error.</returns>
+    /// <exception cref="InvalidOperationException">The result is an uninitialized default value</exception>
     public Result Bind<TState>(TState state, Func<TState, Result> bind)
     {
         ThrowIfUninitialized();
         return _state == ResultState.Success ? bind(state) : Failure(_error!);
     }
 
+    /// <summary>Chains a typed operation if this result is successful.</summary>
+    /// <typeparam name="TNext">The value type of the chained result.</typeparam>
+    /// <param name="bind">The operation to execute on success.</param>
+    /// <returns>The result of executing <paramref name="bind"/> if this result is successful; otherwise, a typed failure with the original error.</returns>
+    /// <exception cref="InvalidOperationException">The result is an uninitialized default value</exception>
     public Result<TNext> Bind<TNext>(Func<Result<TNext>> bind)
     {
         ThrowIfUninitialized();
         return _state == ResultState.Success ? bind() : Result.Failure<TNext>(_error!);
     }
+
+    /// <summary>Chains a typed operation using captured state if this result is successful.</summary>
+    /// <typeparam name="TState">The type of the state object passed to the bind function.</typeparam>
+    /// <typeparam name="TNext">The value type of the chained result.</typeparam>
+    /// <param name="state">The state value passed to the bind function.</param>
+    /// <param name="bind">The operation to execute on success.</param>
+    /// <returns>The result of executing <paramref name="bind"/> if this result is successful; otherwise, a typed failure with the original error.</returns>
+    /// <exception cref="InvalidOperationException">The result is an uninitialized default value</exception>
     /// <remarks>
     /// <b>💡 Allocation tip:</b> This overload accepts captured state to avoid closure allocations.
     /// Prefer this over <c>Bind(Func&lt;Result&lt;TNext&gt;&gt;)</c> when you would otherwise capture
@@ -289,6 +346,9 @@ public readonly partial struct Result : IResultOutcome, IEquatable<Result>
     /// <summary>
     /// Executes <paramref name="onSuccess"/> if this result is successful, then returns this result unchanged.
     /// </summary>
+    /// <param name="onSuccess">The action to execute if the result is successful.</param>
+    /// <returns>The current result instance unchanged.</returns>
+    /// <exception cref="InvalidOperationException">The result is an uninitialized default value</exception>
     /// <remarks>
     /// This method executes the action <b>only on success</b> and is symmetric with <see cref="TapOnFailure(Action{Error})"/>.
     /// Use <see cref="Inspect(Action{Result})"/> if you need unconditional execution (both success and failure).
@@ -304,6 +364,12 @@ public readonly partial struct Result : IResultOutcome, IEquatable<Result>
         return this;
     }
 
+    /// <summary>Executes <paramref name="onSuccess"/> with captured state if this result is successful, then returns this result unchanged.</summary>
+    /// <typeparam name="TState">The type of the state object passed to the action.</typeparam>
+    /// <param name="state">The state value passed to the action.</param>
+    /// <param name="onSuccess">The action to execute if the result is successful.</param>
+    /// <returns>The current result instance unchanged.</returns>
+    /// <exception cref="InvalidOperationException">The result is an uninitialized default value</exception>
     /// <remarks>
     /// <b>💡 Allocation tip:</b> This overload passes context via <paramref name="state"/> instead of
     /// a captured closure.
@@ -316,6 +382,9 @@ public readonly partial struct Result : IResultOutcome, IEquatable<Result>
     }
 
     /// <summary>Executes <paramref name="onFailure"/> if this result is a failure, then returns this result unchanged.</summary>
+    /// <param name="onFailure">The action to execute with the <see cref="Error"/> if the result is a failure.</param>
+    /// <returns>The current result instance unchanged.</returns>
+    /// <exception cref="InvalidOperationException">The result is an uninitialized default value</exception>
     /// <remarks>
     /// This method executes the action <b>only on failure</b> and is symmetric with <see cref="TapOnSuccess(Action)"/>.
     /// Use <see cref="Inspect(Action{Result})"/> if you need unconditional execution (both success and failure).
@@ -334,6 +403,11 @@ public readonly partial struct Result : IResultOutcome, IEquatable<Result>
     }
 
     /// <summary>Executes <paramref name="onFailure"/> with captured state if this result is a failure, then returns this result unchanged.</summary>
+    /// <typeparam name="TState">The type of the state object passed to the action.</typeparam>
+    /// <param name="state">The state value passed to the action.</param>
+    /// <param name="onFailure">The action to execute with state and error if the result is a failure.</param>
+    /// <returns>The current result instance unchanged.</returns>
+    /// <exception cref="InvalidOperationException">The result is an uninitialized default value</exception>
     /// <remarks>
     /// <b>💡 Allocation tip:</b> This overload passes context via <paramref name="state"/> instead of a captured closure.
     /// </remarks>
@@ -347,12 +421,25 @@ public readonly partial struct Result : IResultOutcome, IEquatable<Result>
 
     // ─── Composition ──────────────────────────────────────────────────────────
 
+    /// <summary>Validates that the specified predicate is satisfied when this result is successful.</summary>
+    /// <param name="predicate">The condition to test on success.</param>
+    /// <param name="error">The error to return if the condition evaluates to <see langword="false"/>.</param>
+    /// <returns>The current result if the condition is met or if the result is already a failure; otherwise, a failure with <paramref name="error"/>.</returns>
+    /// <exception cref="InvalidOperationException">The result is an uninitialized default value</exception>
     public Result Ensure(Func<bool> predicate, Error error)
     {
         ThrowIfUninitialized();
         if (_state == ResultState.Success) return predicate() ? this : Failure(error);
         return this; // Failure: short-circuit
     }
+
+    /// <summary>Validates that the specified predicate is satisfied using captured state when this result is successful.</summary>
+    /// <typeparam name="TState">The type of the state object passed to the predicate.</typeparam>
+    /// <param name="state">The state value passed to the predicate.</param>
+    /// <param name="predicate">The condition to test on success.</param>
+    /// <param name="error">The error to return if the condition evaluates to <see langword="false"/>.</param>
+    /// <returns>The current result if the condition is met or if the result is already a failure; otherwise, a failure with <paramref name="error"/>.</returns>
+    /// <exception cref="InvalidOperationException">The result is an uninitialized default value</exception>
     public Result Ensure<TState>(TState state, Func<TState, bool> predicate, Error error)
     {
         ThrowIfUninitialized();
@@ -364,6 +451,10 @@ public readonly partial struct Result : IResultOutcome, IEquatable<Result>
     /// Validates a successful result using <paramref name="predicate"/>, constructing the error lazily
     /// via <paramref name="errorFactory"/> only when the predicate fails.
     /// </summary>
+    /// <param name="predicate">The condition to test on success.</param>
+    /// <param name="errorFactory">A factory that generates the error if the condition evaluates to <see langword="false"/>.</param>
+    /// <returns>The current result if the condition is met or if the result is already a failure; otherwise, a failure with the generated error.</returns>
+    /// <exception cref="InvalidOperationException">The result is an uninitialized default value</exception>
     /// <remarks>
     /// Prefer this overload over <see cref="Ensure(Func{bool}, Error)"/> when error construction is
     /// expensive (e.g., captures <see cref="System.Diagnostics.Activity.Current"/>, allocates metadata,
@@ -380,6 +471,12 @@ public readonly partial struct Result : IResultOutcome, IEquatable<Result>
     /// Validates a successful result using <paramref name="predicate"/> with captured state,
     /// constructing the error lazily via <paramref name="errorFactory"/> only when the predicate fails.
     /// </summary>
+    /// <typeparam name="TState">The type of the state object passed to the predicate.</typeparam>
+    /// <param name="state">The state value passed to the predicate.</param>
+    /// <param name="predicate">The condition to test on success.</param>
+    /// <param name="errorFactory">A factory that generates the error if the condition evaluates to <see langword="false"/>.</param>
+    /// <returns>The current result if the condition is met or if the result is already a failure; otherwise, a failure with the generated error.</returns>
+    /// <exception cref="InvalidOperationException">The result is an uninitialized default value</exception>
     public Result Ensure<TState>(TState state, Func<TState, bool> predicate, Func<Error> errorFactory)
     {
         ThrowIfUninitialized();
@@ -387,17 +484,20 @@ public readonly partial struct Result : IResultOutcome, IEquatable<Result>
         return this; // Failure: short-circuit
     }
 
-    /// <summary>Gets the error associated with a failed result, or null if successful.</summary>
+    /// <summary>Gets the error associated with a failed result, or <see langword="null"/> if successful.</summary>
     // Stryker disable once all : Equivalent mutation
     Error? IResultOutcome.Error => _state == ResultState.Failure ? _error : null;
 
-    /// <summary>Gets the raw underlying value of a successful result, which is always null for non-generic Result.</summary>
+    /// <summary>Gets the raw underlying value of a successful result, which is always <see langword="null"/> for non-generic Result.</summary>
     object? IResultOutcome.RawValue => null;
 
     /// <summary>
     /// Executes <paramref name="action"/> unconditionally with the current result (success or failure),
     /// then returns this result unchanged. Useful for logging, debugging, or auditing the pipeline at any point.
     /// </summary>
+    /// <param name="action">The action to execute with the current result.</param>
+    /// <returns>The current result instance unchanged.</returns>
+    /// <exception cref="InvalidOperationException">The result is an uninitialized default value</exception>
     /// <remarks>
     /// <para>
     /// <b>Inspect vs TapOnSuccess:</b>
@@ -433,6 +533,11 @@ public readonly partial struct Result : IResultOutcome, IEquatable<Result>
     /// Executes <paramref name="action"/> unconditionally with captured <paramref name="state"/> and the current result,
     /// then returns this result unchanged.
     /// </summary>
+    /// <typeparam name="TState">The type of the state object passed to the action.</typeparam>
+    /// <param name="state">The state value passed to the action.</param>
+    /// <param name="action">The action to execute with state and result.</param>
+    /// <returns>The current result instance unchanged.</returns>
+    /// <exception cref="InvalidOperationException">The result is an uninitialized default value</exception>
     /// <remarks>
     /// <b>💡 Allocation tip:</b> This overload passes context via <paramref name="state"/> instead of a captured closure.
     /// See <see cref="Inspect(Action{Result})"/> for the distinction between <c>Inspect</c> and <c>TapOnSuccess</c>.
@@ -444,12 +549,13 @@ public readonly partial struct Result : IResultOutcome, IEquatable<Result>
         return this;
     }
 
-    [Obsolete("Use Inspect instead to clarify that the pipeline continues after execution.", error: true)]
-    public Result Finally(Action<Result> action) => Inspect(action);
 
     // ─── Recovery ─────────────────────────────────────────────────────────────
 
     /// <summary>If this result is a failure, invokes <paramref name="recovery"/> to attempt a corrective result.</summary>
+    /// <param name="recovery">The recovery function producing a corrective result from the failure <see cref="Error"/>.</param>
+    /// <returns>The recovery result if this instance is a failure; otherwise, this instance unchanged.</returns>
+    /// <exception cref="InvalidOperationException">The result is an uninitialized default value</exception>
     [Pure]
     public Result Recover(Func<Error, Result> recovery)
     {
@@ -458,6 +564,11 @@ public readonly partial struct Result : IResultOutcome, IEquatable<Result>
     }
 
     /// <summary>If this result is a failure, invokes <paramref name="recovery"/> with captured state to attempt a corrective result.</summary>
+    /// <typeparam name="TState">The type of the state object passed to the recovery function.</typeparam>
+    /// <param name="state">The state value passed to the recovery function.</param>
+    /// <param name="recovery">The recovery function producing a corrective result from state and the failure <see cref="Error"/>.</param>
+    /// <returns>The recovery result if this instance is a failure; otherwise, this instance unchanged.</returns>
+    /// <exception cref="InvalidOperationException">The result is an uninitialized default value</exception>
     [Pure]
     public Result Recover<TState>(TState state, Func<TState, Error, Result> recovery)
     {
@@ -467,6 +578,9 @@ public readonly partial struct Result : IResultOutcome, IEquatable<Result>
 
     // ─── Deconstruct ──────────────────────────────────────────────────────────
 
+    /// <summary>Deconstructs the result into its success state and optional error.</summary>
+    /// <param name="isSuccess">When this method returns, contains <see langword="true"/> if the result succeeded; otherwise, <see langword="false"/>.</param>
+    /// <param name="error">When this method returns, contains the associated <see cref="Error"/> if the result failed; otherwise, <see langword="null"/>.</param>
     public void Deconstruct(out bool isSuccess, out Error? error)
     {
         isSuccess = _state == ResultState.Success;
@@ -484,7 +598,7 @@ public readonly partial struct Result : IResultOutcome, IEquatable<Result>
     /// <remarks>
     /// <para>
     /// <b>OperationCanceledException handling:</b> <see cref="OperationCanceledException"/> (including
-    /// <see cref="System.Threading.Tasks.TaskCanceledException"/>) is caught and converted into a
+    /// <see cref="TaskCanceledException"/>) is caught and converted into a
     /// <c>Result.Failure</c> via <paramref name="errorHandler"/>. This is intentional: cancellation is
     /// normal async control flow, and the caller may want to return a specific error (e.g.,
     /// <c>Error.Unavailable("Op.Cancelled", "The operation was cancelled.")</c>).
@@ -564,7 +678,7 @@ public readonly partial struct Result : IResultOutcome, IEquatable<Result>
     /// check for <see cref="OperationCanceledException"/> in <paramref name="errorHandler"/> and re-throw it.
     /// See <see cref="Try(Action, Func{Exception, Error})"/> for a code example.
     /// </remarks>
-    public static async System.Threading.Tasks.Task<Result> TryAsync(Func<System.Threading.Tasks.Task> action, Func<Exception, Error> errorHandler)
+    public static async Task<Result> TryAsync(Func<Task> action, Func<Exception, Error> errorHandler)
     {
         try
         {
@@ -579,10 +693,14 @@ public readonly partial struct Result : IResultOutcome, IEquatable<Result>
     }
 
     /// <summary>Executes an async action with cancellation support, wrapping exceptions into a failure result.</summary>
-    public static async System.Threading.Tasks.Task<Result> TryAsync(
-        Func<System.Threading.CancellationToken, System.Threading.Tasks.Task> action,
+    /// <param name="action">The async action to execute accepting a cancellation token.</param>
+    /// <param name="errorHandler">Maps a caught exception to an <see cref="Error"/>.</param>
+    /// <param name="cancellationToken">A token that can be used to cancel the asynchronous operation.</param>
+    /// <returns>A task representing the asynchronous operation. The task result contains a successful or failure result.</returns>
+    public static async Task<Result> TryAsync(
+        Func<CancellationToken, Task> action,
         Func<Exception, Error> errorHandler,
-        System.Threading.CancellationToken cancellationToken = default)
+        CancellationToken cancellationToken = default)
     {
         try
         {
@@ -596,6 +714,11 @@ public readonly partial struct Result : IResultOutcome, IEquatable<Result>
         }
     }
 
+    /// <summary>Executes the specified function and wraps any non-fatal exception into a typed failure result.</summary>
+    /// <typeparam name="T">The return value type of the function.</typeparam>
+    /// <param name="func">The synchronous function to execute.</param>
+    /// <param name="errorHandler">Maps a caught exception to an <see cref="Error"/>.</param>
+    /// <returns>A successful <see cref="Result{T}"/> containing the returned value, or a failure result if an exception occurs.</returns>
     public static Result<T> Try<T>(Func<T> func, Func<Exception, Error> errorHandler)
     {
         try
@@ -617,6 +740,7 @@ public readonly partial struct Result : IResultOutcome, IEquatable<Result>
     /// <param name="state">An external value passed to <paramref name="errorHandler"/> to avoid capturing it in a closure.</param>
     /// <param name="func">The synchronous function to execute.</param>
     /// <param name="errorHandler">Maps the caught exception and state to an <see cref="Error"/>.</param>
+    /// <returns>A successful <see cref="Result{T}"/> containing the returned value, or a failure result if an exception occurs.</returns>
     /// <remarks>
     /// <b>💡 Allocation tip:</b> Use this overload when <paramref name="errorHandler"/> would otherwise
     /// capture a variable from an outer scope (causing a closure allocation).
@@ -633,7 +757,12 @@ public readonly partial struct Result : IResultOutcome, IEquatable<Result>
         }
     }
 
-    public static async System.Threading.Tasks.Task<Result<T>> TryAsync<T>(Func<System.Threading.Tasks.Task<T>> func, Func<Exception, Error> errorHandler)
+    /// <summary>Executes the specified asynchronous function and wraps any non-fatal exception into a typed failure result.</summary>
+    /// <typeparam name="T">The return value type of the asynchronous operation.</typeparam>
+    /// <param name="func">The asynchronous function to execute.</param>
+    /// <param name="errorHandler">Maps a caught exception to an <see cref="Error"/>.</param>
+    /// <returns>A task representing the asynchronous operation. The task result contains a successful <see cref="Result{T}"/> or a failure result.</returns>
+    public static async Task<Result<T>> TryAsync<T>(Func<Task<T>> func, Func<Exception, Error> errorHandler)
     {
         try
         {
@@ -648,10 +777,15 @@ public readonly partial struct Result : IResultOutcome, IEquatable<Result>
     }
 
     /// <summary>Executes an async function with cancellation support, wrapping exceptions into a failure result.</summary>
-    public static async System.Threading.Tasks.Task<Result<T>> TryAsync<T>(
-        Func<System.Threading.CancellationToken, System.Threading.Tasks.Task<T>> func,
+    /// <typeparam name="T">The return value type of the asynchronous operation.</typeparam>
+    /// <param name="func">The asynchronous function accepting a cancellation token.</param>
+    /// <param name="errorHandler">Maps a caught exception to an <see cref="Error"/>.</param>
+    /// <param name="cancellationToken">A token that can be used to cancel the asynchronous operation.</param>
+    /// <returns>A task representing the asynchronous operation. The task result contains a successful <see cref="Result{T}"/> or a failure result.</returns>
+    public static async Task<Result<T>> TryAsync<T>(
+        Func<CancellationToken, Task<T>> func,
         Func<Exception, Error> errorHandler,
-        System.Threading.CancellationToken cancellationToken = default)
+        CancellationToken cancellationToken = default)
     {
         try
         {
@@ -671,16 +805,19 @@ public readonly partial struct Result : IResultOutcome, IEquatable<Result>
     // allocate a Task state machine for every exception-wrapping boundary.
 
     /// <summary>
-    /// Executes an async action returning <see cref="System.Threading.Tasks.ValueTask"/>,
+    /// Executes an async action returning <see cref="ValueTask"/>,
     /// wrapping any non-fatal exception into a <see cref="ValueTask{Result}"/>.
     /// </summary>
+    /// <param name="action">The async action to execute.</param>
+    /// <param name="errorHandler">Maps a caught exception to an <see cref="Error"/>.</param>
+    /// <returns>A <see cref="ValueTask{TResult}"/> whose result is a successful <see cref="Result"/> if <paramref name="action"/> completes without throwing; otherwise a failure result.</returns>
     /// <remarks>
     /// Prefer this overload over the <c>Task&lt;Result&gt;</c> variant when composing
-    /// end-to-end <see cref="System.Threading.Tasks.ValueTask"/> pipelines to avoid
-    /// unnecessary <see cref="System.Threading.Tasks.Task"/> state machine allocation.
+    /// end-to-end <see cref="ValueTask"/> pipelines to avoid
+    /// unnecessary <see cref="Task"/> state machine allocation.
     /// </remarks>
-    public static async System.Threading.Tasks.ValueTask<Result> TryAsyncValue(
-        Func<System.Threading.Tasks.ValueTask> action,
+    public static async ValueTask<Result> TryAsyncValue(
+        Func<ValueTask> action,
         Func<Exception, Error> errorHandler)
     {
         try
@@ -696,13 +833,17 @@ public readonly partial struct Result : IResultOutcome, IEquatable<Result>
     }
 
     /// <summary>
-    /// Executes an async action returning <see cref="System.Threading.Tasks.ValueTask"/>
+    /// Executes an async action returning <see cref="ValueTask"/>
     /// with cancellation support, wrapping any non-fatal exception into a <see cref="ValueTask{Result}"/>.
     /// </summary>
-    public static async System.Threading.Tasks.ValueTask<Result> TryAsyncValue(
-        Func<System.Threading.CancellationToken, System.Threading.Tasks.ValueTask> action,
+    /// <param name="action">The async action to execute accepting a cancellation token.</param>
+    /// <param name="errorHandler">Maps a caught exception to an <see cref="Error"/>.</param>
+    /// <param name="cancellationToken">A token that can be used to cancel the asynchronous operation.</param>
+    /// <returns>A <see cref="ValueTask{TResult}"/> whose result is a successful <see cref="Result"/> if <paramref name="action"/> completes without throwing; otherwise a failure result.</returns>
+    public static async ValueTask<Result> TryAsyncValue(
+        Func<CancellationToken, ValueTask> action,
         Func<Exception, Error> errorHandler,
-        System.Threading.CancellationToken cancellationToken = default)
+        CancellationToken cancellationToken = default)
     {
         try
         {
@@ -717,16 +858,16 @@ public readonly partial struct Result : IResultOutcome, IEquatable<Result>
     }
 
     /// <summary>
-    /// Executes an async function returning <see cref="System.Threading.Tasks.ValueTask{T}"/>,
+    /// Executes an async function returning <see cref="ValueTask{T}"/>,
     /// wrapping any non-fatal exception into a <c>ValueTask&lt;Result&lt;T&gt;&gt;</c>.
     /// </summary>
     /// <typeparam name="T">The value type of the result.</typeparam>
     /// <remarks>
     /// Prefer this overload over the <c>Task&lt;Result&lt;T&gt;&gt;</c> variant when composing
-    /// end-to-end <see cref="System.Threading.Tasks.ValueTask"/> pipelines.
+    /// end-to-end <see cref="ValueTask"/> pipelines.
     /// </remarks>
-    public static async System.Threading.Tasks.ValueTask<Result<T>> TryAsyncValue<T>(
-        Func<System.Threading.Tasks.ValueTask<T>> func,
+    public static async ValueTask<Result<T>> TryAsyncValue<T>(
+        Func<ValueTask<T>> func,
         Func<Exception, Error> errorHandler)
     {
         try
@@ -742,14 +883,18 @@ public readonly partial struct Result : IResultOutcome, IEquatable<Result>
     }
 
     /// <summary>
-    /// Executes an async function returning <see cref="System.Threading.Tasks.ValueTask{T}"/>
+    /// Executes an async function returning <see cref="ValueTask{T}"/>
     /// with cancellation support, wrapping any non-fatal exception into a <c>ValueTask&lt;Result&lt;T&gt;&gt;</c>.
     /// </summary>
     /// <typeparam name="T">The value type of the result.</typeparam>
-    public static async System.Threading.Tasks.ValueTask<Result<T>> TryAsyncValue<T>(
-        Func<System.Threading.CancellationToken, System.Threading.Tasks.ValueTask<T>> func,
+    /// <param name="func">The asynchronous function accepting a cancellation token.</param>
+    /// <param name="errorHandler">Maps a caught exception to an <see cref="Error"/>.</param>
+    /// <param name="cancellationToken">A token that can be used to cancel the asynchronous operation.</param>
+    /// <returns>A <see cref="ValueTask{TResult}"/> whose result is a successful <see cref="Result{T}"/> containing the returned value, or a failure result if an exception occurs.</returns>
+    public static async ValueTask<Result<T>> TryAsyncValue<T>(
+        Func<CancellationToken, ValueTask<T>> func,
         Func<Exception, Error> errorHandler,
-        System.Threading.CancellationToken cancellationToken = default)
+        CancellationToken cancellationToken = default)
     {
         try
         {
@@ -764,13 +909,19 @@ public readonly partial struct Result : IResultOutcome, IEquatable<Result>
     }
 
     /// <summary>
-    /// Executes an async function returning <see cref="System.Threading.Tasks.ValueTask{T}"/>,
+    /// Executes an async function returning <see cref="ValueTask{T}"/>,
     /// wrapping any non-fatal exception into a <c>ValueTask&lt;Result&lt;T&gt;&gt;</c>,
     /// forwarding <paramref name="state"/> to the error handler to avoid a closure allocation.
     /// </summary>
-    public static async System.Threading.Tasks.ValueTask<Result<T>> TryAsyncValue<TState, T>(
+    /// <typeparam name="TState">The type of the state argument passed to <paramref name="errorHandler"/>.</typeparam>
+    /// <typeparam name="T">The value type of the result.</typeparam>
+    /// <param name="state">An external value passed to <paramref name="errorHandler"/> to avoid capturing it in a closure.</param>
+    /// <param name="func">The asynchronous function to execute.</param>
+    /// <param name="errorHandler">Maps the caught exception and state to an <see cref="Error"/>.</param>
+    /// <returns>A <see cref="ValueTask{TResult}"/> whose result is a successful <see cref="Result{T}"/> containing the returned value, or a failure result if an exception occurs.</returns>
+    public static async ValueTask<Result<T>> TryAsyncValue<TState, T>(
         TState state,
-        Func<System.Threading.Tasks.ValueTask<T>> func,
+        Func<ValueTask<T>> func,
         Func<TState, Exception, Error> errorHandler)
     {
         try
@@ -786,15 +937,22 @@ public readonly partial struct Result : IResultOutcome, IEquatable<Result>
     }
 
     /// <summary>
-    /// Executes an async function returning <see cref="System.Threading.Tasks.ValueTask{T}"/>
+    /// Executes an async function returning <see cref="ValueTask{T}"/>
     /// with cancellation support, wrapping any non-fatal exception into a <c>ValueTask&lt;Result&lt;T&gt;&gt;</c>,
     /// forwarding <paramref name="state"/> to the error handler to avoid a closure allocation.
     /// </summary>
-    public static async System.Threading.Tasks.ValueTask<Result<T>> TryAsyncValue<TState, T>(
+    /// <typeparam name="TState">The type of the state argument passed to <paramref name="errorHandler"/>.</typeparam>
+    /// <typeparam name="T">The value type of the result.</typeparam>
+    /// <param name="state">An external value passed to <paramref name="errorHandler"/> to avoid capturing it in a closure.</param>
+    /// <param name="func">The asynchronous function accepting a cancellation token.</param>
+    /// <param name="errorHandler">Maps the caught exception and state to an <see cref="Error"/>.</param>
+    /// <param name="cancellationToken">A token that can be used to cancel the asynchronous operation.</param>
+    /// <returns>A <see cref="ValueTask{TResult}"/> whose result is a successful <see cref="Result{T}"/> containing the returned value, or a failure result if an exception occurs.</returns>
+    public static async ValueTask<Result<T>> TryAsyncValue<TState, T>(
         TState state,
-        Func<System.Threading.CancellationToken, System.Threading.Tasks.ValueTask<T>> func,
+        Func<CancellationToken, ValueTask<T>> func,
         Func<TState, Exception, Error> errorHandler,
-        System.Threading.CancellationToken cancellationToken = default)
+        CancellationToken cancellationToken = default)
     {
         try
         {
@@ -868,8 +1026,11 @@ public readonly partial struct Result : IResultOutcome, IEquatable<Result>
     }
 
     /// <summary>
-    /// Attempts to get the error, distinguishing between Failure and Uninitialized states.
+    /// Attempts to retrieve the error, distinguishing between failure and uninitialized states.
     /// </summary>
+    /// <param name="error">When this method returns, contains the associated <see cref="Error"/> if the result is a failure; otherwise, <see langword="null"/>.</param>
+    /// <param name="isUninitialized">When this method returns, contains <see langword="true"/> if the result is an uninitialized default value; otherwise, <see langword="false"/>.</param>
+    /// <returns><see langword="true"/> if the result is a failure and <paramref name="error"/> is populated; otherwise, <see langword="false"/>.</returns>
     public bool TryGetError(
         [System.Diagnostics.CodeAnalysis.MaybeNullWhen(false)] out Error error,
         out bool isUninitialized)
@@ -887,6 +1048,9 @@ public readonly partial struct Result : IResultOutcome, IEquatable<Result>
     // ─── Error transformation ─────────────────────────────────────────────────
 
     /// <summary>Transforms the error of a failed result using the provided <paramref name="mapper"/>. Returns the same success result unchanged.</summary>
+    /// <param name="mapper">The function used to map the error if this result is a failure.</param>
+    /// <returns>A new failed result with the transformed error, or the current success result unchanged.</returns>
+    /// <exception cref="InvalidOperationException">The result is an uninitialized default value</exception>
     [Pure]
     public Result MapError(Func<Error, Error> mapper)
     {
@@ -895,6 +1059,11 @@ public readonly partial struct Result : IResultOutcome, IEquatable<Result>
     }
 
     /// <summary>Transforms the error of a failed result using the provided <paramref name="mapper"/> and captured state. Returns the same success result unchanged.</summary>
+    /// <typeparam name="TState">The type of the state object passed to the mapper function.</typeparam>
+    /// <param name="state">The state value passed to the mapper function.</param>
+    /// <param name="mapper">The function used to map the error if this result is a failure.</param>
+    /// <returns>A new failed result with the transformed error, or the current success result unchanged.</returns>
+    /// <exception cref="InvalidOperationException">The result is an uninitialized default value</exception>
     [Pure]
     public Result MapError<TState>(TState state, Func<TState, Error, Error> mapper)
     {
@@ -907,6 +1076,8 @@ public readonly partial struct Result : IResultOutcome, IEquatable<Result>
     /// <summary>
     /// Determines whether the specified <see cref="Result"/> is equal to the current instance.
     /// </summary>
+    /// <param name="other">The other result to compare against, passed by readonly reference.</param>
+    /// <returns><see langword="true"/> if both results represent the same outcome; otherwise, <see langword="false"/>.</returns>
     /// <remarks>
     /// Two results are equal when they have the same state and — on failure — the same error
     /// (using <see cref="Error.Equals(Error?)"/> shallow equality).
@@ -923,12 +1094,22 @@ public readonly partial struct Result : IResultOutcome, IEquatable<Result>
     /// <inheritdoc/>
     bool IEquatable<Result>.Equals(Result other) => Equals(in other);
 
+    /// <inheritdoc/>
     public override bool Equals(object? obj) => obj is Result other && Equals(in other);
     // Stryker disable once all : Equivalent mutation
+    /// <inheritdoc/>
     public override int GetHashCode() => HashCode.Combine(_state, _state == ResultState.Failure ? _error!.GetHashCode() : 0);
-    [System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage]
+
+    /// <summary>Determines whether two <see cref="Result"/> instances are equal.</summary>
+    /// <param name="left">The first result to compare.</param>
+    /// <param name="right">The second result to compare.</param>
+    /// <returns><see langword="true"/> if both instances are equal; otherwise, <see langword="false"/>.</returns>
     public static bool operator ==(in Result left, in Result right) => left.Equals(in right);
-    [System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage]
+
+    /// <summary>Determines whether two <see cref="Result"/> instances are not equal.</summary>
+    /// <param name="left">The first result to compare.</param>
+    /// <param name="right">The second result to compare.</param>
+    /// <returns><see langword="true"/> if the instances are not equal; otherwise, <see langword="false"/>.</returns>
     public static bool operator !=(in Result left, in Result right) => !left.Equals(in right);
 
     // ─── Implicit conversions ───────────────────────────────────────────────────
@@ -940,5 +1121,9 @@ public readonly partial struct Result : IResultOutcome, IEquatable<Result>
         _ => "Uninitialized"
     };
 }
+
+
+
+
 
 

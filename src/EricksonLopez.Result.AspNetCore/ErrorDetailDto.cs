@@ -1,3 +1,5 @@
+// Copyright © Erickson Lopez. MIT License.
+using System;
 using EricksonLopez.Result;
 
 namespace EricksonLopez.Result.AspNetCore;
@@ -6,6 +8,13 @@ namespace EricksonLopez.Result.AspNetCore;
 /// DTO representing an error detail for ProblemDetails payload (NativeAOT compliant).
 /// Enum values are serialized as stable string constants to avoid naming instability across versions.
 /// </summary>
+/// <param name="Code">The application-specific error code.</param>
+/// <param name="Description">The human-readable description of the error.</param>
+/// <param name="Type">The string representation of the <see cref="ErrorType"/>.</param>
+/// <param name="Severity">The string representation of the <see cref="ErrorSeverity"/>.</param>
+/// <param name="Retryability">The string representation of the <see cref="ErrorRetryability"/>.</param>
+/// <param name="DescriptionKey">The optional localization key, or <see langword="null"/> if not set.</param>
+/// <param name="TraceId">The optional OpenTelemetry trace identifier, or <see langword="null"/> if not set.</param>
 /// <remarks>
 /// <para>
 /// This struct is registered in <see cref="AspNetCoreJsonSerializerContext"/> for AOT-safe serialization.
@@ -32,3 +41,5 @@ public readonly record struct ErrorDetailDto(
     string Retryability,
     string? DescriptionKey,
     string? TraceId);
+
+

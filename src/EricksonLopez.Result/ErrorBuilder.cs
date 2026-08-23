@@ -1,3 +1,5 @@
+// Copyright © Erickson Lopez. MIT License.
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -37,10 +39,10 @@ namespace EricksonLopez.Result;
 /// construction occurs in a tight loop, consider:
 /// <list type="bullet">
 ///   <item>Pre-building the <see cref="Error"/> once (outside the loop) if the error is reused.</item>
-///   <item>Using <see cref="WithMetadata(System.Collections.Generic.IEnumerable{System.Collections.Generic.KeyValuePair{string, object}})"/>
+///   <item>Using <see cref="WithMetadata(IEnumerable{KeyValuePair{string, object}})"/>
 ///   to batch multiple metadata entries in a single call instead of chaining individual
 ///   <c>WithMetadata(string, object)</c> calls.</item>
-///   <item>Using <see cref="WithInnerErrors(System.Collections.Generic.IEnumerable{Error})"/> instead of
+///   <item>Using <see cref="WithInnerErrors(IEnumerable{Error})"/> instead of
 ///   multiple <see cref="WithInnerError(Error)"/> calls to avoid O(n²) <c>ImmutableArray</c> copying.</item>
 /// </list>
 /// For non-hot-path code (startup, exception handling, validation), the copy cost is negligible.
@@ -147,19 +149,27 @@ public readonly struct ErrorBuilder
             source.RawMetadata ?? ImmutableDictionary<string, object>.Empty);
     }
 
-    /// <summary>Sets the <see cref="ErrorType"/> of the error being built.</summary>
+    /// <summary>Sets the category type for the error being built.</summary>
+    /// <param name="type">The error category type to assign.</param>
+    /// <returns>A new <see cref="ErrorBuilder"/> instance with the specified error type.</returns>
     public ErrorBuilder WithType(ErrorType type)
         => new(_code, _description, type, _severity, _retryability, _descriptionKey, _traceId, _traceIdValue, _correlationId, _innerErrors, _metadata);
 
-    /// <summary>Sets the <see cref="ErrorSeverity"/> of the error being built.</summary>
+    /// <summary>Sets the severity level for the error being built.</summary>
+    /// <param name="severity">The error severity level to assign.</param>
+    /// <returns>A new <see cref="ErrorBuilder"/> instance with the specified severity level.</returns>
     public ErrorBuilder WithSeverity(ErrorSeverity severity)
         => new(_code, _description, _type, severity, _retryability, _descriptionKey, _traceId, _traceIdValue, _correlationId, _innerErrors, _metadata);
 
-    /// <summary>Sets the <see cref="ErrorRetryability"/> of the error being built.</summary>
+    /// <summary>Sets the retry classification for the error being built.</summary>
+    /// <param name="retryability">The retry classification to assign.</param>
+    /// <returns>A new <see cref="ErrorBuilder"/> instance with the specified retryability.</returns>
     public ErrorBuilder WithRetryability(ErrorRetryability retryability)
         => new(_code, _description, _type, _severity, retryability, _descriptionKey, _traceId, _traceIdValue, _correlationId, _innerErrors, _metadata);
 
-    /// <summary>Sets a string trace ID override on the error being built.</summary>
+    /// <summary>Sets an explicit distributed trace identifier string on the error being built.</summary>
+    /// <param name="traceId">The distributed trace identifier string, or <see langword="null"/> to clear the override.</param>
+    /// <returns>A new <see cref="ErrorBuilder"/> instance with the specified trace identifier.</returns>
     /// <remarks>
     /// Prefer the <see cref="WithTraceId(ActivityTraceId)"/> overload when working with
     /// <see cref="Activity.Current"/> to avoid a premature <see cref="ActivityTraceId.ToString"/> allocation.
@@ -171,26 +181,39 @@ public readonly struct ErrorBuilder
     /// Sets a strongly-typed <see cref="ActivityTraceId"/> on the error being built without
     /// allocating a string — the struct is materialized to a string only when <see cref="Build"/> is called.
     /// </summary>
+    /// <param name="traceId">The strongly-typed OpenTelemetry trace identifier.</param>
+    /// <returns>A new <see cref="ErrorBuilder"/> instance with the specified trace identifier.</returns>
     public ErrorBuilder WithTraceId(ActivityTraceId traceId)
         => new(_code, _description, _type, _severity, _retryability, _descriptionKey, traceId: null, traceIdValue: traceId, _correlationId, _innerErrors, _metadata);
 
-    /// <summary>Sets the correlation ID on the error being built.</summary>
+    /// <summary>Sets the distributed correlation identifier on the error being built.</summary>
+    /// <param name="correlationId">The correlation identifier to associate with the error, or <see langword="null"/> to clear it.</param>
+    /// <returns>A new <see cref="ErrorBuilder"/> instance with the specified correlation identifier.</returns>
     public ErrorBuilder WithCorrelationId(string? correlationId)
         => new(_code, _description, _type, _severity, _retryability, _descriptionKey, _traceId, _traceIdValue, correlationId, _innerErrors, _metadata);
 
-    /// <summary>Sets the description localization key on the error being built.</summary>
+    /// <summary>Sets the localization resource key on the error being built.</summary>
+    /// <param name="descriptionKey">The localization resource key, or <see langword="null"/> to clear it.</param>
+    /// <returns>A new <see cref="ErrorBuilder"/> instance with the specified description key.</returns>
     public ErrorBuilder WithDescriptionKey(string? descriptionKey)
         => new(_code, _description, _type, _severity, _retryability, descriptionKey, _traceId, _traceIdValue, _correlationId, _innerErrors, _metadata);
 
-    /// <summary>Adds a single metadata key-value pair.</summary>
+    /// <summary>Adds or updates a single metadata key-value pair on the error being built.</summary>
+    /// <param name="key">The metadata key to add or update.</param>
+    /// <param name="value">The metadata value to store.</param>
+    /// <returns>A new <see cref="ErrorBuilder"/> instance containing the updated metadata.</returns>
     public ErrorBuilder WithMetadata(string key, object value)
         => new(_code, _description, _type, _severity, _retryability, _descriptionKey, _traceId, _traceIdValue, _correlationId, _innerErrors, _metadata.SetItem(key, value));
 
-    /// <summary>Adds multiple metadata entries in a single call, avoiding repeated copy-on-write allocations.</summary>
+    /// <summary>Adds multiple metadata key-value pairs in a single operation, avoiding repeated intermediate allocations.</summary>
+    /// <param name="entries">The collection of metadata entries to add.</param>
+    /// <returns>A new <see cref="ErrorBuilder"/> instance containing the merged metadata.</returns>
     public ErrorBuilder WithMetadata(IEnumerable<KeyValuePair<string, object>> entries)
         => new(_code, _description, _type, _severity, _retryability, _descriptionKey, _traceId, _traceIdValue, _correlationId, _innerErrors, _metadata.SetItems(entries));
 
-    /// <summary>Adds an inner error to the error being built.</summary>
+    /// <summary>Appends a child error to the error being built.</summary>
+    /// <param name="innerError">The child error to add.</param>
+    /// <returns>A new <see cref="ErrorBuilder"/> instance containing the added child error.</returns>
     /// <remarks>
     /// Uses <see cref="ImmutableArray{T}.Add"/> which creates a new array of size n+1 and copies
     /// all existing elements — this is <b>O(n) per call</b>, resulting in O(n²) total cost when
@@ -211,7 +234,9 @@ public readonly struct ErrorBuilder
         return new(_code, _description, _type, _severity, _retryability, _descriptionKey, _traceId, _traceIdValue, _correlationId, newInnerErrors, _metadata);
     }
 
-    /// <summary>Adds a collection of inner errors to the error being built.</summary>
+    /// <summary>Appends a collection of child errors to the error being built.</summary>
+    /// <param name="innerErrors">The collection of child errors to add.</param>
+    /// <returns>A new <see cref="ErrorBuilder"/> instance containing the added child errors.</returns>
     /// <remarks>
     /// Uses <see cref="ImmutableArray{T}.AddRange"/> to append all elements in a single
     /// structural operation, avoiding repeated intermediate copies.
@@ -221,15 +246,13 @@ public readonly struct ErrorBuilder
         var newInnerErrors = _innerErrors.IsDefaultOrEmpty
             ? ImmutableArray.CreateRange(innerErrors)
             : _innerErrors.AddRange(innerErrors);
-        return new(_code, _description, _type, _severity, _retryability, _descriptionKey, _traceId, _traceIdValue, _correlationId,
-            // Stryker disable once Conditional : false? is equivalent since IsEmpty creates empty collection.
-            newInnerErrors.IsEmpty ? ImmutableArray<Error>.Empty : newInnerErrors, _metadata);
+        return new(_code, _description, _type, _severity, _retryability, _descriptionKey, _traceId, _traceIdValue, _correlationId, newInnerErrors, _metadata);
     }
 
-
     /// <summary>
-    /// Builds and returns the <see cref="Error"/> instance.
+    /// Constructs and returns the configured immutable <see cref="Error"/> instance.
     /// </summary>
+    /// <returns>A new <see cref="Error"/> instance configured with the builder state.</returns>
     /// <remarks>
     /// The builder can be called multiple times; each call creates a new <see cref="Error"/> snapshot.
     /// The builder state is not mutated by <c>Build()</c>.
@@ -241,32 +264,21 @@ public readonly struct ErrorBuilder
     /// it is materialized to a string at this point — exactly once per <c>Build()</c> call.
     /// </para>
     /// </remarks>
-    [System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage]
     public Error Build()
     {
-        bool shouldUseTrace = ShouldUseTraceIdValue();
-        if (shouldUseTrace)
+        string? traceId = _traceId;
+        if (traceId is null && _traceIdValue is { } traceStruct)
         {
-            var meta1 = _metadata;
-            return Error.CreateFromBuilder(
-                _code, _description, _type, _severity, _retryability, _descriptionKey,
-                traceId: _traceIdValue!.Value.ToString(),  // materialized once, here only
-                _correlationId,
-                _innerErrors,
-                meta1.IsEmpty ? null : meta1);
+            traceId = traceStruct.ToString();
         }
-        var meta2 = _metadata;
+
         return Error.CreateFromBuilder(
             _code, _description, _type, _severity, _retryability, _descriptionKey,
-            _traceId,
+            traceId,
             _correlationId,
             _innerErrors,
-            meta2.IsEmpty ? null : meta2);
-    }
-
-    [System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage]
-    private bool ShouldUseTraceIdValue()
-    {
-        return _traceId is null && _traceIdValue.HasValue;
+            _metadata);
     }
 }
+
+

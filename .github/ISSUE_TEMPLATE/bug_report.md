@@ -13,7 +13,10 @@ A clear and concise description of what the bug is.
 ## Affected Package(s)
 
 - [ ] `EricksonLopez.Result` (Core)
+- [ ] `EricksonLopez.Result.Generic`
+- [ ] `EricksonLopez.Result.Maybe`
 - [ ] `EricksonLopez.Result.AspNetCore`
+- [ ] `EricksonLopez.Result.OpenApi`
 - [ ] `EricksonLopez.Result.OpenTelemetry`
 - [ ] `EricksonLopez.Result.Serialization`
 - [ ] `EricksonLopez.Result.Serialization.Generators`

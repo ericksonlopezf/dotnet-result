@@ -1,4 +1,6 @@
+// Copyright © Erickson Lopez. MIT License.
 using System;
+using EricksonLopez.Result;
 using Xunit.Sdk;
 
 namespace EricksonLopez.Result.Testing.XUnit;
@@ -61,3 +63,5 @@ public sealed class ResultAssertionXUnitException : XunitException
     {
     }
 }
+
+

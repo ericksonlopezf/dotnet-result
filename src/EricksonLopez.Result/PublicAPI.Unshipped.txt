@@ -1,1 +1,7 @@
-﻿#nullable enable
+#nullable enable
+static EricksonLopez.Result.Result.ValidateAll(params System.ReadOnlySpan<System.Func<EricksonLopez.Result.Result>>) -> EricksonLopez.Result.Result
+static EricksonLopez.Result.Result.ValidateAll<T>(T, params System.ReadOnlySpan<System.Func<T, EricksonLopez.Result.Result>>) -> EricksonLopez.Result.Result<T>
+static EricksonLopez.Result.Result.ValidateAllAsync(System.Collections.Generic.IReadOnlyList<System.Func<System.Threading.CancellationToken, System.Threading.Tasks.Task<EricksonLopez.Result.Result>>>!, System.Threading.CancellationToken cancellationToken = default) -> System.Threading.Tasks.Task<EricksonLopez.Result.Result>
+static EricksonLopez.Result.Result.ValidateAllAsync<T>(T, System.Collections.Generic.IReadOnlyList<System.Func<T, System.Threading.CancellationToken, System.Threading.Tasks.Task<EricksonLopez.Result.Result>>>!, System.Threading.CancellationToken cancellationToken = default) -> System.Threading.Tasks.Task<EricksonLopez.Result.Result<T>>
+static EricksonLopez.Result.Result.ValidateAllAsync(System.Collections.Generic.IReadOnlyList<System.Func<System.Threading.CancellationToken, System.Threading.Tasks.ValueTask<EricksonLopez.Result.Result>>>!, System.Threading.CancellationToken cancellationToken = default) -> System.Threading.Tasks.ValueTask<EricksonLopez.Result.Result>
+static EricksonLopez.Result.Result.ValidateAllAsync<T>(T, System.Collections.Generic.IReadOnlyList<System.Func<T, System.Threading.CancellationToken, System.Threading.Tasks.ValueTask<EricksonLopez.Result.Result>>>!, System.Threading.CancellationToken cancellationToken = default) -> System.Threading.Tasks.ValueTask<EricksonLopez.Result.Result<T>>

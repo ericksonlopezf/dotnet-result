@@ -1,3 +1,4 @@
+// Copyright © Erickson Lopez. MIT License.
 using System;
 using System.Diagnostics.Contracts;
 using System.Runtime.CompilerServices;
@@ -19,10 +20,12 @@ public static class ResultLinqExtensions
     /// <summary>
     /// Projects the success value of a Result into a new form using LINQ query syntax.
     /// </summary>
-    /// <exception cref="InvalidOperationException">
-    /// Thrown when <paramref name="source"/> is an uninitialized default value.
-    /// Use <c>Result.Success(value)</c> or <c>Result.Failure(error)</c> to construct results.
-    /// </exception>
+    /// <typeparam name="TSource">The source value type.</typeparam>
+    /// <typeparam name="TResult">The target value type produced by the selector.</typeparam>
+    /// <param name="source">The source result to project, passed by readonly reference.</param>
+    /// <param name="selector">A transform function to apply to the source value.</param>
+    /// <returns>A new <see cref="Result{TResult}"/> containing the transformed value on success, or the original error on failure.</returns>
+    /// <exception cref="InvalidOperationException"><paramref name="source"/> is an uninitialized default value</exception>
     [Pure]
     public static Result<TResult> Select<TSource, TResult>(
         this in Result<TSource> source,
@@ -45,9 +48,14 @@ public static class ResultLinqExtensions
     /// <summary>
     /// Projects and flattens monadic Result pipelines using LINQ query syntax (from x in a from y in b select z).
     /// </summary>
-    /// <exception cref="InvalidOperationException">
-    /// Thrown when <paramref name="source"/> is an uninitialized default value.
-    /// </exception>
+    /// <typeparam name="TSource">The source value type.</typeparam>
+    /// <typeparam name="TCollection">The intermediate value type produced by the collection selector.</typeparam>
+    /// <typeparam name="TResult">The target value type produced by the result selector.</typeparam>
+    /// <param name="source">The source result to project, passed by readonly reference.</param>
+    /// <param name="collectionSelector">A transform function to apply to the source value, returning an intermediate result.</param>
+    /// <param name="resultSelector">A transform function to apply to the source value and intermediate value.</param>
+    /// <returns>A new <see cref="Result{TResult}"/> containing the combined value on success, or the first encountered failure error.</returns>
+    /// <exception cref="InvalidOperationException"><paramref name="source"/> is an uninitialized default value</exception>
     [Pure]
     public static Result<TResult> SelectMany<TSource, TCollection, TResult>(
         this in Result<TSource> source,
@@ -74,7 +82,8 @@ public static class ResultLinqExtensions
     /// Filters the success value of a Result using a predicate, enabling LINQ <c>where</c> clause syntax.
     /// Returns a failure if the predicate returns <see langword="false"/> or if the source is already a failure.
     /// </summary>
-    /// <param name="source">The result to filter.</param>
+    /// <typeparam name="TSource">The value type of the result.</typeparam>
+    /// <param name="source">The result to filter, passed by readonly reference.</param>
     /// <param name="predicate">A function that tests the success value. Returns a failure with a generic
     /// validation error if the predicate returns <see langword="false"/>.</param>
     /// <returns>
@@ -92,9 +101,7 @@ public static class ResultLinqExtensions
     /// For richer control over the failure error (custom code, description, type), use
     /// <see cref="Result{TValue}.Ensure(Func{TValue, bool}, Error)"/> directly.
     /// </remarks>
-    /// <exception cref="InvalidOperationException">
-    /// Thrown when <paramref name="source"/> is an uninitialized default value.
-    /// </exception>
+    /// <exception cref="InvalidOperationException"><paramref name="source"/> is an uninitialized default value</exception>
     [Pure]
     public static Result<TSource> Where<TSource>(
         this in Result<TSource> source,

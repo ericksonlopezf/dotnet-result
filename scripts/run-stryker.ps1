@@ -1,3 +1,4 @@
+# Copyright © Erickson Lopez. MIT License.
 $projects = @(
     "EricksonLopez.Result.csproj",
     "EricksonLopez.Result.AspNetCore.csproj",
@@ -16,7 +17,7 @@ foreach ($proj in $projects) {
     Set-Location $PSScriptRoot\$testsPath
     dotnet stryker -p $proj -f ..\..\stryker-config.json
     if ($LASTEXITCODE -ne 0) {
-        Write-Host "Stryker failed or didn't reach 100% for $proj" -ForegroundColor Red
+        Write-Host "Stryker failed or fell below break threshold for $proj" -ForegroundColor Red
         $failed = $true
     }
 }
@@ -25,5 +26,5 @@ Set-Location $PSScriptRoot
 if ($failed) {
     exit 1
 }
-Write-Host "All projects passed Stryker with 100% mutation score!" -ForegroundColor Green
+Write-Host "All projects passed Stryker quality gate!" -ForegroundColor Green
 exit 0

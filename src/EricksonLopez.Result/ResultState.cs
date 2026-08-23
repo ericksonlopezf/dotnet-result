@@ -1,3 +1,4 @@
+// Copyright © Erickson Lopez. MIT License.
 namespace EricksonLopez.Result;
 
 /// <summary>
@@ -9,3 +10,4 @@ internal enum ResultState : byte
     Success = 1,
     Failure = 2
 }
+

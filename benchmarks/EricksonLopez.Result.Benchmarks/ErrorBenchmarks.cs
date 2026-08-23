@@ -1,8 +1,11 @@
+// Copyright © Erickson Lopez. MIT License.
+using System;
+using System.Collections.Generic;
 using BenchmarkDotNet.Attributes;
 using BenchmarkDotNet.Columns;
 using BenchmarkDotNet.Jobs;
 using BenchmarkDotNet.Order;
-using System.Collections.Generic;
+using EricksonLopez.Result;
 
 namespace EricksonLopez.Result.Benchmarks;
 
@@ -180,3 +183,5 @@ public class ErrorBenchmarks
             .WithMetadata("key2", "val2")
             .Build();
 }
+
+

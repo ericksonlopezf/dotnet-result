@@ -1,3 +1,4 @@
+# Copyright © Erickson Lopez. MIT License.
 name: Publish NuGet
 
 # ─── Triggers ─────────────────────────────────────────────────────────────────
@@ -38,6 +39,8 @@ jobs:
       id-token: write        # Required for Sigstore OIDC attestation
       contents: write        # Required for GitHub Release creation
       attestations: write    # Required for actions/attest-build-provenance
+      statuses: read         # Required to query commit statuses for Stryker quality gate
+      actions: read          # Required to query workflow runs for Stryker quality gate
 
     steps:
       - name: Checkout
@@ -50,11 +53,13 @@ jobs:
       # Priority: workflow_dispatch input → git tag → fallback to Directory.Build.props
       - name: Resolve version
         id: version
+        env:
+          INPUT_VERSION: ${{ inputs.version }}
         run: |
-          if [ -n "${{ inputs.version }}" ]; then
+          if [ -n "$INPUT_VERSION" ]; then
             # Triggered by Release Please via workflow_dispatch
-            echo "VERSION=${{ inputs.version }}" >> $GITHUB_OUTPUT
-            echo "Resolved version from workflow_dispatch input: ${{ inputs.version }}"
+            echo "VERSION=$INPUT_VERSION" >> $GITHUB_OUTPUT
+            echo "Resolved version from workflow_dispatch input: $INPUT_VERSION"
           elif [[ "$GITHUB_REF" == refs/tags/v* ]]; then
             # Triggered by a git tag push (strip 'v' prefix)
             VERSION="${GITHUB_REF_NAME#v}"
@@ -66,6 +71,17 @@ jobs:
             echo "VERSION=$VERSION" >> $GITHUB_OUTPUT
             echo "Resolved version from Directory.Build.props: $VERSION"
           fi
+
+      # ─── Validate Stryker Mutation Testing Quality Gate ───────────────────────
+      # Validates that the code being released has passed Stryker mutation testing
+      # (score >= 95% break threshold) on main. Re-running a 1+ hour test is avoided.
+      - name: Validate Stryker Mutation Quality Gate
+        id: mutation-gate
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const verifyMutationGate = require('./scripts/verify-mutation-gate.js');
+            await verifyMutationGate({ github, context, core });
 
       - name: Setup .NET
         uses: actions/setup-dotnet@v4
@@ -120,6 +136,9 @@ jobs:
           VERSION="${{ steps.version.outputs.VERSION }}"
           PACK_ARGS="--no-build --configuration Release --output ./nupkgs -p:VersionPrefix=$VERSION"
           dotnet pack src/EricksonLopez.Result/EricksonLopez.Result.csproj $PACK_ARGS
+          dotnet pack src/EricksonLopez.Result.Generic/EricksonLopez.Result.Generic.csproj $PACK_ARGS
+          dotnet pack src/EricksonLopez.Result.Maybe/EricksonLopez.Result.Maybe.csproj $PACK_ARGS
+          dotnet pack src/EricksonLopez.Result.OpenApi/EricksonLopez.Result.OpenApi.csproj $PACK_ARGS
           dotnet pack src/EricksonLopez.Result.AspNetCore/EricksonLopez.Result.AspNetCore.csproj $PACK_ARGS
           dotnet pack src/EricksonLopez.Result.OpenTelemetry/EricksonLopez.Result.OpenTelemetry.csproj $PACK_ARGS
           dotnet pack src/EricksonLopez.Result.Serialization/EricksonLopez.Result.Serialization.csproj $PACK_ARGS
@@ -182,6 +201,9 @@ jobs:
             | Package | Version |
             |---------|---------|
             | `EricksonLopez.Result` | `${{ steps.version.outputs.VERSION }}` |
+            | `EricksonLopez.Result.Generic` | `${{ steps.version.outputs.VERSION }}` |
+            | `EricksonLopez.Result.Maybe` | `${{ steps.version.outputs.VERSION }}` |
+            | `EricksonLopez.Result.OpenApi` | `${{ steps.version.outputs.VERSION }}` |
             | `EricksonLopez.Result.AspNetCore` | `${{ steps.version.outputs.VERSION }}` |
             | `EricksonLopez.Result.OpenTelemetry` | `${{ steps.version.outputs.VERSION }}` |
             | `EricksonLopez.Result.Serialization` | `${{ steps.version.outputs.VERSION }}` |
@@ -195,12 +217,15 @@ jobs:
 
             ---
 
-            For detailed changes, see [CHANGELOG.md](https://github.com/ericksonlopez/dotnet-result/blob/${{ github.ref_name }}/CHANGELOG.md).
+            For detailed changes, see [CHANGELOG.md](https://github.com/ericksonlopezf/dotnet-result/blob/${{ github.ref_name }}/CHANGELOG.md).
 
             ### Installation
 
             ```bash
             dotnet add package EricksonLopez.Result --version ${{ steps.version.outputs.VERSION }}
+            dotnet add package EricksonLopez.Result.Generic --version ${{ steps.version.outputs.VERSION }}
+            dotnet add package EricksonLopez.Result.Maybe --version ${{ steps.version.outputs.VERSION }}
+            dotnet add package EricksonLopez.Result.OpenApi --version ${{ steps.version.outputs.VERSION }}
             dotnet add package EricksonLopez.Result.AspNetCore --version ${{ steps.version.outputs.VERSION }}
             dotnet add package EricksonLopez.Result.OpenTelemetry --version ${{ steps.version.outputs.VERSION }}
             dotnet add package EricksonLopez.Result.Serialization --version ${{ steps.version.outputs.VERSION }}

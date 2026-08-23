@@ -1,4 +1,8 @@
-﻿using System.Collections.Immutable;
+// Copyright © Erickson Lopez. MIT License.
+using System;
+using System.Collections.Generic;
+using System.Collections.Immutable;
+using EricksonLopez.Result;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Operations;
@@ -63,6 +67,7 @@ namespace EricksonLopez.Result.Analyzers;
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
 public sealed class MetadataChainingAnalyzer : DiagnosticAnalyzer
 {
+    /// <summary>The diagnostic identifier for this analyzer rule.</summary>
     public const string DiagnosticId = "RESULT005";
 
     private const string ErrorFullName = "EricksonLopez.Result.Error";
@@ -85,7 +90,7 @@ public sealed class MetadataChainingAnalyzer : DiagnosticAnalyzer
             "with the entry added, creating N intermediate copies for N chained calls. When 3 or more " +
             "WithMetadata calls are chained, use the batch overload WithMetadata(IReadOnlyDictionary<string, object?>) " +
             "or ToBuilder() to apply all entries efficiently in a single allocation.",
-        helpLinkUri: "https://github.com/ericksonlopez/dotnet-result/blob/main/docs/error-builder.md#batch-metadata");
+        helpLinkUri: "https://github.com/ericksonlopezf/dotnet-result/blob/main/docs/error-builder.md#batch-metadata");
 
     private static readonly DiagnosticDescriptor RuleBuilder = new(
         id: DiagnosticId,
@@ -100,11 +105,13 @@ public sealed class MetadataChainingAnalyzer : DiagnosticAnalyzer
             "for N chained calls. When 3 or more WithMetadata calls are chained, use the batch overload " +
             "WithMetadata(IReadOnlyDictionary<string, object?>) or WithMetadata(IEnumerable<KeyValuePair<string, object>>) " +
             "to apply all entries with a single AddRange call.",
-        helpLinkUri: "https://github.com/ericksonlopez/dotnet-result/blob/main/docs/error-builder.md#batch-metadata");
+        helpLinkUri: "https://github.com/ericksonlopezf/dotnet-result/blob/main/docs/error-builder.md#batch-metadata");
 
+    /// <inheritdoc/>
     public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
         => ImmutableArray.Create(RuleError, RuleBuilder);
 
+    /// <inheritdoc/>
     public override void Initialize(AnalysisContext context)
     {
         context.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.None);
@@ -117,31 +124,26 @@ public sealed class MetadataChainingAnalyzer : DiagnosticAnalyzer
         var invocation = (IInvocationOperation)context.Operation;
         var method = invocation.TargetMethod;
 
-        // Only check WithMetadata with exactly 2 parameters (string key, object? value).
-        // WithMetadata(IReadOnlyDictionary) and WithMetadata(IEnumerable<KVP>) are batch
-        // overloads -- do not warn about them.
-        if (!string.Equals(method.Name, WithMetadataMethodName, System.StringComparison.Ordinal)) return;
-        if (method.Parameters.Length != 2) return;
-
-        // The first parameter must be string (key) to distinguish from dictionary/IEnumerable overload
-        if (method.Parameters[0].Type.SpecialType != SpecialType.System_String) return;
-
-        var containingTypeName = method.ContainingType?.ToDisplayString();
-
-        // Check both Error and ErrorBuilder
+        var containingTypeName = method.ContainingType.ToDisplayString();
         bool isErrorMethod = containingTypeName == ErrorFullName;
         bool isBuilderMethod = containingTypeName == ErrorBuilderFullName;
 
         if (!isErrorMethod && !isBuilderMethod) return;
 
+        if (!string.Equals(method.Name, WithMetadataMethodName, StringComparison.Ordinal) ||
+            method.Parameters.Length != 2)
+        {
+            return;
+        }
+
         // Walk up the chain to count consecutive WithMetadata(string, object) calls.
         // We only report on the outermost call of a chain that meets the threshold.
         // Check if the parent is also a WithMetadata call on the same containing type --
         // if so, this is an inner call in the chain; the outermost call will do the reporting.
-        if (IsInnerCallInChain(invocation, containingTypeName!)) return;
+        if (IsInnerCallInChain(invocation, containingTypeName)) return;
 
         // Count the chain length starting from this (the outermost) call
-        int chainLength = CountChainLength(invocation, containingTypeName!);
+        int chainLength = CountChainLength(invocation, containingTypeName);
 
         if (chainLength < ChainLengthThreshold) return;
 
@@ -163,10 +165,9 @@ public sealed class MetadataChainingAnalyzer : DiagnosticAnalyzer
         // Check if this invocation is the receiver of a parent WithMetadata call on the same type.
         var parent = invocation.Parent;
         if (parent is IInvocationOperation parentInvocation
-            && string.Equals(parentInvocation.TargetMethod.Name, WithMetadataMethodName, System.StringComparison.Ordinal)
+            && string.Equals(parentInvocation.TargetMethod.Name, WithMetadataMethodName, StringComparison.Ordinal)
             && parentInvocation.TargetMethod.Parameters.Length == 2
-            && parentInvocation.TargetMethod.ContainingType?.ToDisplayString() == containingTypeName
-            && parentInvocation.TargetMethod.Parameters[0].Type.SpecialType == SpecialType.System_String)
+            && parentInvocation.TargetMethod.ContainingType.ToDisplayString() == containingTypeName)
         {
             return true;
         }
@@ -189,10 +190,9 @@ public sealed class MetadataChainingAnalyzer : DiagnosticAnalyzer
             // The receiver (Instance) of this WithMetadata call -- walk into it
             var receiver = current.Instance;
             if (receiver is IInvocationOperation receiverInvocation
-                && string.Equals(receiverInvocation.TargetMethod.Name, WithMetadataMethodName, System.StringComparison.Ordinal)
+                && string.Equals(receiverInvocation.TargetMethod.Name, WithMetadataMethodName, StringComparison.Ordinal)
                 && receiverInvocation.TargetMethod.Parameters.Length == 2
-                && receiverInvocation.TargetMethod.ContainingType?.ToDisplayString() == containingTypeName
-                && receiverInvocation.TargetMethod.Parameters[0].Type.SpecialType == SpecialType.System_String)
+                && receiverInvocation.TargetMethod.ContainingType.ToDisplayString() == containingTypeName)
             {
                 count++;
                 current = receiverInvocation;
@@ -206,3 +206,5 @@ public sealed class MetadataChainingAnalyzer : DiagnosticAnalyzer
         return count;
     }
 }
+
+

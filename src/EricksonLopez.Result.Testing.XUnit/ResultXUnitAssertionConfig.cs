@@ -1,4 +1,7 @@
+// Copyright © Erickson Lopez. MIT License.
 using System;
+using System.Threading;
+using EricksonLopez.Result;
 using EricksonLopez.Result.Testing;
 
 namespace EricksonLopez.Result.Testing.XUnit;
@@ -59,7 +62,7 @@ public static class ResultXUnitAssertionConfig
     /// You only need to call this explicitly if you have called <see cref="Reset"/> and want to
     /// re-enable xUnit exception mode.
     /// <para>
-    /// <b>Thread safety:</b> Uses <see cref="System.Threading.Interlocked.CompareExchange(ref int, int, int)"/>
+    /// <b>Thread safety:</b> Uses <see cref="Interlocked.CompareExchange(ref int, int, int)"/>
     /// to atomically check-and-set the configured flag, eliminating the TOCTOU race condition that
     /// would exist with a plain read-then-write pattern.
     /// </para>
@@ -69,7 +72,7 @@ public static class ResultXUnitAssertionConfig
         // Atomically transition from 0 (not configured) to 1 (configured).
         // If CompareExchange returns 0, we were the first to configure — proceed.
         // If it returns 1, another thread already configured — return immediately.
-        if (System.Threading.Interlocked.CompareExchange(ref _configured, 1, 0) != 0) return;
+        if (Interlocked.CompareExchange(ref _configured, 1, 0) != 0) return;
         ResultAssertionException.ExceptionFactory =
             static message => new ResultAssertionXUnitException(message);
     }
@@ -79,7 +82,10 @@ public static class ResultXUnitAssertionConfig
     /// </summary>
     internal static void Reset()
     {
-        System.Threading.Interlocked.Exchange(ref _configured, 0);
+        Interlocked.Exchange(ref _configured, 0);
         ResultAssertionException.ExceptionFactory = static msg => new ResultAssertionException(msg);
     }
 }
+
+
+

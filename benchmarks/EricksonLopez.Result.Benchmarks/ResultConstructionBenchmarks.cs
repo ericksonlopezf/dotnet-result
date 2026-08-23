@@ -1,8 +1,11 @@
+// Copyright © Erickson Lopez. MIT License.
+using System;
 using BenchmarkDotNet.Attributes;
 using BenchmarkDotNet.Columns;
 using BenchmarkDotNet.Configs;
 using BenchmarkDotNet.Jobs;
 using BenchmarkDotNet.Order;
+using EricksonLopez.Result;
 
 namespace EricksonLopez.Result.Benchmarks;
 
@@ -50,5 +53,8 @@ public class ResultConstructionBenchmarks
     public Result<int> ImplicitConversion_Error()
         => CachedError;
 }
+
+
+
 
 

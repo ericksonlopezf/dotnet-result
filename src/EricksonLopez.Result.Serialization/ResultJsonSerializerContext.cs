@@ -1,4 +1,8 @@
-﻿using System.Text.Json.Serialization;
+// Copyright © Erickson Lopez. MIT License.
+using System;
+using System.Collections.Generic;
+using System.Text.Json.Serialization;
+using EricksonLopez.Result;
 
 namespace EricksonLopez.Result.Serialization;
 
@@ -22,4 +26,6 @@ namespace EricksonLopez.Result.Serialization;
 public partial class ResultJsonSerializerContext : JsonSerializerContext
 {
 }
+
+
 

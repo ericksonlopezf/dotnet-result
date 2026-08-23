@@ -16,7 +16,7 @@ We take the security of `EricksonLopez.Result` seriously. If you believe you hav
 **Do NOT report security vulnerabilities through public GitHub issues.**
 
 Instead, please send an email to:
-📧 **[ericksonlopez.dev@gmail.com](mailto:ericksonlopez.dev@gmail.com)**
+📧 **[ericksonlopezf@gmail.com](mailto:ericksonlopezf@gmail.com)**
 
 Please include:
 - A description of the vulnerability.
@@ -38,7 +38,7 @@ Please include:
 All NuGet packages are built with [Sigstore](https://www.sigstore.dev/) provenance attestations via `actions/attest-build-provenance@v2` (SLSA v1.0 predicate format), providing cryptographic proof that packages were built from this repository's CI pipeline. Consumers can verify via:
 
 ```bash
-gh attestation verify <package.nupkg> --repo ericksonlopez/dotnet-result
+gh attestation verify <package.nupkg> --repo ericksonlopezf/dotnet-result
 ```
 
 ### NuGet Trusted Publishing (OIDC)
@@ -47,7 +47,7 @@ Package publishing to NuGet.org uses OpenID Connect (OIDC) authentication via `N
 
 ### Strong Name Signing
 
-All assemblies are signed with a strong name key (`EricksonLopez.Result.snk`). The public key (`public.snk`) is committed to the repository. The private key is stored as a GitHub secret and restored at build time.
+All assemblies are signed with a strong name key (`EricksonLopez.Result.snk`). The public key is embedded directly in `Directory.Build.props` as `<PublicKey>` for verifiability without requiring a separate file. The private key is stored as the GitHub secret `SNK_KEY` (base64-encoded) and restored at build time.
 
 ### NuGet Dependency Auditing
 
