@@ -12,7 +12,7 @@
     <Company>Erickson Lopez</Company>
     <Copyright>Copyright © 2026 Erickson Lopez</Copyright>
     <Description>OpenAPI / Swagger schema generators and response transformers for EricksonLopez.Result and RFC 9457 ProblemDetails.</Description>
-    <PackageProjectUrl>https://github.com/ericksonlopezf/dotnet-result</PackageProjectUrl>
+    <PackageProjectUrl>https://ericksonlopez.dev/result</PackageProjectUrl>
     <RepositoryUrl>https://github.com/ericksonlopezf/dotnet-result</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>

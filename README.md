@@ -1,7 +1,3 @@
-<div align="center">
-
-<img src="icon.png" alt="EricksonLopez.Result" width="120" />
-
 # EricksonLopez.Result
 
 High-performance, struct-based, enterprise-grade Result Pattern and Railway-Oriented Programming ecosystem for modern .NET.
@@ -9,14 +5,12 @@ High-performance, struct-based, enterprise-grade Result Pattern and Railway-Orie
 [![CI](https://img.shields.io/github/actions/workflow/status/ericksonlopezf/dotnet-result/ci.yml?branch=main&style=for-the-badge&logo=githubactions&logoColor=white&label=CI)](https://github.com/ericksonlopezf/dotnet-result/actions)
 [![Coverage](https://img.shields.io/codecov/c/github/ericksonlopezf/dotnet-result?style=for-the-badge&logo=codecov&logoColor=white)](https://codecov.io/gh/ericksonlopezf/dotnet-result)
 [![Quality Gate](https://img.shields.io/sonar/quality_gate/ericksonlopezf_dotnet-result?server=https%3A%2F%2Fsonarcloud.io&style=for-the-badge&logo=sonarcloud&logoColor=white)](https://sonarcloud.io/summary/new_code?id=ericksonlopezf_dotnet-result)
-[![Mutation Score](https://img.shields.io/badge/Mutation_Score-%E2%89%A599%25-brightgreen?style=for-the-badge&logo=stryker&logoColor=white)](docs/mutation-score.md)
+[![Mutation Score](https://img.shields.io/badge/Mutation_Score-%E2%89%A599%25-brightgreen?style=for-the-badge&logo=stryker&logoColor=white)](https://github.com/ericksonlopezf/dotnet-result/blob/main/docs/mutation-score.md)
 [![NuGet](https://img.shields.io/nuget/v/EricksonLopez.Result?style=for-the-badge&logo=nuget&logoColor=white&color=512BD4)](https://www.nuget.org/packages/EricksonLopez.Result)
 [![NuGet Downloads](https://img.shields.io/nuget/dt/EricksonLopez.Result?style=for-the-badge&logo=nuget&logoColor=white&color=004880)](https://www.nuget.org/packages/EricksonLopez.Result)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg?style=for-the-badge)](LICENSE)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg?style=for-the-badge)](https://github.com/ericksonlopezf/dotnet-result/blob/main/LICENSE)
 [![.NET](https://img.shields.io/badge/.NET_8_%7C_9_%7C_10-512BD4?style=for-the-badge&logo=dotnet&logoColor=white)](https://dotnet.microsoft.com)
 [![NativeAOT](https://img.shields.io/badge/NativeAOT-Compatible-brightgreen?style=for-the-badge)](https://learn.microsoft.com/en-us/dotnet/core/deploying/native-aot)
-
-</div>
 
 ---
 
@@ -103,7 +97,7 @@ In enterprise .NET applications, managing business rule violations, input valida
 
 - 🚀 **Zero-Allocation Envelope**: Core `Result` and `Result<TValue>` are `readonly struct` value types — zero heap allocation for success results.
 - ⚡ **Closure-Free `TState` Pipeline**: All monadic operators (`Map`, `Bind`, `TapOnSuccess`, `TapOnFailure`, `Match`, `Execute`, `Ensure`, `Recover`) offer `TState` overloads to completely eliminate lambda closure allocations in hot execution paths.
-- 🔒 **Rich Enterprise Error Taxonomy**: Sealed `Error` class featuring `ErrorType`, `ErrorSeverity`, `ErrorRetryability`, lazy zero-alloc `TraceId` (ambient `Activity`), `CorrelationId`, localized keys (`DescriptionKey` - see [i18n guide](docs/internationalization.md)), and immutable `Metadata`.
+- 🔒 **Rich Enterprise Error Taxonomy**: Sealed `Error` class featuring `ErrorType`, `ErrorSeverity`, `ErrorRetryability`, lazy zero-alloc `TraceId` (ambient `Activity`), `CorrelationId`, localized keys (`DescriptionKey` - see [i18n guide](https://github.com/ericksonlopezf/dotnet-result/blob/main/docs/internationalization.md)), and immutable `Metadata`.
 - 🧩 **Span-Based `Result.Combine` & `Result.ValidateAll`**: Aggregates multiple validation failures or typed tuple results using `ArrayPool<Error>` to eliminate temporary array allocations.
 - 🌐 **ASP.NET Core RFC 9457 Integration**: Automatic mapping of `Result` to HTTP responses (`200 OK`, `400 Bad Request`, `401 Unauthorized`, `403 Forbidden`, `404 Not Found`, `409 Conflict`, `503 Unavailable`, `500 Server Error`).
 - 📊 **First-Class OpenTelemetry**: BCL-only ambient trace capture (`Error.TraceId`) and optional `ActivitySource` metrics counters via `EricksonLopez.Result.OpenTelemetry`.
@@ -142,35 +136,35 @@ In enterprise .NET applications, managing business rule violations, input valida
 
 | Level | Topic | Description |
 |---|---|---|
-| [**Level 00**](docs/showcase/level-00-introduction.md) | **Architecture & Philosophy** | Railway-Oriented Programming (ROP) vs Exceptions and zero-allocation struct guarantees |
-| [**Level 01**](docs/showcase/level-01-getting-started.md) | **Getting Started & Primitives** | Basic `Result` and `Result<T>` creation, error factories, and value unwrapping |
-| [**Level 02**](docs/showcase/level-02-domain-modeling-and-errors.md) | **Domain Modeling & Errors** | Rich error taxonomy, severity, retryability, and lazy ambient trace correlation |
-| [**Level 03**](docs/showcase/level-03-railway-pipelines.md) | **Railway Pipelines & Monads** | Monadic combinators (`Bind`, `Map`, `Tap`, `Ensure`), closure-free `TState`, and LINQ |
-| [**Level 04**](docs/showcase/level-04-compound-validation-and-maybe.md) | **Validation & Maybe Monad** | Fail-all `Result.ValidateAll` aggregation and `Maybe<T>` option type interop |
-| [**Level 05**](docs/showcase/level-05-aspnetcore-problem-details.md) | **ASP.NET Core & RFC 9457** | Minimal APIs `.ToHttpResult()`, status code mapping, and transparent endpoint filters |
-| [**Level 06**](docs/showcase/level-06-integrations.md) | **Integrations & Analyzers** | FluentValidation, MediatR pipeline behaviors, and Roslyn diagnostic rules (`RESULT001–012`) |
-| [**Level 07**](docs/showcase/level-07-native-aot-and-serialization.md) | **Native AOT & Serialization** | Zero-reflection `System.Text.Json` source generation and trimming compliance |
-| [**Level 08**](docs/showcase/level-08-telemetry-and-testing.md) | **Telemetry & Fluent Testing** | OpenTelemetry activity tracing, metrics counters, and fluent unit testing assertions |
+| [**Level 00**](https://github.com/ericksonlopezf/dotnet-result/blob/main/docs/showcase/level-00-introduction.md) | **Architecture & Philosophy** | Railway-Oriented Programming (ROP) vs Exceptions and zero-allocation struct guarantees |
+| [**Level 01**](https://github.com/ericksonlopezf/dotnet-result/blob/main/docs/showcase/level-01-getting-started.md) | **Getting Started & Primitives** | Basic `Result` and `Result<T>` creation, error factories, and value unwrapping |
+| [**Level 02**](https://github.com/ericksonlopezf/dotnet-result/blob/main/docs/showcase/level-02-domain-modeling-and-errors.md) | **Domain Modeling & Errors** | Rich error taxonomy, severity, retryability, and lazy ambient trace correlation |
+| [**Level 03**](https://github.com/ericksonlopezf/dotnet-result/blob/main/docs/showcase/level-03-railway-pipelines.md) | **Railway Pipelines & Monads** | Monadic combinators (`Bind`, `Map`, `Tap`, `Ensure`), closure-free `TState`, and LINQ |
+| [**Level 04**](https://github.com/ericksonlopezf/dotnet-result/blob/main/docs/showcase/level-04-compound-validation-and-maybe.md) | **Validation & Maybe Monad** | Fail-all `Result.ValidateAll` aggregation and `Maybe<T>` option type interop |
+| [**Level 05**](https://github.com/ericksonlopezf/dotnet-result/blob/main/docs/showcase/level-05-aspnetcore-problem-details.md) | **ASP.NET Core & RFC 9457** | Minimal APIs `.ToHttpResult()`, status code mapping, and transparent endpoint filters |
+| [**Level 06**](https://github.com/ericksonlopezf/dotnet-result/blob/main/docs/showcase/level-06-integrations.md) | **Integrations & Analyzers** | FluentValidation, MediatR pipeline behaviors, and Roslyn diagnostic rules (`RESULT001–012`) |
+| [**Level 07**](https://github.com/ericksonlopezf/dotnet-result/blob/main/docs/showcase/level-07-native-aot-and-serialization.md) | **Native AOT & Serialization** | Zero-reflection `System.Text.Json` source generation and trimming compliance |
+| [**Level 08**](https://github.com/ericksonlopezf/dotnet-result/blob/main/docs/showcase/level-08-telemetry-and-testing.md) | **Telemetry & Fluent Testing** | OpenTelemetry activity tracing, metrics counters, and fluent unit testing assertions |
 
 ### 📖 Technical Reference & Architecture Guides
 
-- [**Architecture & Invariants**](docs/architecture.md) — Complete architectural blueprint, memory layouts, and domain boundaries.
-- [**Architectural Decision Records (ADRs)**](docs/adr/) — 21 ADRs documenting design rationale and rejected proposals.
-- [**Technical Audit**](docs/audit.md) — Comprehensive technical audit, guarantees, and verification.
-- [**Competitive Audit**](docs/competitive-audit.md) — In-depth market comparison vs CSharpFunctionalExtensions, FluentResults, ErrorOr, OneOf, etc.
-- [**Feature Catalog & Specs**](docs/features.md) — Exhaustive specification of all core types, monads, and extensions.
-- [**Features & Compatibility Matrix**](docs/features-matrix.md) — Target framework matrix, diagnostics, and HTTP status codes.
-- [**Testing & Quality Audit**](docs/quality-audit.md) — Verification topology, fast-path/slow-path testing, and mutation metrics.
-- [**Best Practices Guide**](docs/best-practices.md) — Recommended production patterns for microservices and domain logic.
-- [**Anti-Patterns Guide**](docs/anti-patterns.md) — Unsafe patterns, state bugs, and pitfalls to avoid.
-- [**Cookbook & Recipes**](docs/cookbook.md) — Ready-to-use recipes for ASP.NET Core, OpenTelemetry, testing, and LINQ syntax.
-- [**Roslyn Analyzers Reference**](docs/analyzers.md) — Detailed specifications and remediation steps for diagnostic rules RESULT001–012.
-- [**Internationalization (i18n)**](docs/internationalization.md) — Multi-language localized error messages using `DescriptionKey`.
-- [**Migration Guide**](docs/migration-guide.md) — Step-by-step guide for migrating from raw exceptions, FluentResults, or ErrorOr.
-- [**Allocation Analysis**](docs/analysis/allocations.md) — Deep dive into memory benchmarks, struct layout, and zero-allocation mechanics.
-- [**Mutation Score Report**](docs/mutation-score.md) — Detailed Stryker.NET mutation score verification across all 44 functional units.
-- [**Package Reference**](docs/package-reference.md) — Full dependency graph and per-package metadata for all 14 NuGet packages.
-- [**CI/CD & Build Pipeline**](docs/cicd.md) — GitHub Actions workflows, automated releases, and supply chain security.
+- [**Architecture & Invariants**](https://github.com/ericksonlopezf/dotnet-result/blob/main/docs/architecture.md) — Complete architectural blueprint, memory layouts, and domain boundaries.
+- [**Architectural Decision Records (ADRs)**](https://github.com/ericksonlopezf/dotnet-result/tree/main/docs/adr) — 21 ADRs documenting design rationale and rejected proposals.
+- [**Technical Audit**](https://github.com/ericksonlopezf/dotnet-result/blob/main/docs/audit.md) — Comprehensive technical audit, guarantees, and verification.
+- [**Competitive Audit**](https://github.com/ericksonlopezf/dotnet-result/blob/main/docs/competitive-audit.md) — In-depth market comparison vs CSharpFunctionalExtensions, FluentResults, ErrorOr, OneOf, etc.
+- [**Feature Catalog & Specs**](https://github.com/ericksonlopezf/dotnet-result/blob/main/docs/features.md) — Exhaustive specification of all core types, monads, and extensions.
+- [**Features & Compatibility Matrix**](https://github.com/ericksonlopezf/dotnet-result/blob/main/docs/features-matrix.md) — Target framework matrix, diagnostics, and HTTP status codes.
+- [**Testing & Quality Audit**](https://github.com/ericksonlopezf/dotnet-result/blob/main/docs/quality-audit.md) — Verification topology, fast-path/slow-path testing, and mutation metrics.
+- [**Best Practices Guide**](https://github.com/ericksonlopezf/dotnet-result/blob/main/docs/best-practices.md) — Recommended production patterns for microservices and domain logic.
+- [**Anti-Patterns Guide**](https://github.com/ericksonlopezf/dotnet-result/blob/main/docs/anti-patterns.md) — Unsafe patterns, state bugs, and pitfalls to avoid.
+- [**Cookbook & Recipes**](https://github.com/ericksonlopezf/dotnet-result/blob/main/docs/cookbook.md) — Ready-to-use recipes for ASP.NET Core, OpenTelemetry, testing, and LINQ syntax.
+- [**Roslyn Analyzers Reference**](https://github.com/ericksonlopezf/dotnet-result/blob/main/docs/analyzers.md) — Detailed specifications and remediation steps for diagnostic rules RESULT001–012.
+- [**Internationalization (i18n)**](https://github.com/ericksonlopezf/dotnet-result/blob/main/docs/internationalization.md) — Multi-language localized error messages using `DescriptionKey`.
+- [**Migration Guide**](https://github.com/ericksonlopezf/dotnet-result/blob/main/docs/migration-guide.md) — Step-by-step guide for migrating from raw exceptions, FluentResults, or ErrorOr.
+- [**Allocation Analysis**](https://github.com/ericksonlopezf/dotnet-result/blob/main/docs/analysis/allocations.md) — Deep dive into memory benchmarks, struct layout, and zero-allocation mechanics.
+- [**Mutation Score Report**](https://github.com/ericksonlopezf/dotnet-result/blob/main/docs/mutation-score.md) — Detailed Stryker.NET mutation score verification across all 44 functional units.
+- [**Package Reference**](https://github.com/ericksonlopezf/dotnet-result/blob/main/docs/package-reference.md) — Full dependency graph and per-package metadata for all 14 NuGet packages.
+- [**CI/CD & Build Pipeline**](https://github.com/ericksonlopezf/dotnet-result/blob/main/docs/cicd.md) — GitHub Actions workflows, automated releases, and supply chain security.
 
 ---
 
@@ -801,7 +795,7 @@ The test suite enforces rigorous quality guarantees verified across CI/CD:
 | `EricksonLopez.Result.Serialization` | ✅ | ✅ | ✅ | ⚠️ Partial | ⚠️ Partial | Use explicit `ResultOfTJsonConverter<T>` for AOT |
 | `EricksonLopez.Result.Serialization.Generators` | `netstandard2.0` | `netstandard2.0` | `netstandard2.0` | ✅ Tool | ✅ Tool | Roslyn Source Generator (compile time) |
 | `EricksonLopez.Result.FluentValidation` | ✅ | ✅ | ✅ | ✅ Certified | ✅ Certified | No reflection in mapping layer |
-| `EricksonLopez.Result.MediatR` | ✅ | ✅ | ✅ | ❌ No | ❌ No | MediatR uses dynamic reflection ([ADR-018](docs/adr/adr-018-result-mediatr-non-aot-governance-and-deprecation-roadmap.md)) |
+| `EricksonLopez.Result.MediatR` | ✅ | ✅ | ✅ | ❌ No | ❌ No | MediatR uses dynamic reflection ([ADR-018](https://github.com/ericksonlopezf/dotnet-result/blob/main/docs/adr/adr-018-result-mediatr-non-aot-governance-and-deprecation-roadmap.md)) |
 | `EricksonLopez.Result.Testing` | ✅ | ✅ | ✅ | ❌ Test Only | ❌ Test Only | Test assertions library |
 | `EricksonLopez.Result.Testing.XUnit` | ✅ | ✅ | ✅ | ❌ Test Only | ❌ Test Only | xUnit test runner adapter |
 | `EricksonLopez.Result.Testing.NUnit` | ✅ | ✅ | ✅ | ❌ Test Only | ❌ Test Only | NUnit test runner adapter |
@@ -943,10 +937,10 @@ We welcome contributions, bug reports, documentation improvements, and feature s
    dotnet stryker
    ```
 
-Please read our [Contributing Guide](CONTRIBUTING.md) and [Code of Conduct](CODE_OF_CONDUCT.md) before submitting pull requests.
+Please read our [Contributing Guide](https://github.com/ericksonlopezf/dotnet-result/blob/main/CONTRIBUTING.md) and [Code of Conduct](https://github.com/ericksonlopezf/dotnet-result/blob/main/CODE_OF_CONDUCT.md) before submitting pull requests.
 
 ---
 
 ## 📄 License
 
-Distributed under the [MIT License](LICENSE). Copyright © 2026 Erickson Lopez.
+Distributed under the [MIT License](https://github.com/ericksonlopezf/dotnet-result/blob/main/LICENSE). Copyright © 2026 Erickson Lopez.

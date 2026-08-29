@@ -16,7 +16,7 @@
       so failed assertions appear as "Failure" (not "Error") in xUnit's test output,
       producing cleaner assertion messages without unnecessary stack traces.
     </Description>
-    <PackageProjectUrl>https://github.com/ericksonlopezf/dotnet-result</PackageProjectUrl>
+    <PackageProjectUrl>https://ericksonlopez.dev/result</PackageProjectUrl>
     <RepositoryUrl>https://github.com/ericksonlopezf/dotnet-result</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>

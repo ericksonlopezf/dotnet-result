@@ -13,7 +13,7 @@ name: Publish NuGet
 #   Maintainer merges Release PR →
 #   release-please creates GitHub Release + tag vX.Y.Z →
 #   release-please triggers this workflow via workflow_dispatch →
-#   Pack → Sign → Attest → Publish to NuGet.org
+#   Verify Mutation Gate (run Stryker if needed) → Pack → Sign → Attest → Publish to NuGet.org
 # ─────────────────────────────────────────────────────────────────────────────────
 
 on:
@@ -32,15 +32,64 @@ env:
   DOTNET_SKIP_FIRST_TIME_EXPERIENCE: true
 
 jobs:
+  # ─── Job 1: Verify Stryker Mutation Quality Gate on main ────────────────────
+  mutation-gate-check:
+    name: Verify Mutation Quality Gate
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      statuses: read
+      actions: read
+    outputs:
+      needs_stryker: ${{ steps.check.outputs.needs_stryker }}
+      can_proceed: ${{ steps.check.outputs.can_proceed }}
+      evaluated_commit: ${{ steps.check.outputs.evaluated_commit }}
+      mutation_score: ${{ steps.check.outputs.mutation_score }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Evaluate Mutation Quality Gate on main
+        id: check
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const verifyMutationGate = require('./scripts/verify-mutation-gate.js');
+            await verifyMutationGate({ github, context, core });
+
+  # ─── Job 2: Conditional Stryker Execution if needed ────────────────────────
+  stryker-gate:
+    name: Run Stryker Mutation Gate (Conditional)
+    needs: mutation-gate-check
+    if: needs.mutation-gate-check.outputs.needs_stryker == 'true'
+    permissions:
+      contents: read
+      statuses: write
+      actions: read
+    uses: ./.github/workflows/mutation-testing.yml
+    with:
+      mutation-level: "Standard"
+
+  # ─── Job 3: Publish to NuGet (Strict Quality Gate Required) ────────────────
   publish:
     name: Pack & Publish
+    needs: [mutation-gate-check, stryker-gate]
+    if: |
+      always() &&
+      (needs.mutation-gate-check.result == 'success') &&
+      (
+        (needs.mutation-gate-check.outputs.needs_stryker == 'false' && needs.mutation-gate-check.outputs.can_proceed == 'true') ||
+        (needs.mutation-gate-check.outputs.needs_stryker == 'true' && needs.stryker-gate.result == 'success')
+      )
     runs-on: ubuntu-latest
     permissions:
       id-token: write        # Required for Sigstore OIDC attestation
       contents: write        # Required for GitHub Release creation
       attestations: write    # Required for actions/attest-build-provenance
-      statuses: read         # Required to query commit statuses for Stryker quality gate
-      actions: read          # Required to query workflow runs for Stryker quality gate
+      statuses: read
+      actions: read
 
     steps:
       - name: Checkout
@@ -67,21 +116,10 @@ jobs:
             echo "Resolved version from git tag: $VERSION"
           else
             # Fallback: read from Directory.Build.props
-            VERSION=$(grep -oP '(?<=<VersionPrefix>)[^<]+' Directory.Build.props)
+            VERSION=$(grep -oP '(?<=<VersionPrefix>)[^<]+' Directory.Build.props || echo "1.0.0")
             echo "VERSION=$VERSION" >> $GITHUB_OUTPUT
             echo "Resolved version from Directory.Build.props: $VERSION"
           fi
-
-      # ─── Validate Stryker Mutation Testing Quality Gate ───────────────────────
-      # Validates that the code being released has passed Stryker mutation testing
-      # (score >= 95% break threshold) on main. Re-running a 1+ hour test is avoided.
-      - name: Validate Stryker Mutation Quality Gate
-        id: mutation-gate
-        uses: actions/github-script@v7
-        with:
-          script: |
-            const verifyMutationGate = require('./scripts/verify-mutation-gate.js');
-            await verifyMutationGate({ github, context, core });
 
       - name: Setup .NET
         uses: actions/setup-dotnet@v4
@@ -134,7 +172,7 @@ jobs:
       - name: Pack All Packages
         run: |
           VERSION="${{ steps.version.outputs.VERSION }}"
-          PACK_ARGS="--no-build --configuration Release --output ./nupkgs -p:VersionPrefix=$VERSION"
+          PACK_ARGS="--no-build --configuration Release --output ./nupkgs -p:VersionPrefix=$VERSION -p:TreatWarningsAsErrors=true"
           dotnet pack src/EricksonLopez.Result/EricksonLopez.Result.csproj $PACK_ARGS
           dotnet pack src/EricksonLopez.Result.Generic/EricksonLopez.Result.Generic.csproj $PACK_ARGS
           dotnet pack src/EricksonLopez.Result.Maybe/EricksonLopez.Result.Maybe.csproj $PACK_ARGS

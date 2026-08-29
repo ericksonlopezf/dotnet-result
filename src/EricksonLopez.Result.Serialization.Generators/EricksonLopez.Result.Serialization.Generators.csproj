@@ -11,7 +11,7 @@
     <Company>Erickson Lopez</Company>
     <Copyright>Copyright © 2026 Erickson Lopez</Copyright>
     <Description>Roslyn source generator for AOT-compatible Result&lt;T&gt; JSON serialization. Eliminates reflection-based MakeGenericType/Activator.CreateInstance usage.</Description>
-    <PackageProjectUrl>https://github.com/ericksonlopezf/dotnet-result</PackageProjectUrl>
+    <PackageProjectUrl>https://ericksonlopez.dev/result</PackageProjectUrl>
     <RepositoryUrl>https://github.com/ericksonlopezf/dotnet-result</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>

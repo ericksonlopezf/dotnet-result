@@ -12,7 +12,7 @@
     <Company>Erickson Lopez</Company>
     <Copyright>Copyright © 2026 Erickson Lopez</Copyright>
     <Description>Roslyn analyzers and code fixes for EricksonLopez.Result: detects closure allocations in Result pipelines (RESULT004), discarded ErrorBuilder return values with auto-fix (RESULT003), oversized Result value types (RESULT001), chained Error.WithMetadata() allocations (RESULT005), chained ErrorBuilder.WithInnerError() patterns (RESULT006), HashSet&lt;Error&gt;/Dictionary&lt;Error,...&gt; and LINQ Distinct/GroupBy/ToHashSet without ErrorEqualityComparer.Strict (RESULT007), endpoint filter OpenAPI degradation (RESULT008), and ResultHttpOptions.IncludeDescription=true without environment guard (RESULT009 - security).</Description>
-    <PackageProjectUrl>https://github.com/ericksonlopezf/dotnet-result</PackageProjectUrl>
+    <PackageProjectUrl>https://ericksonlopez.dev/result</PackageProjectUrl>
     <RepositoryUrl>https://github.com/ericksonlopezf/dotnet-result</RepositoryUrl>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageTags>$(CommonPackageTags);roslyn;analyzers;analyzer;code-fix;code-fixes;static-analysis;code-analysis;developer-tools;diagnostics</PackageTags>

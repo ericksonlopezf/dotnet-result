@@ -4,7 +4,7 @@
     <DataCollectors>
       <DataCollector friendlyName="XPlat code coverage">
         <Configuration>
-          <Exclude>[EricksonLopez.Result.AspNetCore]EricksonLopez.Result.AspNetCore.AspNetCoreJsonSerializerContext*</Exclude>
+          <Exclude>[*Tests*]*</Exclude>
         </Configuration>
       </DataCollector>
     </DataCollectors>

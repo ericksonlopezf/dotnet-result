@@ -11,7 +11,7 @@
     <Company>Erickson Lopez</Company>
     <Copyright>Copyright © 2026 Erickson Lopez</Copyright>
     <Description>An ultra-high performance, struct-based, enterprise-grade Result pattern implementation for modern .NET.</Description>
-    <PackageProjectUrl>https://github.com/ericksonlopezf/dotnet-result</PackageProjectUrl>
+    <PackageProjectUrl>https://ericksonlopez.dev/result</PackageProjectUrl>
     <RepositoryUrl>https://github.com/ericksonlopezf/dotnet-result</RepositoryUrl>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageTags>$(CommonPackageTags);monad;monadic-pipeline;struct;zero-allocation;high-performance;native-aot;trimming;domain-errors;validation</PackageTags>

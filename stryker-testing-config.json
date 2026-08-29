@@ -1,8 +1,8 @@
 {
   "stryker-config": {
-    "project": "EricksonLopez.Result.csproj",
+    "project": "EricksonLopez.Result.Testing.csproj",
     "test-projects": [
-      "EricksonLopez.Result.Tests.csproj"
+      "EricksonLopez.Result.Testing.Tests.csproj"
     ],
     "mutate": [
       "**/*.cs",
@@ -21,10 +21,6 @@
       "json",
       "cleartext",
       "progress"
-    ],
-    "ignore-methods": [
-      "ConfigureAwait",
-      "Dispose"
     ]
   }
 }

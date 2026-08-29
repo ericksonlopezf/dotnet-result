@@ -1,6 +1,8 @@
 # Copyright © Erickson Lopez. MIT License.
 # ─── Release Please ─────────────────────────────────────────────────────────────
-# Automates version management and CHANGELOG generation using Conventional Commits.
+# Automates version management and GitHub Releases using Conventional Commits.
+# (CHANGELOG.md is maintained manually following Keep a Changelog format,
+#  so skip-changelog is enabled in .release-please-config.json).
 #
 # How it works:
 #   1. On every push to `main`, this workflow analyses commit messages using
@@ -13,7 +15,6 @@
 #        - chore:, docs:, test:, refactor:, perf:  → no version bump
 #   3. It creates or updates a "Release PR" that contains:
 #        - A version bump commit in `Directory.Build.props`
-#        - An updated CHANGELOG.md section
 #   4. When the maintainer merges the Release PR, Release Please automatically:
 #        - Tags the merge commit with the new version (e.g., v1.2.3)
 #        - Creates a GitHub Release with the generated release notes

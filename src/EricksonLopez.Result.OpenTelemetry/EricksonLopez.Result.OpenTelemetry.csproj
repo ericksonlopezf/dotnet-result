@@ -11,7 +11,7 @@
     <Company>Erickson Lopez</Company>
     <Copyright>Copyright © 2026 Erickson Lopez</Copyright>
     <Description>OpenTelemetry ActivitySource tracing and Metrics integration for EricksonLopez.Result.</Description>
-    <PackageProjectUrl>https://github.com/ericksonlopezf/dotnet-result</PackageProjectUrl>
+    <PackageProjectUrl>https://ericksonlopez.dev/result</PackageProjectUrl>
     <RepositoryUrl>https://github.com/ericksonlopezf/dotnet-result</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>

@@ -4,6 +4,17 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.0.0](https://github.com/ericksonlopezf/dotnet-result/compare/v1.0.0...v2.0.0) (2026-08-24)
+
+
+### ⚠ BREAKING CHANGES
+
+* introduce comprehensive Result framework with analyzers, serialization generators, and integration supporty
+
+### ✨ Features
+
+* introduce comprehensive Result framework with analyzers, serialization generators, and integration supporty ([ed8fe87](https://github.com/ericksonlopezf/dotnet-result/commit/ed8fe879144fc1f32a4116f0026f8d907f0377b5))
+
 ## [Unreleased]
 
 ## [2.0.0] - 2026-08-23
