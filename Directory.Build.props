@@ -6,8 +6,8 @@
          This is the AUTHORITATIVE source of truth for the version number.
          Update any documentation (docs/audit.md, ADRs, README badges) to match this value
          whenever VersionPrefix or VersionSuffix changes. -->
-    <VersionPrefix>2.0.0</VersionPrefix>
-    <VersionSuffix></VersionSuffix>
+    <VersionPrefix>3.0.0</VersionPrefix>
+    <VersionSuffix/>
 
     <!-- NuGet package metadata -->
     <Authors>Erickson Lopez</Authors>
@@ -59,17 +59,12 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <None Include="$(MSBuildThisFileDirectory)README.md" Pack="true" PackagePath="\" Visible="false" />
-    <None Include="$(MSBuildThisFileDirectory)icon.png" Pack="true" PackagePath="\" Visible="false" />
-    <PackageReference Include="Microsoft.SourceLink.GitHub" PrivateAssets="All" />
+    <None Include="$(MSBuildThisFileDirectory)README.md" Pack="true" PackagePath="\" Visible="false"/>
+    <None Include="$(MSBuildThisFileDirectory)icon.png" Pack="true" PackagePath="\" Visible="false"/>
+    <PackageReference Include="Microsoft.SourceLink.GitHub" PrivateAssets="All"/>
   </ItemGroup>
 
   <PropertyGroup Condition="'$(CollectCoverage)' == 'true' or '$(DisableOptimization)' == 'true'">
     <Optimize>false</Optimize>
   </PropertyGroup>
 </Project>
-
-
-
-
-
