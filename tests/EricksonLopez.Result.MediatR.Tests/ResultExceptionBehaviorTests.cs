@@ -126,9 +126,11 @@ public class ResultExceptionBehaviorTests
     {
         // Calling BuildFailureFactory directly via reflection for non-Result and generic types
         var method = typeof(ResultExceptionBehavior<NonResultRequest, string>).GetMethod("BuildFailureFactory", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Static)!;
-        method.Invoke(null, null);
+        var res1 = method.Invoke(null, null);
+        res1.Should().BeNull();
 
         var method2 = typeof(ResultExceptionBehavior<DummyListRequest, List<string>>).GetMethod("BuildFailureFactory", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Static)!;
-        method2.Invoke(null, null);
+        var res2 = method2.Invoke(null, null);
+        res2.Should().BeNull();
     }
 }

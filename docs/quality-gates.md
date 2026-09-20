@@ -44,9 +44,9 @@ ignore:
 
 ## 2. Mutation Testing (Stryker.NET)
 
-### Configuration (`stryker-config.json`)
+### Configuration & Multi-Package Architecture
 
-Stryker.NET validates test suite effectiveness by introducing logical mutations into the code base:
+Stryker.NET validates test suite effectiveness by introducing logical mutations into the code base. In addition to the root `stryker-config.json`, each package maintains an individual `stryker-*-config.json` profile (20 total configuration files across the repository) to support targeted mutation testing per package:
 
 ```json
 {
@@ -86,9 +86,9 @@ Stryker.NET validates test suite effectiveness by introducing logical mutations 
 
 | Scope | Trigger | Behavior | Quality Gate Policy |
 |---|---|---|---|
-| **Pull Requests** | `pull_request` to `main`, `develop` | Fast CI only (`build`, `test`, `coverage`, `aot-smoke-test`). | **Stryker is NOT run** on PRs to avoid blocking merges with 60+ min runs. |
-| **`main` Branch** | `push` to `main`, `workflow_dispatch`, weekly cron | Runs `mutation-testing.yml` asynchronously. Sets commit status. | Score $< 95\%$ fails the workflow job. Score $\ge 95\%$ passes. |
-| **Release** | Tag `v*.*.*`, `workflow_dispatch` | Validates the latest valid mutation score recorded for `main`. | **Score $\ge 95\%$ permits release**; score $< 95\%$ or no test blocks release. No redundant re-run. |
+| **Pull Requests** | `pull_request` to `main`, `develop` | Targeted execution via `detect-affected-projects.ps1`. | **Stryker runs dynamically** on modified packages only (skips automatically on docs-only diffs). Score $< 95\%$ fails PR gate. |
+| **`main` Branch** | `push` to `main`, `workflow_dispatch`, weekly cron | Runs `mutation-testing.yml` across all 20 packages in parallel. Sets commit status. | Score $< 95\%$ fails the workflow job. Score $\ge 95\%$ passes. |
+| **Release** | Tag `v*.*.*`, `workflow_dispatch` | Validates the latest valid mutation score recorded for `main` via `verify-mutation-gate.js`. | **Score $\ge 95\%$ permits release**; score $< 95\%$ or missing evidence triggers inline Stryker run or blocks release. |
 
 ---
 
@@ -108,15 +108,15 @@ Stryker.NET validates test suite effectiveness by introducing logical mutations 
 ### SonarCloud Integration
 
 Integrated in CI workflows via `dotnet-sonarscanner`:
-- **Organization**: `ericksonlopez`
-- **Project Key**: `ericksonlopez_dotnet-result`
+- **Organization**: `ericksonlopezf`
+- **Project Key**: `ericksonlopezf_dotnet-result`
 - **Coverage Format**: OpenCover XML (`**/coverage.opencover.xml`)
 
 ---
 
 ## 4. Custom Roslyn Analyzers & Code Fixes
 
-The repository ships custom Roslyn analyzers in `EricksonLopez.Result.Analyzers` and source generators in `EricksonLopez.Result.Serialization.Generators`:
+The repository ships custom Roslyn analyzers in `EricksonLopez.Result.Analyzers` and source generators in `EricksonLopez.Result.Serialization.Generators` and `EricksonLopez.Result.DomainErrors.Generators`:
 
 | Diagnostic ID | Category | Severity | Description | Code Fix Available |
 |---|---|---|---|---|
@@ -125,11 +125,12 @@ The repository ships custom Roslyn analyzers in `EricksonLopez.Result.Analyzers`
 | `RESULT004` | Performance | Warning | Lambda expression captures outer variable in Result pipeline (closure allocation). | `ClosureCaptureCodeFix` (Make static / insert TState guidance) |
 | `RESULT005` | Performance | Warning | `Error.WithMetadata()` / `ErrorBuilder.WithMetadata()` chained 3+ times consecutively. | No |
 | `RESULT006` | Performance | Warning | `ErrorBuilder.WithInnerError()` chained 2+ times consecutively without batching. | No |
-| `RESULT007` | Reliability | Warning | `HashSet<Error>`, `Distinct()`, `GroupBy()`, or `ToHashSet()` used without `ErrorEqualityComparer.Strict`. | No |
+| `RESULT007` | Reliability | Warning | `HashSet<Error>`, `Distinct()`, `GroupBy()`, or `ToHashSet()` used without `ErrorEqualityComparer.Strict`. | `HashSetErrorEqualityCodeFix` (Add `Strict` or `Default` comparer) |
 | `RESULT008` | Usage | Warning | Endpoint returning `Result<T>` uses `AddResultEndpointFilter()` without `.Produces<T>()`. | No |
 | `RESULT009` | Security | Warning | `IncludeDescription = true` set without environment guard — potential information disclosure. | No |
 | `RESULT010` | Security | Warning | `ResultExceptionBehavior` default error factory may expose internal exception type names. | No |
-| `RESULT012` | Usage | Warning | Method returning `default(Result)` or `default(Result<T>)` — uninitialized state bug. | No |
+| `RESULT012` | Usage | Warning | Method returning `default(Result)` or `default(Result<T>)` — uninitialized state bug. | `DefaultResultReturnCodeFix` (Replace with `Result.Success` or `Result.Failure`) |
+| `RESULT013` | Usage | Warning | Avoid implicit bool conversion of `Result` in condition contexts. | `BoolOperatorUsageCodeFix` (Replace with `.IsSuccess` / `.IsFailure`) |
 | `RESULT_OTEL_001` | Observability | Info | `TraceOutcome()` called without `ResultMetrics` registered. | No |
 | `RESULT_GEN_001` | Usage | Warning | `[JsonSerializable(typeof(Result))]` on serializer context has no effect (non-generic Result is handled automatically). | No |
 

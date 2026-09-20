@@ -13,7 +13,7 @@ using Microsoft.CodeAnalysis.Text;
 namespace EricksonLopez.Result.Serialization.Generators;
 
 /// <summary>
-/// Incremental source generator that scans for <c>[JsonSerializable(typeof(Result&lt;T&gt;))]</c> attributes
+/// Represents an incremental source generator that scans for <c>[JsonSerializable(typeof(Result&lt;T&gt;))]</c> attributes
 /// on <c>JsonSerializerContext</c> subclasses and generates a companion extension method that registers
 /// the required <c>ResultOfTJsonConverter&lt;T&gt;</c> instances — eliminating the reflection-based
 /// <c>MakeGenericType</c> + <c>Activator.CreateInstance</c> in <c>ResultJsonConverterFactory</c>.
@@ -45,7 +45,7 @@ public sealed class ResultJsonConverterGenerator : IIncrementalGenerator
     private const string JsonSerializerContext = "System.Text.Json.Serialization.JsonSerializerContext";
 
     /// <summary>
-    /// The version of this generator assembly, read once at class initialization time.
+    /// Gets the version of this generator assembly, read once at class initialization time.
     /// Used in <c>[GeneratedCode]</c> attributes of generated files so consumers can identify
     /// which version of the generator produced a given file.
     /// </summary>
@@ -336,7 +336,7 @@ public sealed class ResultJsonConverterGenerator : IIncrementalGenerator
         sb.AppendLine("{");
         sb.AppendLine("    /// <summary>");
         sb.AppendLine("    /// Adds all required Result JSON converters to the specified options.");
-        sb.AppendLine("    /// This method is AOT-safe and does not use reflection.");
+        sb.AppendLine("    /// Provides AOT-safe configuration without reflection.");
         sb.AppendLine("    /// Uses the source-generated JsonTypeInfo from the context for each Result&lt;T&gt; type.");
         sb.AppendLine("    /// </summary>");
         sb.AppendLine("    /// <param name=\"options\">The serializer options to configure.</param>");

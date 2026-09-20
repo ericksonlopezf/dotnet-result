@@ -8,13 +8,13 @@ using Microsoft.CodeAnalysis.Operations;
 namespace EricksonLopez.Result.Analyzers;
 
 /// <summary>
-/// Roslyn diagnostic analyzer (RESULT012) that warns when <c>default</c> or <c>default(Result)</c> is returned
+/// Represents a Roslyn diagnostic analyzer (RESULT012) that warns when <c>default</c> or <c>default(Result)</c> is returned
 /// from a method returning <see cref="Result"/> or <c>Result&lt;T&gt;</c>.
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
 public sealed class DefaultResultReturnAnalyzer : DiagnosticAnalyzer
 {
-    /// <summary>The diagnostic identifier for this analyzer rule.</summary>
+    /// <summary>Gets the diagnostic identifier for this analyzer rule.</summary>
     public const string DiagnosticId = "RESULT012";
 
     private static readonly DiagnosticDescriptor Rule = new(

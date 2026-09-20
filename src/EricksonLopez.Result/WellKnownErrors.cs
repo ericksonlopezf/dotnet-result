@@ -4,17 +4,17 @@ using System;
 namespace EricksonLopez.Result;
 
 /// <summary>
-/// Contains well-known error codes and system error constants used by the Result framework.
+/// Provides well-known error codes and system error constants used by the Result framework.
 /// </summary>
 public static class WellKnownErrors
 {
     /// <summary>
-    /// Error code used when multiple results are combined and one or more failures occur.
+    /// Gets the error code used when multiple results are combined and one or more failures occur.
     /// </summary>
     public const string CombinedFailuresCode = "Result.CombinedErrors";
 
     /// <summary>
-    /// Error instance used when an uninitialized result is accessed.
+    /// Gets the error instance used when an uninitialized result is accessed.
     /// </summary>
     /// <remarks>
     /// Uses <see cref="Error.CreateSentinel"/> to avoid capturing <see cref="System.Diagnostics.Activity.Current"/>

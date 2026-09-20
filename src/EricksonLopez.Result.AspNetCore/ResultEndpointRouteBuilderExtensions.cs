@@ -8,7 +8,7 @@ using Microsoft.AspNetCore.Routing;
 namespace EricksonLopez.Result.AspNetCore;
 
 /// <summary>
-/// Extension methods for configuring Result endpoints on an <see cref="IEndpointRouteBuilder"/>.
+/// Provides extension methods for configuring Result endpoints on route builders.
 /// </summary>
 public static class ResultEndpointRouteBuilderExtensions
 {
@@ -81,7 +81,7 @@ public static class ResultEndpointRouteBuilderExtensions
     /// and a <see cref="Microsoft.AspNetCore.Mvc.ProblemDetails"/> on failure (400 Bad Request).
     /// </summary>
     /// <remarks>
-    /// This method is an ergonomic wrapper around <c>.Produces&lt;T&gt;()</c> and <c>.Produces&lt;ProblemDetails&gt;()</c>
+    /// Serves as an ergonomic wrapper around <c>.Produces&lt;T&gt;()</c> and <c>.Produces&lt;ProblemDetails&gt;()</c>
     /// to fix the OpenAPI degradation (schema <c>object</c>) introduced by <see cref="AddResultEndpointFilter(RouteHandlerBuilder)"/>.
     /// </remarks>
     /// <typeparam name="T">The success response type.</typeparam>

@@ -320,7 +320,8 @@ public class ErrorJsonConverterTests
             .Build();
 
         var opt = new System.Text.Json.JsonSerializerOptions(); opt.Converters.Add(new EricksonLopez.Result.Serialization.ErrorJsonConverter());
-        System.Text.Json.JsonSerializer.Serialize(e, opt);
+        var json = System.Text.Json.JsonSerializer.Serialize(e, opt);
+        json.Should().NotBeNullOrEmpty();
     }
 
     [Fact]
@@ -336,7 +337,10 @@ public class ErrorJsonConverterTests
             converter.Read(ref reader, typeof(Error), opt);
             true.Should().BeFalse("Expected JsonException");
         }
-        catch (System.Text.Json.JsonException) { }
+        catch (System.Text.Json.JsonException ex)
+        {
+            ex.Should().NotBeNull();
+        }
     }
 
     [Fact]
@@ -352,7 +356,10 @@ public class ErrorJsonConverterTests
             converter.Read(ref reader, typeof(Error), opt);
             true.Should().BeFalse("Expected JsonException");
         }
-        catch (System.Text.Json.JsonException) { }
+        catch (System.Text.Json.JsonException ex)
+        {
+            ex.Should().NotBeNull();
+        }
     }
 
     [Fact]
@@ -361,13 +368,18 @@ public class ErrorJsonConverterTests
         var converter = new EricksonLopez.Result.Serialization.ErrorJsonConverter();
         var json = "{\"code\":\"A\", \"description\":\"B\", \"metadata\": {\"arr\": [ 1, 2 "u8;
         var opt = new System.Text.Json.JsonSerializerOptions();
+        Exception? caught = null;
         try
         {
             var reader = new System.Text.Json.Utf8JsonReader(json, isFinalBlock: false, state: default);
             reader.Read(); // StartObject
             converter.Read(ref reader, typeof(Error), opt);
         }
-        catch (System.Text.Json.JsonException) { } // May throw if builder fails or whatever, but branch is hit
+        catch (System.Text.Json.JsonException ex)
+        {
+            caught = ex;
+        }
+        (caught is null || caught is System.Text.Json.JsonException).Should().BeTrue();
     }
 
     [Fact]
@@ -376,13 +388,18 @@ public class ErrorJsonConverterTests
         var converter = new EricksonLopez.Result.Serialization.ErrorJsonConverter();
         var json = "{\"code\":\"A\", \"description\":\"B\", \"metadata\": {\"obj\": { \"key\": 1 "u8;
         var opt = new System.Text.Json.JsonSerializerOptions();
+        Exception? caught = null;
         try
         {
             var reader = new System.Text.Json.Utf8JsonReader(json, isFinalBlock: false, state: default);
             reader.Read(); // StartObject
             converter.Read(ref reader, typeof(Error), opt);
         }
-        catch (System.Text.Json.JsonException) { }
+        catch (System.Text.Json.JsonException ex)
+        {
+            caught = ex;
+        }
+        (caught is null || caught is System.Text.Json.JsonException).Should().BeTrue();
     }
 
     [Fact]

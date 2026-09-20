@@ -3,6 +3,9 @@
 ## Status
 Accepted
 
+## Date
+2026-09-04
+
 ## Context
 As the `EricksonLopez.Result` ecosystem grew to include `EricksonLopez.Result.Testing` and OpenTelemetry instrumentations in `EricksonLopez.Result.OpenTelemetry`, an attempt was made to achieve 100% test coverage using standard testing tools (xUnit + Coverlet). 
 

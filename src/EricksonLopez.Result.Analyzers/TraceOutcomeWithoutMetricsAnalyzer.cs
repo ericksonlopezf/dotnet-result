@@ -10,7 +10,7 @@ using Microsoft.CodeAnalysis.Operations;
 namespace EricksonLopez.Result.Analyzers;
 
 /// <summary>
-/// Roslyn diagnostic analyzer (RESULT_OTEL_001) that reports an informational hint when
+/// Represents a Roslyn diagnostic analyzer (RESULT_OTEL_001) that reports an informational hint when
 /// <c>TraceOutcome</c>, <c>TraceOnFailure</c>, or <c>TraceOnSuccess</c> are called without
 /// the optional <c>metrics</c> parameter, meaning no <c>ResultMetrics</c> instance will record
 /// metrics for this trace call.
@@ -18,7 +18,7 @@ namespace EricksonLopez.Result.Analyzers;
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
 public sealed class TraceOutcomeWithoutMetricsAnalyzer : DiagnosticAnalyzer
 {
-    /// <summary>The diagnostic identifier for this analyzer rule.</summary>
+    /// <summary>Gets the diagnostic identifier for this analyzer rule.</summary>
     public const string DiagnosticId = "RESULT_OTEL_001";
 
     private static readonly DiagnosticDescriptor Rule = new(

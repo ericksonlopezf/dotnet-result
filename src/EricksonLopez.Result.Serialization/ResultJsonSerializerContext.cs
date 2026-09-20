@@ -7,7 +7,7 @@ using EricksonLopez.Result;
 namespace EricksonLopez.Result.Serialization;
 
 /// <summary>
-/// Source-generated JSON serialization context for Result types.
+/// Provides a source-generated JSON serialization context for Result types.
 /// </summary>
 [System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage]
 // RESULT_GEN_001: [JsonSerializable(typeof(Result))] on this context is intentional.

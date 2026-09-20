@@ -1,5 +1,11 @@
 # ADR-005: NativeAOT & Trimming Serialization Strategy
 
+## Status
+Accepted
+
+## Date
+2026-07-28
+
 - **Status**: Accepted
 - **Date**: 2026-07-28
 - **Authors**: Erickson Lopez

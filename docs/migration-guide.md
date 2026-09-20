@@ -97,3 +97,32 @@ Result<User> result = Error.NotFound("User.NotFound", "User not found");
 | LINQ Monadic Bind | `from a in resA from b in resB select ...` | `from a in resA from b in resB select ...` (Identical syntax supported) |
 | Option Type | `Option<T>` | `Maybe<T>` (`EricksonLopez.Result.Maybe`) |
 | Strongly Typed Error | `Result<TValue, TError>` | `Result<TValue, TError>` (`EricksonLopez.Result.Generic`) |
+
+---
+
+## 4. Migrating from EricksonLopez.Result v2.x to v3.0.0
+
+The `v3.0.0` release introduces breaking changes for compile-time safety, wire-format serialization standards, and monadic pipeline parity.
+
+### 4.1 Summary of Breaking Changes
+
+| ID | Area / Package | Breaking Change Description | Action Required |
+|---|---|---|---|
+| **BC-U01** | `Generic` | `Result<TValue, TError>` implicit conversion tightening | Replace implicit default or unvalidated conversions with explicit factory calls (`Success` / `Failure`). |
+| **BC-U02** | `Generic` | `Result<TValue, TError>` equality operator signature changes | Update custom equality comparisons to use standard `==` / `!=` or `Equals`. |
+| **BC-U03** | `FluentValidation` | `ToValidationResult()` now defaults to `aggregate = true` | If your pipeline expects only the first error, pass `aggregate: false` explicitly. |
+| **BC-U04** | `Analyzers` | New `RESULT013` analyzer warns on `if (result)` | Replace implicit boolean checks with `if (result.IsSuccess)` or use code fix. |
+| **BC-U05** | `Serialization` | `ErrorJsonConverter` wire format type discriminator property | Ensure JSON deserializers accommodate polymorphic payload properties. |
+| **BC-U06** | `Serialization` | Generic Result converter type serialization | Update AOT serializer context registrations if customizing type discriminators. |
+| **BC-U07** | `OpenTelemetry` | `TraceOutcome` activity name canonicalization | Update custom trace metric filters to use canonical activity names. |
+| **BC-U08** | `Core` | Wire-format serialization contract tightening | Verify API clients consuming raw serialized Result envelopes against updated schemas. |
+
+For exhaustive details and code samples for each breaking change, see [CHANGELOG.md](../CHANGELOG.md).
+
+### 4.2 New Packages in v3.0.0
+
+| Package | Purpose | Typical Use Case |
+|---|---|---|
+| `EricksonLopez.Result.Dapr` | Dapr SDK integration | Invoking service methods and state store operations with structured Result envelopes. |
+| `EricksonLopez.Result.Grpc` | gRPC integration | Invoking gRPC unary calls and converting between `Result<T>` and `RpcException` / `Status`. |
+

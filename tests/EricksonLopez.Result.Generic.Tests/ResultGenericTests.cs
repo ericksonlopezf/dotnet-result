@@ -364,7 +364,7 @@ public class ResultGenericTests
         var def1 = default(Result<int, CustomDomainError>);
         var def2 = default(Result<int, CustomDomainError>);
         Assert.Equal(def1.GetHashCode(), def2.GetHashCode());
-        Assert.Equal(HashCode.Combine(false, 0), def1.GetHashCode());
+        Assert.Equal(0, def1.GetHashCode());
         Assert.NotEqual(def1.GetHashCode(), f1.GetHashCode());
         Assert.NotEqual(def1.GetHashCode(), s1.GetHashCode());
     }
@@ -383,6 +383,28 @@ public class ResultGenericTests
         Assert.Equal($"Failure({err})", f.ToString());
 
         var def = default(Result<int, CustomDomainError>);
-        Assert.Equal("Failure()", def.ToString());
+        Assert.Equal("Uninitialized", def.ToString());
+    }
+
+    [Fact]
+    public void Default_MustBeUninitialized_AndThrowOnValueAndErrorAccess()
+    {
+        var def = default(Result<int, CustomDomainError>);
+        Assert.False(def.IsSuccess);
+        Assert.False(def.IsFailure);
+        Assert.True(def.IsUninitialized);
+
+        Assert.False(def.TryGetValue(out _));
+        Assert.False(def.TryGetError(out _));
+
+        var exVal = Assert.Throws<InvalidOperationException>(() => _ = def.Value);
+        Assert.Contains("uninitialized", exVal.Message, StringComparison.OrdinalIgnoreCase);
+
+        var exErr = Assert.Throws<InvalidOperationException>(() => _ = def.Error);
+        Assert.Contains("uninitialized", exErr.Message, StringComparison.OrdinalIgnoreCase);
+
+        Assert.Throws<InvalidOperationException>(() => def.Map(x => x * 2));
+        Assert.Throws<InvalidOperationException>(() => def.Bind(x => Result<string, CustomDomainError>.Success(x.ToString())));
+        Assert.Throws<InvalidOperationException>(() => def.Match(x => x.ToString(), e => e.Reason));
     }
 }

@@ -3,6 +3,9 @@
 ## Status
 Accepted
 
+## Date
+2026-09-04
+
 ## Context
 During the process of achieving an absolute 100% mutation score with Stryker for EricksonLopez.Result, we encountered mutants that survived but did not represent missing test coverage for human-maintained business logic. These fall into three primary categories:
 

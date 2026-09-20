@@ -7,7 +7,7 @@ using EricksonLopez.Result;
 namespace EricksonLopez.Result.Testing;
 
 /// <summary>
-/// Exception thrown when a Result assertion fails.
+/// Represents an exception thrown when a Result assertion fails.
 /// </summary>
 /// <remarks>
 /// <para>
@@ -61,20 +61,23 @@ public class ResultAssertionException : Exception
     }
 
     /// <summary>
-    /// Creates and returns an assertion exception using the configured <see cref="ExceptionFactory"/>.
+    /// Creates and throws an assertion exception using the configured <see cref="ExceptionFactory"/>.
     /// All ResultAssertions methods call this instead of <see langword="new"/> so that
     /// framework adapters (xUnit, NUnit) can intercept exception creation.
     /// </summary>
     /// <remarks>
-    /// If the factory produces a non-<see cref="ResultAssertionException"/> (e.g., an XunitException),
-    /// this method throws it directly since it cannot be returned as a <see cref="ResultAssertionException"/>.
-    /// Call sites must use the returned exception in a <c>throw</c> statement.
+    /// If the factory produces a non-<see cref="ResultAssertionException"/> (such as an XunitException),
+    /// throws it directly since it cannot be returned as a <see cref="ResultAssertionException"/>.
     /// </remarks>
+    /// <param name="message">The assertion failure message.</param>
+    /// <returns>Never returns directly; always throws an assertion exception.</returns>
+    /// <exception cref="ResultAssertionException">The assertion failed, or the factory produced an assertion exception</exception>
     [System.Diagnostics.CodeAnalysis.DoesNotReturn]
     internal static Exception Throw(string message) => throw _factory(message);
 
+
     /// <summary>
-    /// Initializes a new instance of <see cref="ResultAssertionException"/> with no message.
+    /// Initializes a new instance of the <see cref="ResultAssertionException"/> class with a default message.
     /// </summary>
     public ResultAssertionException()
         : base("A Result assertion failed.")
@@ -82,7 +85,7 @@ public class ResultAssertionException : Exception
     }
 
     /// <summary>
-    /// Initializes a new instance of <see cref="ResultAssertionException"/> with a message.
+    /// Initializes a new instance of the <see cref="ResultAssertionException"/> class with a specified error message.
     /// </summary>
     /// <param name="message">The error message that explains the assertion failure.</param>
     public ResultAssertionException(string message)
@@ -91,7 +94,7 @@ public class ResultAssertionException : Exception
     }
 
     /// <summary>
-    /// Initializes a new instance of <see cref="ResultAssertionException"/> with a message and inner exception.
+    /// Initializes a new instance of the <see cref="ResultAssertionException"/> class with a specified error message and a reference to the inner exception that is the cause of this exception.
     /// </summary>
     /// <param name="message">The error message that explains the assertion failure.</param>
     /// <param name="innerException">The exception that caused this assertion failure.</param>

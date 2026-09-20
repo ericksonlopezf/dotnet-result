@@ -6,7 +6,7 @@ using Microsoft.AspNetCore.Http;
 namespace EricksonLopez.Result.OpenApi;
 
 /// <summary>
-/// OpenAPI extensions for annotating Minimal API endpoints that return <see cref="Result"/> or <see cref="Result{T}"/>.
+/// Provides OpenAPI extensions for annotating Minimal API endpoints that return <see cref="Result"/> or <see cref="Result{T}"/>.
 /// </summary>
 public static class ResultOpenApiExtensions
 {

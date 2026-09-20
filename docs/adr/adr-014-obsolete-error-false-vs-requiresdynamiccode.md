@@ -1,5 +1,11 @@
 # ADR-014: Obsolete(error: false) vs Obsolete(error: true) on reflection APIs with trimming risks
 
+## Status
+Accepted
+
+## Date
+2026-07-31
+
 - **Status**: Accepted
 - **Date**: 2026-07-31
 - **Authors**: Erickson Lopez
@@ -63,7 +69,7 @@ For a library whose stated goal is to offer robust compatibility with trimming a
 
 ### Negative / Trade-Offs
 
-- Consumers who only read `CS0618` (IDE warning) without publishing with AOT might not perceive the real impact. The `[Obsolete]` warning mitigates this by being visible in IntelliSense and during ordinary compilation.
+- Consumers who rely exclusively on standard compiler warnings (`CS0618`) without enabling AOT/trimming analysis or running `dotnet publish /p:PublishAot=true` will not see `IL2026`/`IL3050` warnings in development. To mitigate this without emitting false-positive compiler warnings, `[EditorBrowsable(EditorBrowsableState.Never)]` hides the constructor from IntelliSense discovery.
 
 ## Related
 

@@ -214,7 +214,7 @@ private static async Task<Result> MapCore(ValueTask<Result> task, Func<Result> n
 
 ## 8. Project Dependency Graph
 
-The following diagram shows the internal project references across all **14 ecosystem packages**:
+The following diagram shows the internal project references across all **20 ecosystem packages**:
 
 ```mermaid
 graph TD
@@ -227,6 +227,12 @@ graph TD
     OTel["EricksonLopez.Result.OpenTelemetry<br/>(net8.0; net9.0; net10.0)"]
     Serialization["EricksonLopez.Result.Serialization<br/>(net8.0; net9.0; net10.0)"]
     Generators["EricksonLopez.Result.Serialization.Generators<br/>(netstandard2.0)"]
+    DomainErrors["EricksonLopez.Result.DomainErrors.Generators<br/>(netstandard2.0)"]
+    EFCore["EricksonLopez.Result.EntityFrameworkCore<br/>(net8.0; net9.0; net10.0)"]
+    Polly["EricksonLopez.Result.Polly<br/>(net8.0; net9.0; net10.0)"]
+    MassTransit["EricksonLopez.Result.MassTransit<br/>(net8.0; net9.0; net10.0)"]
+    Dapr["EricksonLopez.Result.Dapr<br/>(net8.0; net9.0; net10.0)"]
+    Grpc["EricksonLopez.Result.Grpc<br/>(net8.0; net9.0; net10.0)"]
     Testing["EricksonLopez.Result.Testing<br/>(net8.0; net9.0; net10.0)"]
     TestingXUnit["EricksonLopez.Result.Testing.XUnit<br/>(net8.0; net9.0; net10.0)"]
     TestingNUnit["EricksonLopez.Result.Testing.NUnit<br/>(net8.0; net9.0; net10.0)"]
@@ -242,6 +248,12 @@ graph TD
     OTel --> Generators
     Serialization --> Core
     Serialization --> Generators
+    EFCore --> Core
+    EFCore --> Maybe
+    Polly --> Core
+    MassTransit --> Core
+    Dapr --> Core
+    Grpc --> Core
     Testing --> Core
     TestingXUnit --> Testing
     TestingNUnit --> Testing
@@ -251,6 +263,7 @@ graph TD
     style Core fill:#512BD4,stroke:#333,color:#fff
     style Analyzers fill:#E8DAEF,stroke:#333
     style Generators fill:#E8DAEF,stroke:#333
+    style DomainErrors fill:#E8DAEF,stroke:#333
     style Testing fill:#D5F5E3,stroke:#333
     style TestingXUnit fill:#D5F5E3,stroke:#333
     style TestingNUnit fill:#D5F5E3,stroke:#333
@@ -258,7 +271,67 @@ graph TD
 
 ---
 
-## 9. Roslyn Analyzers & Source Generators Architecture
+## 9. Ecosystem Extensions Architecture
+
+### 9.1 Entity Framework Core Adapter (`EricksonLopez.Result.EntityFrameworkCore`)
+Provides exception-safe persistence pipeline operations mapping EF Core concurrency conflicts and transient timeouts into domain `Result<T>` values (ADR-023):
+- `SaveChangesAsyncToResult`: Traps `DbUpdateConcurrencyException` $\rightarrow$ `Error.Conflict`, `DbUpdateException` $\rightarrow$ `Error.Failure`, `TimeoutException` $\rightarrow$ `Error.Unavailable(Transient)`. Preserves cooperative `OperationCanceledException`.
+- Query extensions on `IQueryable<T>` (`FirstOrDefaultToResultAsync`, `SingleOrDefaultToResultAsync`, `ToListToResultAsync`) return clean result envelopes without throwing on missing records.
+
+```mermaid
+flowchart LR
+    EFQuery[IQueryable Operation] --> Exec{Execute}
+    Exec -- Row Found --> Success[Result.Success(Entity)]
+    Exec -- Missing --> NotFound[Result.Failure(NotFoundError)]
+    Exec -- Concurrency Conflict --> Conflict[Result.Failure(ConflictError)]
+    Exec -- Timeout --> Timeout[Result.Failure(UnavailableError)]
+```
+
+### 9.2 Polly v8 Resilience Pipeline (`EricksonLopez.Result.Polly`)
+Integrates directly with Polly v8's zero-allocation `ResiliencePipeline` architecture (ADR-024):
+- Exception-free retry evaluation: Evaluates `result.IsFailure && result.Error.Retryability == ErrorRetryability.Transient`. Permanent errors abort immediately without useless retry delays.
+- `TState` overloads on `ExecuteResult` and `ExecuteResultAsync` eliminate delegate closure allocations in high-throughput network calls.
+
+### 9.3 MassTransit Distributed Message Faults (`EricksonLopez.Result.MassTransit`)
+Coordinates asynchronous messaging boundaries and event-driven architectures (ADR-025):
+- `ResultFault`: Immutable, transport-safe contract preserving `Code`, `Description`, `Type`, `Severity`, `Retryability`, `CorrelationId`, `TraceId`, and `Metadata` across broker networks (RabbitMQ, Azure Service Bus, Amazon SQS).
+- `ResultConsumeFilter<TMessage>`: Intercepts consumer results, publishes faults, and prevents poison-message retry storms on permanent failures.
+
+### 9.4 Dapr Distributed State & Pub/Sub Integration (`EricksonLopez.Result.Dapr`)
+Integrates with Dapr distributed application runtime sidecars (ADR-026):
+- **State Management**: `GetStateWithResultAsync`, `SaveStateWithResultAsync`, and `DeleteStateWithResultAsync` map ETag concurrency conflicts directly to `Error.Conflict`, missing keys to `Error.NotFound`, and sidecar connectivity failures to `Error.Unavailable(Transient)`.
+- **Pub/Sub Subscriptions**: `ToDaprTopicResult()` translates domain `Result` outcomes into canonical `TopicEventResponse`: `Success` on happy path, `Drop` on permanent non-retryable domain rejections (`Validation`, `Forbidden`), and `Retry` on transient errors (`Unavailable`).
+
+```mermaid
+flowchart LR
+    DaprEvt[TopicEvent Event] --> Handle{Process Handler}
+    Handle -- Success --> TS[TopicEventResponse.Success]
+    Handle -- Transient Failure --> TR[TopicEventResponse.Retry]
+    Handle -- Permanent Failure --> TD[TopicEventResponse.Drop]
+```
+
+### 9.5 gRPC Server Interceptor & Status Code Mapping (`EricksonLopez.Result.Grpc`)
+Bridges gRPC RPC boundaries and HTTP/2 streaming protocols (ADR-027):
+- **Server Interceptor**: `ResultServerInterceptor` intercepts unary RPC service methods, automatically translating domain `ErrorType` failures into canonical gRPC `StatusCode` values with rich diagnostic trailer metadata (`x-error-code`, `x-error-type`, `x-error-severity`, `x-trace-id`, `x-correlation-id`).
+- **Client Extensions**: `ToResult()` / `ToResultAsync()` unpacks client-side `RpcException` responses back into strongly-typed `Result<T>` envelopes.
+
+```mermaid
+flowchart LR
+    DomainErr[Domain Error] --> Interceptor[ResultServerInterceptor]
+    Interceptor --> MapStatus{Map ErrorType}
+    MapStatus --> V[Validation -> InvalidArgument]
+    MapStatus --> NF[NotFound -> NotFound]
+    MapStatus --> C[Conflict -> AlreadyExists/Aborted]
+    MapStatus --> U[Unauthorized -> Unauthenticated]
+    MapStatus --> F[Forbidden -> PermissionDenied]
+    MapStatus --> S[Unavailable -> Unavailable]
+    MapStatus --> E[Failure/Unexpected -> Internal]
+    V & NF & C & U & F & S & E --> RpcEx[RpcException + Trailers]
+```
+
+---
+
+## 10. Roslyn Analyzers & Source Generators Architecture
 
 The repository includes compiler tooling projects targeting `netstandard2.0`:
 
@@ -266,19 +339,20 @@ The repository includes compiler tooling projects targeting `netstandard2.0`:
 
 Bundled directly into `EricksonLopez.Result` (as `OutputItemType="Analyzer"`).
 
-| Diagnostic ID | Category | Severity | Description |
-|---|---|---|---|
-| `RESULT001` | Performance | Warning | Large value type (>32 bytes) used as `Result<T>` — excessive copying overhead. |
-| `RESULT003` | Usage | **Error** | `ErrorBuilder.With*()` return value discarded — mutated struct copy is lost. |
-| `RESULT004` | Performance | Warning | Lambda expression captures local variables in Result pipeline (closure allocation). |
-| `RESULT005` | Performance | Warning | `Error.WithMetadata()` / `ErrorBuilder.WithMetadata()` chained consecutively 3+ times. |
-| `RESULT006` | Performance | Warning | `ErrorBuilder.WithInnerError()` chained consecutively 2+ times without batching. |
-| `RESULT007` | Reliability | Warning | `HashSet<Error>`, `Distinct()`, `GroupBy()`, or `ToHashSet()` used on `Error` without `ErrorEqualityComparer.Strict`. |
-| `RESULT008` | Usage | Warning | Endpoint returning `Result<T>` uses `AddResultEndpointFilter()` without `.Produces<T>()`. |
-| `RESULT009` | Security | Warning | `IncludeDescription = true` set without environment guard — potential information disclosure. |
-| `RESULT010` | Security | Warning | `ResultExceptionBehavior` default error factory may expose internal exception type names. |
-| `RESULT012` | Usage | Warning | Method returning `default(Result)` or `default(Result<T>)` — uninitialized state bug. |
-| `RESULT_OTEL_001` | Observability | Info | `TraceOutcome()` called without `ResultMetrics` registered. |
+| Diagnostic ID | Category | Severity | Description | Code Fix Available |
+|---|---|---|---|:---:|
+| `RESULT001` | Performance | Warning | Large value type (>32 bytes) used as `Result<T>` — excessive copying overhead. | No |
+| `RESULT003` | Usage | **Error** | `ErrorBuilder.With*()` return value discarded — mutated struct copy is lost. | `ErrorBuilderDiscardedReturnCodeFix` |
+| `RESULT004` | Performance | Warning | Lambda expression captures local variables in Result pipeline (closure allocation). | `ClosureCaptureCodeFix` |
+| `RESULT005` | Performance | Warning | `Error.WithMetadata()` / `ErrorBuilder.WithMetadata()` chained consecutively 3+ times. | No |
+| `RESULT006` | Performance | Warning | `ErrorBuilder.WithInnerError()` chained consecutively 2+ times without batching. | No |
+| `RESULT007` | Reliability | Warning | `HashSet<Error>`, `Distinct()`, `GroupBy()`, or `ToHashSet()` used on `Error` without `ErrorEqualityComparer.Strict`. | `HashSetErrorEqualityCodeFix` |
+| `RESULT008` | Usage | Warning | Endpoint returning `Result<T>` uses `AddResultEndpointFilter()` without `.Produces<T>()`. | No |
+| `RESULT009` | Security | Warning | `IncludeDescription = true` set without environment guard — potential information disclosure. | No |
+| `RESULT010` | Security | Warning | `ResultExceptionBehavior` default error factory may expose internal exception type names. | No |
+| `RESULT012` | Usage | Warning | Method returning `default(Result)` or `default(Result<T>)` — uninitialized state bug. | `DefaultResultReturnCodeFix` |
+| `RESULT013` | Usage | Warning | Avoid implicit bool conversion of `Result` in condition contexts. | `BoolOperatorUsageCodeFix` |
+| `RESULT_OTEL_001` | Observability | Info | `TraceOutcome()` called without `ResultMetrics` registered. | No |
 
 ### `EricksonLopez.Result.Serialization.Generators`
 
@@ -287,9 +361,15 @@ Incremental Roslyn Source Generator that produces:
 - Compile-time assembly version constants for the OpenTelemetry package (`ResultMetricsVersionGenerator`).
 - Diagnostic `RESULT_GEN_001` (Warning) when `[JsonSerializable(typeof(Result))]` is used on non-generic `Result`.
 
+### `EricksonLopez.Result.DomainErrors.Generators`
+
+Incremental Roslyn Source Generator that monitors `*.errors.json` additional files (ADR-022):
+- Emits compile-time `public static partial class` definitions with strongly-typed error factory methods.
+- Certified 100% Native AOT compatible with zero runtime reflection overhead.
+
 ---
 
-## 10. Known Limitations & Mitigations
+## 11. Known Limitations & Mitigations
 
 ### 1. `ResultEndpointFilter` Boxing & OpenAPI Type Metadata
 When using `ResultEndpointFilter`, the filter receives `IResultOutcome`, which boxes the struct result on each request and emits `Ok<object?>` internally.

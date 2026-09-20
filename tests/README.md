@@ -17,8 +17,14 @@ The test suite follows a strict **1:1 symmetry** model with the library source p
 - `EricksonLopez.Result.MediatR.Tests`: `ResultExceptionBehavior` pipeline behavior tests.
 - `EricksonLopez.Result.OpenTelemetry.Tests`: Activity tracing and `ResultMetrics` runtime counters.
 - `EricksonLopez.Result.Serialization.Tests`: System.Text.Json custom converter serialization tests.
-- `EricksonLopez.Result.Serialization.Generators.Tests`: Roslyn incremental source generator unit tests.
+- `EricksonLopez.Result.Serialization.Generators.Tests`: Roslyn incremental source generator unit tests for JSON context.
 - `EricksonLopez.Result.Analyzers.Tests`: Roslyn diagnostic analyzer and code fix verification tests.
+- `EricksonLopez.Result.DomainErrors.Generators.Tests`: Roslyn incremental source generator unit tests for `*.errors.json`.
+- `EricksonLopez.Result.EntityFrameworkCore.Tests`: Entity Framework Core DbContext operations and query extensions tests.
+- `EricksonLopez.Result.Polly.Tests`: Polly v8 resilience pipeline and retry strategy tests.
+- `EricksonLopez.Result.MassTransit.Tests`: MassTransit consumer filter and fault contract tests.
+- `EricksonLopez.Result.Dapr.Tests`: Dapr Client invocation, state store transactions, and pub/sub tests.
+- `EricksonLopez.Result.Grpc.Tests`: gRPC Status mapping, RpcException conversion, and server interceptor tests.
 - `EricksonLopez.Result.Testing.Tests`: Core assertion library tests (`ShouldBeSuccess()`, `ShouldBeFailure()`).
 - `EricksonLopez.Result.Testing.XUnit.Tests`: xUnit assertion adapter tests.
 - `EricksonLopez.Result.Testing.NUnit.Tests`: NUnit assertion adapter tests.

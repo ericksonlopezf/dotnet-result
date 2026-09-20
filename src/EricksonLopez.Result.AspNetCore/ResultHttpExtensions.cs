@@ -52,7 +52,7 @@ public static class ResultHttpExtensions
     }
 
     /// <summary>
-    /// Converts a successful Result to a status response (default 204 No Content), and a failed Result to a ProblemDetails.
+    /// Converts a successful <see cref="Result"/> to a status response, and a failed <see cref="Result"/> to a ProblemDetails response.
     /// </summary>
     /// <param name="result">The result to convert, passed by readonly reference.</param>
     /// <param name="options">Optional HTTP options to customize status codes and problem details mapping, or <see langword="null"/> to use default options.</param>
@@ -70,7 +70,7 @@ public static class ResultHttpExtensions
     /// <c>Location</c> header. RFC 9110 §15.3.2 states that a 201 response SHOULD include a
     /// <c>Location</c> header with the URI of the newly created resource. If a <c>Location</c>
     /// header is required, return <c>TypedResults.Created(uri, value)</c> directly from your endpoint
-    /// handler instead of using this method.
+    /// handler instead of calling this extension.
     /// </para>
     /// </remarks>
     public static Microsoft.AspNetCore.Http.IResult ToHttpResult(this in Result result, ResultHttpOptions? options = null)
@@ -90,7 +90,7 @@ public static class ResultHttpExtensions
     }
 
     /// <summary>
-    /// Converts a successful Result to a 200 OK with value, and a failed Result to a ProblemDetails.
+    /// Converts a successful <see cref="Result{T}"/> to a 200 OK response with the value, and a failed <see cref="Result{T}"/> to a ProblemDetails response.
     /// </summary>
     /// <typeparam name="T">The value type of the result.</typeparam>
     /// <param name="result">The result to convert, passed by readonly reference.</param>
@@ -257,6 +257,8 @@ public static class ResultHttpExtensions
     /// Returns the canonical HTTP reason phrase for a given status code, conforming to
     /// RFC 9457 §4.2.1 which requires the canonical title when type is "about:blank".
     /// </summary>
+    /// <param name="statusCode">The HTTP status code to resolve.</param>
+    /// <returns>The canonical HTTP reason phrase for <paramref name="statusCode"/>.</returns>
     private static string GetCanonicalHttpTitle(int statusCode) => statusCode switch
     {
         StatusCodes.Status200OK => "OK",
@@ -297,6 +299,9 @@ public static class ResultHttpExtensions
     /// These titles are more descriptive than HTTP reason phrases but must only be used
     /// with a non-blank type URI per RFC 9457 §4.2.1.
     /// </summary>
+    /// <param name="type">The error type to resolve.</param>
+    /// <param name="statusCode">The HTTP status code.</param>
+    /// <returns>The descriptive title string for <paramref name="type"/> and <paramref name="statusCode"/>.</returns>
     private static string GetDescriptiveTitle(ErrorType type, int statusCode) => type switch
     {
         // ErrorType.Failure is a domain operation failure, not necessarily a server error.
@@ -332,8 +337,10 @@ public static class ResultHttpExtensions
     /// Collections implementing <see cref="System.Collections.IEnumerable"/> are converted to <c>List&lt;object?&gt;</c>
     /// for proper JSON serialization. Other types fall back to <see cref="object.ToString"/>.
     /// </summary>
+    /// <param name="value">The metadata value to serialize.</param>
+    /// <returns>A JSON-serializable representation of <paramref name="value"/>.</returns>
     /// <remarks>
-    /// This method is AOT-safe: it does not use <c>JsonSerializer</c> or reflection-based serialization.
+    /// Provides AOT-safe serialization: avoids <c>JsonSerializer</c> or reflection-based serialization.
     /// ASP.NET Core's built-in JSON serializer handles the returned primitives and lists correctly.
     /// <para>
     /// <b>⚠️ Depth limit:</b> Recursion is capped at 5 levels. Circular or deeply nested object graphs

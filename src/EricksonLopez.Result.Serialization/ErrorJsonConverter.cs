@@ -10,7 +10,7 @@ using EricksonLopez.Result;
 namespace EricksonLopez.Result.Serialization;
 
 /// <summary>
-/// AOT-compliant JsonConverter for <see cref="Error"/>.
+/// Represents an AOT-compliant <see cref="JsonConverter{T}"/> for <see cref="Error"/>.
 /// Uses manual property matching and switch-based enum parsing to avoid reflection in NativeAOT scenarios.
 /// </summary>
 /// <remarks>
@@ -30,10 +30,21 @@ namespace EricksonLopez.Result.Serialization;
 /// </remarks>
 public sealed class ErrorJsonConverter : JsonConverter<Error>
 {
+    /// <summary>Gets the maximum allowed recursion depth to prevent stack overflow denial-of-service.</summary>
+    public const int MaxAllowedDepth = 32;
+
     /// <inheritdoc/>
     // Stryker disable all : Serialization boilerplate
     public override Error Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
+        => ReadCore(ref reader, typeToConvert, options, 0);
+
+    private static Error ReadCore(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options, int depth)
     {
+        if (depth > MaxAllowedDepth)
+        {
+            throw new JsonException($"Maximum Error nesting depth of {MaxAllowedDepth} exceeded.");
+        }
+
         if (reader.TokenType != JsonTokenType.StartObject)
         {
             throw new JsonException("Expected StartObject token.");
@@ -62,73 +73,44 @@ public sealed class ErrorJsonConverter : JsonConverter<Error>
                 var propertyName = reader.GetString();
                 reader.Read();
 
-                if (string.Equals(propertyName, "code", StringComparison.OrdinalIgnoreCase))
+                switch (propertyName?.ToLowerInvariant())
                 {
-                    code = reader.GetString();
-                }
-                else if (string.Equals(propertyName, "description", StringComparison.OrdinalIgnoreCase))
-                {
-                    description = reader.GetString();
-                }
-                else if (string.Equals(propertyName, "descriptionKey", StringComparison.OrdinalIgnoreCase))
-                {
-                    descriptionKey = reader.GetString();
-                }
-                else if (string.Equals(propertyName, "type", StringComparison.OrdinalIgnoreCase))
-                {
-                    // Use switch-based parsing instead of Enum.TryParse for NativeAOT safety
-                    type = ParseErrorType(reader.GetString());
-                }
-                else if (string.Equals(propertyName, "severity", StringComparison.OrdinalIgnoreCase))
-                {
-                    // Use switch-based parsing instead of Enum.TryParse for NativeAOT safety
-                    severity = ParseErrorSeverity(reader.GetString());
-                }
-                else if (string.Equals(propertyName, "retryability", StringComparison.OrdinalIgnoreCase))
-                {
-                    // Use switch-based parsing instead of Enum.TryParse for NativeAOT safety
-                    retryability = ParseErrorRetryability(reader.GetString());
-                }
-                else if (string.Equals(propertyName, "traceId", StringComparison.OrdinalIgnoreCase))
-                {
-                    traceId = reader.GetString();
-                }
-                else if (string.Equals(propertyName, "correlationId", StringComparison.OrdinalIgnoreCase))
-                {
-                    correlationId = reader.GetString();
-                }
-                else if (string.Equals(propertyName, "innerErrors", StringComparison.OrdinalIgnoreCase))
-                {
-                    if (reader.TokenType == JsonTokenType.StartArray)
-                    {
-                        innerErrors = new List<Error>();
-                        while (true)
+                    case "code":
+                        code = reader.GetString();
+                        break;
+                    case "description":
+                        description = reader.GetString();
+                        break;
+                    case "descriptionkey":
+                        descriptionKey = reader.GetString();
+                        break;
+                    case "type":
+                        type = ParseErrorType(reader.GetString());
+                        break;
+                    case "severity":
+                        severity = ParseErrorSeverity(reader.GetString());
+                        break;
+                    case "retryability":
+                        retryability = ParseErrorRetryability(reader.GetString());
+                        break;
+                    case "traceid":
+                        traceId = reader.GetString();
+                        break;
+                    case "correlationid":
+                        correlationId = reader.GetString();
+                        break;
+                    case "innererrors":
+                        innerErrors = ReadInnerErrors(ref reader, options, depth);
+                        break;
+                    case "metadata":
+                        if (reader.TokenType == JsonTokenType.StartObject)
                         {
-                            reader.Read();
-                            if (reader.TokenType == JsonTokenType.EndArray) break;
-                            var innerError = Read(ref reader, typeof(Error), options);
-                            if (innerError is not null)
-                            {
-                                innerErrors.Add(innerError);
-                            }
+                            metadata = ReadMetadataObject(ref reader, depth + 1);
                         }
-                    }
-                }
-                else if (string.Equals(propertyName, "metadata", StringComparison.OrdinalIgnoreCase))
-                {
-                    if (reader.TokenType == JsonTokenType.StartObject)
-                    {
-                        // Read metadata directly from the Utf8JsonReader without
-                        // allocating an intermediate JsonDocument on the heap.
-                        // Each property value is deserialized inline using the reader's
-                        // current token type, matching the same semantics as the previous
-                        // JsonDocument.ParseValue approach but with zero extra allocation.
-                        metadata = ReadMetadataObject(ref reader);
-                    }
-                }
-                else
-                {
-                    reader.Skip();
+                        break;
+                    default:
+                        reader.Skip();
+                        break;
                 }
             }
         }
@@ -159,6 +141,28 @@ public sealed class ErrorJsonConverter : JsonConverter<Error>
             builder = builder.WithMetadata(metadata);
 
         return builder.Build();
+    }
+
+    private static List<Error>? ReadInnerErrors(ref Utf8JsonReader reader, JsonSerializerOptions options, int depth)
+    {
+        if (reader.TokenType != JsonTokenType.StartArray)
+        {
+            return null;
+        }
+
+        var innerErrors = new List<Error>();
+        while (true)
+        {
+            reader.Read();
+            if (reader.TokenType == JsonTokenType.EndArray) break;
+            var innerError = ReadCore(ref reader, typeof(Error), options, depth + 1);
+            if (innerError is not null)
+            {
+                innerErrors.Add(innerError);
+            }
+        }
+
+        return innerErrors;
     }
 
     /// <inheritdoc/>
@@ -207,13 +211,21 @@ public sealed class ErrorJsonConverter : JsonConverter<Error>
     /// Reads a JSON object directly from the <see cref="Utf8JsonReader"/> as a metadata dictionary.
     /// The reader must be positioned at <see cref="JsonTokenType.StartObject"/>.
     /// </summary>
+    /// <param name="reader">The JSON reader positioned at the start of the object.</param>
+    /// <param name="depth">The current recursion depth.</param>
+    /// <returns>A dictionary containing the deserialized metadata key-value pairs.</returns>
     /// <remarks>
     /// This replaces the previous <c>JsonDocument.ParseValue(ref reader)</c> approach,
     /// avoiding the intermediate <c>JsonDocument</c> heap allocation. Values are deserialized
     /// using the same type-mapping rules as the previous <c>DeserializeMetadataValue</c> method.
     /// </remarks>
-    private static Dictionary<string, object> ReadMetadataObject(ref Utf8JsonReader reader)
+    private static Dictionary<string, object> ReadMetadataObject(ref Utf8JsonReader reader, int depth = 0)
     {
+        if (depth > MaxAllowedDepth)
+        {
+            throw new JsonException($"Maximum Error nesting depth of {MaxAllowedDepth} exceeded.");
+        }
+
         // reader is at StartObject
         var dict = new Dictionary<string, object>(StringComparer.Ordinal);
         // Stryker disable once Logical : Stream reader loop termination
@@ -224,7 +236,7 @@ public sealed class ErrorJsonConverter : JsonConverter<Error>
                 var key = reader.GetString()!;
                 reader.Read(); // advance to value token
 
-                var value = ReadMetadataValue(ref reader);
+                var value = ReadMetadataValue(ref reader, depth + 1);
                 if (value is not null)
                     dict[key] = value;
             }
@@ -234,34 +246,47 @@ public sealed class ErrorJsonConverter : JsonConverter<Error>
 
     /// <summary>
     /// Reads a single metadata value from the current position of the <see cref="Utf8JsonReader"/>.
-    /// Supports string, number (long/double), boolean, null, array, and nested object values.
+    /// Supports string, number (long/double), boolean, <see langword="null"/>, array, and nested object values.
     /// </summary>
-    private static object? ReadMetadataValue(ref Utf8JsonReader reader) => reader.TokenType switch
+    /// <param name="reader">The JSON reader positioned at the value token.</param>
+    /// <param name="depth">The current recursion depth.</param>
+    /// <returns>The deserialized CLR value, or <see langword="null"/>.</returns>
+    private static object? ReadMetadataValue(ref Utf8JsonReader reader, int depth = 0) => reader.TokenType switch
     {
         JsonTokenType.String => reader.GetString(),
         JsonTokenType.Number => reader.TryGetInt64(out var l) ? (object)l : reader.GetDouble(),
         JsonTokenType.True => true,
         JsonTokenType.False => false,
         JsonTokenType.Null => null,
-        JsonTokenType.StartArray => ReadMetadataArray(ref reader),
-        JsonTokenType.StartObject => ReadMetadataNestedObject(ref reader),
+        JsonTokenType.StartArray => ReadMetadataArray(ref reader, depth),
+        JsonTokenType.StartObject => ReadMetadataNestedObject(ref reader, depth),
         _ => null // Skip unknown token types
     };
 
-    private static List<object?> ReadMetadataArray(ref Utf8JsonReader reader)
+    private static List<object?> ReadMetadataArray(ref Utf8JsonReader reader, int depth)
     {
+        if (depth > MaxAllowedDepth)
+        {
+            throw new JsonException($"Maximum Error nesting depth of {MaxAllowedDepth} exceeded.");
+        }
+
         // reader is at StartArray
         var list = new List<object?>();
         // Stryker disable once Logical : Stream reader loop termination
         while (reader.Read() && reader.TokenType != JsonTokenType.EndArray)
         {
-            list.Add(ReadMetadataValue(ref reader));
+            list.Add(ReadMetadataValue(ref reader, depth + 1));
         }
         return list;
     }
 
-    private static Dictionary<string, object?> ReadMetadataNestedObject(ref Utf8JsonReader reader)
+    private static Dictionary<string, object?> ReadMetadataNestedObject(ref Utf8JsonReader reader, int depth)
     {
+        if (depth > MaxAllowedDepth)
+        {
+            throw new JsonException($"Maximum Error nesting depth of {MaxAllowedDepth} exceeded.");
+        }
+
         // reader is at StartObject
         var dict = new Dictionary<string, object?>(StringComparer.Ordinal);
         // Stryker disable once Logical : Stream reader loop termination
@@ -272,7 +297,7 @@ public sealed class ErrorJsonConverter : JsonConverter<Error>
 
             var key = reader.GetString()!;
             reader.Read(); // advance to value token
-            dict[key] = ReadMetadataValue(ref reader);
+            dict[key] = ReadMetadataValue(ref reader, depth + 1);
         }
         return dict;
     }
@@ -285,8 +310,10 @@ public sealed class ErrorJsonConverter : JsonConverter<Error>
     /// Collections implementing <see cref="System.Collections.IEnumerable"/> are written as JSON arrays.
     /// Unknown types fall back to <see cref="object.ToString"/>.
     /// </summary>
+    /// <param name="writer">The JSON writer to output to.</param>
+    /// <param name="value">The metadata value to write.</param>
     /// <remarks>
-    /// This method is AOT-safe: it uses a type-switch on known CLR types and does not
+    /// Provides AOT-safe serialization: uses a type-switch on known CLR types and does not
     /// use <c>JsonSerializer.Serialize</c> or reflection-based serialization.
     /// <para>
     /// <b>Round-trip note:</b> On deserialization, numbers are recovered as <c>long</c> or <c>double</c>,

@@ -1,5 +1,11 @@
 # ADR-003: Native OpenTelemetry Activity & System.Diagnostics.Metrics Integration
 
+## Status
+Accepted
+
+## Date
+2026-07-28
+
 - **Status**: Accepted
 - **Date**: 2026-07-28
 - **Authors**: Erickson Lopez

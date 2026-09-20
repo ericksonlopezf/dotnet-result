@@ -12,7 +12,7 @@ using MediatR;
 namespace EricksonLopez.Result.MediatR;
 
 /// <summary>
-/// MediatR pipeline behavior that catches unhandled exceptions in request handlers
+/// Represents a MediatR pipeline behavior that catches unhandled exceptions in request handlers
 /// and wraps them as <see cref="Result"/> failures instead of propagating the exception.
 /// </summary>
 /// <typeparam name="TRequest">The MediatR request type.</typeparam>
@@ -39,7 +39,7 @@ namespace EricksonLopez.Result.MediatR;
 /// use the cached delegate with zero reflection overhead.
 /// </para>
 /// <para>
-/// <b>⚠ NativeAOT / Trimming:</b> This class uses <c>Expression.Lambda.Compile()</c> and
+/// <b>⚠ NativeAOT / Trimming:</b> Uses <c>Expression.Lambda.Compile()</c> and
 /// <c>MakeGenericMethod()</c> at static initialization to build a cached failure delegate.
 /// It requires dynamic code generation and is not compatible with NativeAOT.
 /// MediatR itself (<c>IsAotCompatible=false</c>) already requires dynamic code, so this
@@ -65,16 +65,16 @@ public sealed class ResultExceptionBehavior<TRequest, TResponse> : IPipelineBeha
     private readonly Func<Exception, Error>? _errorFactory;
 
     /// <summary>
-    /// Creates a new instance using the default error factory.
+    /// Initializes a new instance of the <see cref="ResultExceptionBehavior{TRequest, TResponse}"/> class using the default error factory.
     /// </summary>
     public ResultExceptionBehavior() : this(null) { }
 
     /// <summary>
-    /// Creates a new instance with a custom error factory.
+    /// Initializes a new instance of the <see cref="ResultExceptionBehavior{TRequest, TResponse}"/> class with a custom error factory.
     /// </summary>
     /// <param name="errorFactory">
     /// Optional factory to create <see cref="Error"/> from an <see cref="Exception"/>.
-    /// When null, uses <see cref="Error.Unexpected(string, string)"/> with the exception type and message.
+    /// When <see langword="null"/>, uses <see cref="Error.Unexpected(string, string)"/> with the exception type and message.
     /// </param>
     public ResultExceptionBehavior(Func<Exception, Error>? errorFactory)
     {
@@ -120,9 +120,9 @@ public sealed class ResultExceptionBehavior<TRequest, TResponse> : IPipelineBeha
     }
 
     /// <summary>
-    /// Builds a compiled delegate that creates a failure TResponse from an Error.
-    /// Returns null if TResponse is not a Result type — used to skip interception entirely.
+    /// Builds a compiled delegate that creates a failure response from an <see cref="Error"/>.
     /// </summary>
+    /// <returns>A delegate that creates a failure response, or <see langword="null"/> if <typeparamref name="TResponse"/> is not a result type.</returns>
     /// <remarks>
     /// <para>
     /// For <c>TResponse == Result</c>: returns <c>error => (TResponse)(object)Result.Failure(error)</c>.
@@ -131,7 +131,7 @@ public sealed class ResultExceptionBehavior<TRequest, TResponse> : IPipelineBeha
     /// For <c>TResponse == Result&lt;T&gt;</c>: compiles an Expression that calls
     /// <c>Result.Failure&lt;T&gt;(error)</c> directly — no <c>MakeGenericMethod</c>,
     /// no <c>MethodInfo.Invoke</c>, no <c>object[]</c> boxing at call time.
-    /// The Expression is compiled once and reused for all subsequent invocations.
+    /// The expression is compiled once and cached for all subsequent invocations.
     /// </para>
     /// </remarks>
     [UnconditionalSuppressMessage("ReflectionAnalysis", "IL2060",

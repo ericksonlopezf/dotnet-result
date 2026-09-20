@@ -1,5 +1,11 @@
 # ADR-002: Sealed Error Class with Immutable Metadata and Composition-Based Extensibility
 
+## Status
+Accepted
+
+## Date
+2026-08-18
+
 - **Status**: Accepted (Updated 2026-08-18 — Parity Audit Review)
 - **Date**: 2026-07-28 (last updated: 2026-08-18)
 - **Authors**: Erickson Lopez

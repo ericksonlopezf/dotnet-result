@@ -7,7 +7,7 @@ using Microsoft.Extensions.Options;
 namespace EricksonLopez.Result.AspNetCore;
 
 /// <summary>
-/// Extension methods for registering Result HTTP integration services in an <see cref="IServiceCollection"/>.
+/// Provides extension methods for registering Result HTTP integration services in an <see cref="IServiceCollection"/>.
 /// </summary>
 public static class ResultServiceCollectionExtensions
 {

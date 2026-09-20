@@ -16,9 +16,10 @@ namespace EricksonLopez.Result;
 internal static class ErrorEnumStrings
 {
     /// <summary>
-    /// Returns the PascalCase string for an <see cref="ErrorType"/> value.
-    /// Used for JSON serialization and ProblemDetails extensions.
+    /// Returns the PascalCase string representation for an <see cref="ErrorType"/> value.
     /// </summary>
+    /// <param name="type">The error type value to convert.</param>
+    /// <returns>The PascalCase string representation of <paramref name="type"/>.</returns>
     internal static string ErrorTypeToString(ErrorType type) => type switch
     {
         ErrorType.Failure => "Failure",
@@ -36,9 +37,10 @@ internal static class ErrorEnumStrings
     };
 
     /// <summary>
-    /// Returns the PascalCase string for an <see cref="ErrorSeverity"/> value.
-    /// Used for JSON serialization and ProblemDetails extensions.
+    /// Returns the PascalCase string representation for an <see cref="ErrorSeverity"/> value.
     /// </summary>
+    /// <param name="severity">The error severity value to convert.</param>
+    /// <returns>The PascalCase string representation of <paramref name="severity"/>.</returns>
     internal static string ErrorSeverityToString(ErrorSeverity severity) => severity switch
     {
         ErrorSeverity.Info => "Info",
@@ -49,9 +51,10 @@ internal static class ErrorEnumStrings
     };
 
     /// <summary>
-    /// Returns the PascalCase string for an <see cref="ErrorRetryability"/> value.
-    /// Used for JSON serialization and ProblemDetails extensions.
+    /// Returns the PascalCase string representation for an <see cref="ErrorRetryability"/> value.
     /// </summary>
+    /// <param name="retryability">The error retryability value to convert.</param>
+    /// <returns>The PascalCase string representation of <paramref name="retryability"/>.</returns>
     internal static string ErrorRetryabilityToString(ErrorRetryability retryability) => retryability switch
     {
         ErrorRetryability.NotApplicable => "NotApplicable",
@@ -61,9 +64,10 @@ internal static class ErrorEnumStrings
     };
 
     /// <summary>
-    /// Returns the lowercase OTel-convention string for an <see cref="ErrorType"/> value.
-    /// Used for OpenTelemetry <c>error.type</c> attribute values.
+    /// Returns the OpenTelemetry lowercase convention string for an <see cref="ErrorType"/> value.
     /// </summary>
+    /// <param name="type">The error type value to convert.</param>
+    /// <returns>The OpenTelemetry lowercase string representation of <paramref name="type"/>.</returns>
     internal static string ErrorTypeToOTelString(ErrorType type) => type switch
     {
         ErrorType.Failure => "failure",
@@ -81,9 +85,10 @@ internal static class ErrorEnumStrings
     };
 
     /// <summary>
-    /// Returns the lowercase OTel-convention string for an <see cref="ErrorSeverity"/> value.
-    /// Used for OpenTelemetry activity tag values.
+    /// Returns the OpenTelemetry lowercase convention string for an <see cref="ErrorSeverity"/> value.
     /// </summary>
+    /// <param name="severity">The error severity value to convert.</param>
+    /// <returns>The OpenTelemetry lowercase string representation of <paramref name="severity"/>.</returns>
     internal static string ErrorSeverityToOTelString(ErrorSeverity severity) => severity switch
     {
         ErrorSeverity.Info => "info",

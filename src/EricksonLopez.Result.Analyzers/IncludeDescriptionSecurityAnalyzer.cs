@@ -9,7 +9,7 @@ using Microsoft.CodeAnalysis.Operations;
 namespace EricksonLopez.Result.Analyzers;
 
 /// <summary>
-/// Roslyn diagnostic analyzer (RESULT009) that warns when <c>ResultHttpOptions.IncludeDescription</c>
+/// Represents a Roslyn diagnostic analyzer (RESULT009) that warns when <c>ResultHttpOptions.IncludeDescription</c>
 /// is set directly to <see langword="true"/> without an environment guard, which may expose
 /// internal error descriptions (including exception messages, file paths, or PII) in HTTP
 /// ProblemDetails responses in production environments.
@@ -17,7 +17,7 @@ namespace EricksonLopez.Result.Analyzers;
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
 public sealed class IncludeDescriptionSecurityAnalyzer : DiagnosticAnalyzer
 {
-    /// <summary>The diagnostic identifier for this analyzer rule.</summary>
+    /// <summary>Gets the diagnostic identifier for this analyzer rule.</summary>
     public const string DiagnosticId = "RESULT009";
 
     private const string ResultHttpOptionsTypeName = "EricksonLopez.Result.AspNetCore.ResultHttpOptions";

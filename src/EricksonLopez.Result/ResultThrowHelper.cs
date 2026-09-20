@@ -18,6 +18,7 @@ internal static class ResultThrowHelper
 {
     [DoesNotReturn]
     [StackTraceHidden]
+    [ExcludeFromCodeCoverage(Justification = "Unreachable IL return opcode following [DoesNotReturn] throw")]
     internal static void ThrowUninitialized()
         => throw new InvalidOperationException(
             "Cannot operate on an uninitialized default Result. " +
@@ -25,6 +26,7 @@ internal static class ResultThrowHelper
 
     [DoesNotReturn]
     [StackTraceHidden]
+    [ExcludeFromCodeCoverage(Justification = "Unreachable IL return opcode following [DoesNotReturn] throw")]
     internal static void ThrowUninitializedOfT()
         => throw new InvalidOperationException(
             "Cannot operate on an uninitialized default Result<TValue>. " +

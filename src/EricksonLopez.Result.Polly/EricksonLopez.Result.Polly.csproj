@@ -1,0 +1,26 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!-- Copyright © Erickson Lopez. MIT License. -->
+  <PropertyGroup>
+    <TargetFrameworks>net8.0;net9.0;net10.0</TargetFrameworks>
+    <LangVersion>latest</LangVersion>
+    <AssemblyName>EricksonLopez.Result.Polly</AssemblyName>
+    <RootNamespace>EricksonLopez.Result.Polly</RootNamespace>
+    <IsPackable>true</IsPackable>
+    <PackageId>EricksonLopez.Result.Polly</PackageId>
+    <Description>Polly v8 resilience pipeline integration for EricksonLopez.Result. Bridges ResiliencePipeline with ErrorRetryability for exception-free, zero-allocation retries and circuit breakers.</Description>
+    <PackageProjectUrl>https://ericksonlopez.dev/result</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/ericksonlopezf/dotnet-result</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageTags>$(CommonPackageTags);result;polly;resilience;retry;circuit-breaker;fault-tolerance;native-aot</PackageTags>
+    <Nullable>enable</Nullable>
+    <IsAotCompatible>true</IsAotCompatible>
+    <EnableTrimAnalyzer>true</EnableTrimAnalyzer>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\EricksonLopez.Result\EricksonLopez.Result.csproj" />
+    <PackageReference Include="Polly.Core" />
+  </ItemGroup>
+</Project>

@@ -9,7 +9,7 @@ using EricksonLopez.Result;
 namespace EricksonLopez.Result.Testing;
 
 /// <summary>
-/// Fluent testing assertion extensions for <see cref="Result"/> and <see cref="Result{T}"/>.
+/// Provides fluent testing assertion extensions for <see cref="Result"/> and <see cref="Result{T}"/>.
 /// </summary>
 [System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage]
 // Stryker disable Boolean : ConfigureAwait(false) equivalent mutation
@@ -286,7 +286,7 @@ public static class ResultAssertions
     /// <remarks>
     /// Use this when you need to verify a combination of error properties in a single assertion
     /// without breaking the fluent chain. Unlike multiple individual <c>ShouldHave*</c> assertions,
-    /// this method lets you express complex conditions in a single readable predicate.
+    /// enables expressing complex conditions in a single readable predicate.
     /// </remarks>
     /// <example>
     /// <code>
@@ -452,7 +452,7 @@ public static class ResultAssertions
     /// <returns>The error from the failed result.</returns>
     /// <remarks>
     /// Unlike <see cref="ShouldHaveMetadata(in Result, string, object)"/> which uses <c>object</c> equality,
-    /// this method performs a typed cast first. This is necessary for value types (e.g., <c>long</c>, <c>int</c>)
+    /// performs a typed cast first. This is necessary for value types (e.g., <c>long</c>, <c>int</c>)
     /// where boxing differences could cause <c>Equals</c> to return <c>false</c> even with identical values.
     /// </remarks>
     /// <example>

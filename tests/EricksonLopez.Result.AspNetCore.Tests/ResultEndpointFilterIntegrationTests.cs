@@ -19,10 +19,7 @@ using Xunit;
 namespace EricksonLopez.Result.AspNetCore.Tests;
 
 /// <summary>
-/// End-to-end integration tests for <see cref="ResultEndpointFilter"/> using a real
-/// <see cref="TestServer"/> pipeline. These tests validate that the filter correctly intercepts
-/// <see cref="Result"/> and <see cref="Result{T}"/> return values through the full ASP.NET Core
-/// Minimal API request/response pipeline.
+/// Verifies end-to-end integration for <see cref="ResultEndpointFilter"/> using a real <see cref="TestServer"/> pipeline.
 /// </summary>
 /// <remarks>
 /// These tests run on net10.0 only. The net8.0 TestServer's <c>ResponseBodyPipeWriter</c> does not

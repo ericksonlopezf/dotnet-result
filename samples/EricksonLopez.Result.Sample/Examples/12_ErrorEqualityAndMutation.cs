@@ -6,21 +6,7 @@ using EricksonLopez.Result;
 namespace EricksonLopez.Result.Sample.Examples;
 
 /// <summary>
-/// Demonstrates Error equality, comparison, and mutation APIs:
-/// - Error.Equals (shallow — Code, Description, Type, Severity, Retryability)
-/// - Error.StrictEquals (deep — all fields including TraceId, CorrelationId, Metadata, InnerErrors)
-/// - Error.operator == / !=
-/// - ErrorEqualityComparer.Default (shallow)
-/// - ErrorEqualityComparer.Strict (deep structural)
-/// - Error.With* instance methods (copy-on-write fluent mutations)
-///   - Error.WithTraceId(string?)
-///   - Error.WithTraceId(ActivityTraceId)
-///   - Error.ClearTraceId()
-///   - Error.WithCorrelationId(string?)
-///   - Error.WithDescriptionKey(string?)
-///   - Error.WithRetryability(ErrorRetryability)
-/// - Error.ToString()
-/// - Error.ToBuilder() (convert to ErrorBuilder for heavy modifications)
+/// Demonstrates <see cref="Error"/> equality, comparison, and copy-on-write mutation APIs.
 /// </summary>
 public static class ErrorEqualityAndMutation
 {

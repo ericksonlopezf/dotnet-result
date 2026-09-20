@@ -41,7 +41,7 @@ public readonly partial struct Result : IResultOutcome, IEquatable<Result>
     /// <summary>Gets a value indicating whether the operation failed.</summary>
     /// <remarks>
     /// <b>⚠ Uninitialized default:</b> Returns <see langword="false"/> for an uninitialized
-    /// <c>default(Result)</c> — the same as a success (neither true nor false corresponds to
+    /// <c>default(Result)</c> — the same as a success (neither <see langword="true"/> nor <see langword="false"/> corresponds to
     /// the uninitialized state). Use <see cref="IsUninitialized"/> to distinguish.
     /// </remarks>
     public bool IsFailure => _state == ResultState.Failure;
@@ -51,8 +51,12 @@ public readonly partial struct Result : IResultOutcome, IEquatable<Result>
 
     /// <summary>
     /// Gets the error associated with this result.
-    /// Throws an InvalidOperationException if the result is successful.
     /// </summary>
+    /// <exception cref="InvalidOperationException">The result is successful</exception>
+    /// <remarks>
+    /// If the result is an uninitialized <see langword="default"/><c>(Result)</c>, this property returns the sentinel
+    /// <see cref="WellKnownErrors.UninitializedError"/> rather than throwing an exception.
+    /// </remarks>
     public Error Error => _state switch
     {
         ResultState.Failure => _error!,
@@ -172,13 +176,14 @@ public readonly partial struct Result : IResultOutcome, IEquatable<Result>
     /// </para>
     /// <para>
     /// <b>Naming note:</b> The name <c>Execute</c> is borrowed from functional programming (e.g. F# <c>match</c>
-    /// expressions used for side-effects). In the .NET idiom, a close equivalent would be <c>Visit</c>
+    /// expressions evaluated for side-effects). In the .NET idiom, a close equivalent would be <c>Visit</c>
     /// or <c>Execute</c>. <c>Execute</c> was chosen for conciseness and consistency with functional Result
     /// libraries; it does <em>not</em> refer to the C# <c>Execute</c> statement.
     /// </para>
     /// </remarks>
     /// <param name="onSuccess">Action invoked when the result is <see cref="IsSuccess">successful</see>.</param>
     /// <param name="onFailure">Action invoked with the <see cref="Error"/> when the result is a failure.</param>
+    /// <exception cref="InvalidOperationException">The result is an uninitialized default value</exception>
     public void Execute(Action onSuccess, Action<Error> onFailure)
     {
         ThrowIfUninitialized();
@@ -191,6 +196,11 @@ public readonly partial struct Result : IResultOutcome, IEquatable<Result>
     /// Invokes <paramref name="onSuccess"/> or <paramref name="onFailure"/> for their side-effects,
     /// forwarding <paramref name="state"/> to avoid a closure allocation.
     /// </summary>
+    /// <typeparam name="TState">The type of the state argument passed to the callbacks.</typeparam>
+    /// <param name="state">The state object forwarded to the callbacks to avoid closure allocations.</param>
+    /// <param name="onSuccess">The action to invoke when the result is successful.</param>
+    /// <param name="onFailure">The action to invoke when the result is a failure.</param>
+    /// <exception cref="InvalidOperationException">The result is an uninitialized default value</exception>
     /// <remarks>
     /// Use this overload in hot paths where capturing variables in a closure would cause heap allocation.
     /// See <see cref="Execute(Action, Action{Error})"/> for the naming rationale.
@@ -221,7 +231,7 @@ public readonly partial struct Result : IResultOutcome, IEquatable<Result>
     /// to pass the captured values as a <c>TState</c> parameter and avoid closure allocation.
     /// </para>
     /// </remarks>
-    /// <exception cref="InvalidOperationException">The result is an uninitialized default value.</exception>
+    /// <exception cref="InvalidOperationException">The result is an uninitialized default value</exception>
     [Pure]
     public TOut MapFailure<TOut>(Func<Error, TOut> onFailure, TOut successDefault)
     {
@@ -267,6 +277,7 @@ public readonly partial struct Result : IResultOutcome, IEquatable<Result>
     /// prefer the <c>Map&lt;TState, TNext&gt;(TState, Func&lt;TState, TNext&gt;)</c> overload to pass context
     /// without allocating a closure object on the heap.
     /// </remarks>
+    /// <exception cref="InvalidOperationException">The result is an uninitialized default value</exception>
     [Pure]
     public Result<TNext> Map<TNext>(Func<TNext> mapper)
     {
@@ -350,7 +361,7 @@ public readonly partial struct Result : IResultOutcome, IEquatable<Result>
     /// <returns>The current result instance unchanged.</returns>
     /// <exception cref="InvalidOperationException">The result is an uninitialized default value</exception>
     /// <remarks>
-    /// This method executes the action <b>only on success</b> and is symmetric with <see cref="TapOnFailure(Action{Error})"/>.
+    /// Executes the action <b>only on success</b>; symmetric with <see cref="TapOnFailure(Action{Error})"/>.
     /// Use <see cref="Inspect(Action{Result})"/> if you need unconditional execution (both success and failure).
     /// <para>
     /// <b>💡 Allocation tip:</b> Use <c>TapOnSuccess&lt;TState&gt;(TState, Action&lt;TState&gt;)</c> to avoid
@@ -381,12 +392,26 @@ public readonly partial struct Result : IResultOutcome, IEquatable<Result>
         return this;
     }
 
+    /// <summary>Executes <paramref name="onSuccess"/> if this result is successful, then returns this result unchanged.</summary>
+    /// <param name="onSuccess">The action to execute if the result is successful.</param>
+    /// <returns>The current result instance unchanged.</returns>
+    /// <exception cref="InvalidOperationException">The result is an uninitialized default value</exception>
+    public Result Tap(Action onSuccess) => TapOnSuccess(onSuccess);
+
+    /// <summary>Executes <paramref name="onSuccess"/> with captured state if this result is successful, then returns this result unchanged.</summary>
+    /// <typeparam name="TState">The type of the state object passed to the action.</typeparam>
+    /// <param name="state">The state value passed to the action.</param>
+    /// <param name="onSuccess">The action to execute if the result is successful.</param>
+    /// <returns>The current result instance unchanged.</returns>
+    /// <exception cref="InvalidOperationException">The result is an uninitialized default value</exception>
+    public Result Tap<TState>(TState state, Action<TState> onSuccess) => TapOnSuccess(state, onSuccess);
+
     /// <summary>Executes <paramref name="onFailure"/> if this result is a failure, then returns this result unchanged.</summary>
     /// <param name="onFailure">The action to execute with the <see cref="Error"/> if the result is a failure.</param>
     /// <returns>The current result instance unchanged.</returns>
     /// <exception cref="InvalidOperationException">The result is an uninitialized default value</exception>
     /// <remarks>
-    /// This method executes the action <b>only on failure</b> and is symmetric with <see cref="TapOnSuccess(Action)"/>.
+    /// Executes the action <b>only on failure</b>; symmetric with <see cref="TapOnSuccess(Action)"/>.
     /// Use <see cref="Inspect(Action{Result})"/> if you need unconditional execution (both success and failure).
     /// <para>
     /// <b>💡 Allocation tip:</b> Use <c>TapOnFailure&lt;TState&gt;(TState, Action&lt;TState, Error&gt;)</c> to avoid
@@ -862,6 +887,9 @@ public readonly partial struct Result : IResultOutcome, IEquatable<Result>
     /// wrapping any non-fatal exception into a <c>ValueTask&lt;Result&lt;T&gt;&gt;</c>.
     /// </summary>
     /// <typeparam name="T">The value type of the result.</typeparam>
+    /// <param name="func">The asynchronous function to execute.</param>
+    /// <param name="errorHandler">Maps a caught exception to an <see cref="Error"/>.</param>
+    /// <returns>A <see cref="ValueTask{TResult}"/> whose result is a successful <see cref="Result{T}"/> containing the returned value, or a failure result if an exception occurs.</returns>
     /// <remarks>
     /// Prefer this overload over the <c>Task&lt;Result&lt;T&gt;&gt;</c> variant when composing
     /// end-to-end <see cref="ValueTask"/> pipelines.
@@ -967,8 +995,10 @@ public readonly partial struct Result : IResultOutcome, IEquatable<Result>
     }
 
     /// <summary>
-    /// Returns true for exceptions that represent unrecoverable CLR/OS failures that should never be swallowed.
+    /// Determines whether an exception represents an unrecoverable CLR or operating system failure.
     /// </summary>
+    /// <param name="ex">The exception to evaluate.</param>
+    /// <returns><see langword="true"/> if the exception is fatal; otherwise, <see langword="false"/>.</returns>
     /// <remarks>
     /// <para>
     /// <see cref="OperationCanceledException"/> is intentionally NOT treated as fatal: cancellation is

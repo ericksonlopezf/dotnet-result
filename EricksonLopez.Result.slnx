@@ -22,6 +22,12 @@
     <Project Path="src/EricksonLopez.Result.Testing.NUnit/EricksonLopez.Result.Testing.NUnit.csproj" />
     <Project Path="src/EricksonLopez.Result.Testing.XUnit/EricksonLopez.Result.Testing.XUnit.csproj" />
     <Project Path="src/EricksonLopez.Result/EricksonLopez.Result.csproj" />
+    <Project Path="src/EricksonLopez.Result.DomainErrors.Generators/EricksonLopez.Result.DomainErrors.Generators.csproj" />
+    <Project Path="src/EricksonLopez.Result.EntityFrameworkCore/EricksonLopez.Result.EntityFrameworkCore.csproj" />
+    <Project Path="src/EricksonLopez.Result.Polly/EricksonLopez.Result.Polly.csproj" />
+    <Project Path="src/EricksonLopez.Result.MassTransit/EricksonLopez.Result.MassTransit.csproj" />
+    <Project Path="src/EricksonLopez.Result.Dapr/EricksonLopez.Result.Dapr.csproj" />
+    <Project Path="src/EricksonLopez.Result.Grpc/EricksonLopez.Result.Grpc.csproj" />
   </Folder>
   <Folder Name="/tests/">
     <Project Path="tests/EricksonLopez.Result.Analyzers.Tests/EricksonLopez.Result.Analyzers.Tests.csproj" />
@@ -39,6 +45,12 @@
     <Project Path="tests/EricksonLopez.Result.Testing.XUnit.Tests/EricksonLopez.Result.Testing.XUnit.Tests.csproj" />
     <Project Path="tests/EricksonLopez.Result.Tests/EricksonLopez.Result.Tests.csproj" />
     <Project Path="tests/EricksonLopez.Result.AotSmokeTest/EricksonLopez.Result.AotSmokeTest.csproj" />
+    <Project Path="tests/EricksonLopez.Result.DomainErrors.Generators.Tests/EricksonLopez.Result.DomainErrors.Generators.Tests.csproj" />
+    <Project Path="tests/EricksonLopez.Result.EntityFrameworkCore.Tests/EricksonLopez.Result.EntityFrameworkCore.Tests.csproj" />
+    <Project Path="tests/EricksonLopez.Result.Polly.Tests/EricksonLopez.Result.Polly.Tests.csproj" />
+    <Project Path="tests/EricksonLopez.Result.MassTransit.Tests/EricksonLopez.Result.MassTransit.Tests.csproj" />
+    <Project Path="tests/EricksonLopez.Result.Dapr.Tests/EricksonLopez.Result.Dapr.Tests.csproj" />
+    <Project Path="tests/EricksonLopez.Result.Grpc.Tests/EricksonLopez.Result.Grpc.Tests.csproj" />
   </Folder>
   <Folder Name="/benchmarks/">
     <Project Path="benchmarks/EricksonLopez.Result.Benchmarks/EricksonLopez.Result.Benchmarks.csproj" />

@@ -34,5 +34,50 @@ public static class BasicCreation
 
         Console.WriteLine($"Implicit Failure converted successfully: {implicitFailure.IsFailure}");
         Console.WriteLine($"Implicit Value Failure converted successfully: {implicitValueFailure.IsFailure}");
+
+        // A TValue can also implicitly be converted to a successful Result<TValue>.
+        Result<string> implicitValueSuccess = "hello";
+        Console.WriteLine($"Implicit Value Success converted successfully: {implicitValueSuccess.IsSuccess}");
+
+        // 6. Error.Business — semantic alias for Error.Domain
+        // ----------------------------------------------------------
+        // Error.Business is an alias for Error.Domain, provided for teams that
+        // prefer the term "business rule" over "domain error". Both produce an
+        // Error with Type=Domain and Severity=Error.
+        Console.WriteLine("\n--- 6. Error.Business — business rule violation factory ---");
+
+        Error businessError = Error.Business(
+            "Order.CannotShip",
+            "The order cannot be shipped because it has not been confirmed.");
+
+        Console.WriteLine($"Code:     {businessError.Code}");
+        Console.WriteLine($"Type:     {businessError.Type}");   // Domain
+        Console.WriteLine($"Severity: {businessError.Severity}");
+
+        // Confirm it is equivalent to Error.Domain:
+        Error domainError = Error.Domain("Order.CannotShip", "The order cannot be shipped because it has not been confirmed.");
+        Console.WriteLine($"Business.Type == Domain.Type: {businessError.Type == domainError.Type}");
+
+        // 7. Result<TValue> → Result implicit conversion operator
+        // ----------------------------------------------------------
+        // A Result<T> can be implicitly widened to a non-generic Result,
+        // discarding the typed value while preserving the outcome state.
+        // This is useful when a caller returns Result<T> but the caller's
+        // signature requires a plain Result (e.g., command handlers, middleware).
+        Console.WriteLine("\n--- 7. Result<TValue> → Result implicit widening ---");
+
+        Result<int> typedSuccess  = Result.Success(99);
+        Result<int> typedFailure  = Result.Failure<int>(myError);
+
+        // Widening — no explicit cast needed:
+        Result widenedSuccess = typedSuccess;   // preserves Success state
+        Result widenedFailure = typedFailure;   // preserves Failure state + Error
+
+        Console.WriteLine($"typedSuccess  (Result<int>) → Result: IsSuccess={widenedSuccess.IsSuccess}");
+        Console.WriteLine($"typedFailure  (Result<int>) → Result: IsFailure={widenedFailure.IsFailure}, Code={widenedFailure.Error.Code}");
+
+        // Same as calling .DiscardValue() explicitly:
+        Result viaMethod = typedSuccess.DiscardValue();
+        Console.WriteLine($"DiscardValue()  IsSuccess={viaMethod.IsSuccess}");
     }
 }

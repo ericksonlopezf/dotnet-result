@@ -89,6 +89,14 @@ jobs:
           --exporters json markdown
           --artifacts ./benchmarks/results
 
+      - name: Verify benchmark regression gate
+        shell: pwsh
+        run: |
+          ./scripts/verify-benchmark-gate.ps1 `
+            -ReportDir ./benchmarks/results `
+            -BaselinePath ./benchmarks/results/baseline.json `
+            -MaxLatencyRegressionPercent 5.0
+
       - name: Upload benchmark results as artifact
         if: always()
         uses: actions/upload-artifact@v4

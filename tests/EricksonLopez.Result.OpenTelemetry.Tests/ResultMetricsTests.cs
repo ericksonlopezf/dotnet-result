@@ -366,6 +366,7 @@ public class ResultMetricsTests : IDisposable
             tasks[i] = Task.Run(() => ResultMetrics.StaticTrackSuccess("ConcurrentOp"));
         }
         await Task.WhenAll(tasks);
+        Assert.All(tasks, t => Assert.True(t.IsCompletedSuccessfully));
         ResultMetrics.ResetStaticMeterForTesting();
     }
 }

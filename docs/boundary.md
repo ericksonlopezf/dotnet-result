@@ -14,6 +14,11 @@
 - HTTP Problem Details or ASP.NET Core response mapping (`EricksonLopez.Result.AspNetCore`).
 - FluentValidation execution (`EricksonLopez.Result.FluentValidation`).
 - JSON serialization converters (`EricksonLopez.Result.Serialization`).
+- Entity Framework Core adapters (`EricksonLopez.Result.EntityFrameworkCore`).
+- Polly resilience pipeline integration (`EricksonLopez.Result.Polly`).
+- MassTransit consumer filters and fault contracts (`EricksonLopez.Result.MassTransit`).
+- Dapr Client and state store integration (`EricksonLopez.Result.Dapr`).
+- gRPC status mapping and RpcException conversion (`EricksonLopez.Result.Grpc`).
 - Domain entity identity or strongly-typed IDs (`EricksonLopez.DomainPrimitives.Abstractions`).
 - CQRS commands/queries or pipeline dispatch (`EricksonLopez.Mediator`).
 
@@ -26,6 +31,11 @@
 - Any ORM or database provider (`Npgsql`, `Microsoft.Data.SqlClient`, `Dapper`, `EFCore`).
 - Any message broker client (`RabbitMQ.Client`, `Confluent.Kafka`, `AWSSDK`).
 - `Microsoft.AspNetCore.*` (confined to `EricksonLopez.Result.AspNetCore`).
+- `Microsoft.EntityFrameworkCore` (confined to `EricksonLopez.Result.EntityFrameworkCore`).
+- `Polly.Core` (confined to `EricksonLopez.Result.Polly`).
+- `MassTransit.Abstractions` (confined to `EricksonLopez.Result.MassTransit`).
+- `Dapr.Client` (confined to `EricksonLopez.Result.Dapr`).
+- `Grpc.Core.Api` (confined to `EricksonLopez.Result.Grpc`).
 
 ## 6. Who Can Depend On It
 - **All Layers (L0..L5)**: Foundation, Domain, Application, Integration, Adapters, Providers, Tooling, and Testing.

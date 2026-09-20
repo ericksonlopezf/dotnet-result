@@ -9,7 +9,6 @@
     <PackageId>EricksonLopez.Result.Testing.XUnit</PackageId>
     <Authors>Erickson Lopez</Authors>
     <Company>Erickson Lopez</Company>
-    <Copyright>Copyright © 2026 Erickson Lopez</Copyright>
     <Description>
       xUnit-specific testing helpers for EricksonLopez.Result.
       Provides ResultAssertionXUnitException which inherits from Xunit.Sdk.XunitException
@@ -20,12 +19,11 @@
     <RepositoryUrl>https://github.com/ericksonlopezf/dotnet-result</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
-    <ImplicitUsings>disable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <IsAotCompatible>false</IsAotCompatible>
     <!-- xUnit.core is not AOT-compatible; test packages are never deployed in AOT production code -->
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
-    <PackageTags>$(CommonPackageTags);xunit;xunit2;xunit3;testing;unit-testing;assertions;test-adapter</PackageTags>
+    <PackageTags>$(CommonPackageTags);result;xunit;unit-testing;assertions;test-adapter</PackageTags>
   </PropertyGroup>
 
   <ItemGroup>

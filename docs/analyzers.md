@@ -13,11 +13,12 @@
 | [`RESULT004`](performance.md#result004---lambda-captures-locals-in-result-pipeline) | Performance | Warning | Lambda captures locals in Result pipeline (closure allocation) | Make static / use TState |
 | [`RESULT005`](error-builder.md#result005---avoid-chaining-errorwithmetadata-calls) | Performance | Warning | Avoid chaining `Error.WithMetadata()` calls consecutively | Batch via dictionary |
 | [`RESULT006`](error-builder.md#result006---chained-errorbuilderwithinnererror-calls-are-on) | Performance | Warning | Chained `ErrorBuilder.WithInnerError()` calls are $O(n^2)$ | Batch via array |
-| [`RESULT007`](#result007---missing-errorequalitycomparerstrict-in-collection-or-linq-deduplication) | Reliability | Warning | Missing `ErrorEqualityComparer.Strict` in collection or LINQ deduplication | No |
+| [`RESULT007`](#result007---missing-errorequalitycomparerstrict-in-collection-or-linq-deduplication) | Reliability | Warning | Missing `ErrorEqualityComparer.Strict` in collection or LINQ deduplication | Add ErrorEqualityComparer |
 | [`RESULT008`](#result008---resultendpointfilter-hides-openapi-metadata-without-explicit-producest) | Usage | Warning | `ResultEndpointFilter` hides OpenAPI metadata without explicit `.Produces<T>()` | Add `.Produces<T>()` |
 | [`RESULT009`](#result009---resulthttpoptionsincludedescription-set-to-true-without-environment-guard) | Security | Warning | `ResultHttpOptions.IncludeDescription` set to `true` without environment guard | No |
 | [`RESULT010`](#result010---avoid-using-exceptionmessage-in-resultexceptionbehavior) | Security | Warning | Avoid using `Exception.Message` in `ResultExceptionBehavior` error factory | No |
 | [`RESULT012`](#result012---avoid-returning-defaultresult-or-defaultresultt) | Usage | Warning | Avoid returning `default(Result)` or `default(Result<T>)` | Use `Success`/`Failure` |
+| [`RESULT013`](#result013---avoid-implicit-bool-conversion-of-result-in-condition-contexts) | Usage | Warning | Avoid implicit bool conversion of `Result` in condition contexts | Replace with `.IsSuccess` / `.IsFailure` |
 | [`RESULT_OTEL_001`](#result_otel_001---traceoutcometraceonfailuretraceonsuccess-called-without-metrics-instance) | Observability | Info | `TraceOutcome`/`TraceOnFailure`/`TraceOnSuccess` called without `metrics` argument | Pass DI `metrics` instance |
 | [`RESULT_GEN_001`](serialization.md#result_gen_001---jsonserializabletypeofresult-has-no-effect-for-converter-generation) | Usage | Warning | `[JsonSerializable(typeof(Result))]` has no effect for converter generation | Use generic `Result<T>` |
 
@@ -142,6 +143,35 @@ public Result<User> GetUser() => Result.Success(user);
 // or:
 public Result<User> GetUser() => Result.Failure<User>(Error.NotFound("User.NotFound", "User not found."));
 ```
+
+---
+
+### `RESULT013` — Avoid Implicit Bool Conversion of `Result` in Condition Contexts
+
+#### Cause
+A `Result` or `Result<T>` instance is used directly in a boolean condition expression (such as `if (result)`, `result ? a : b`, `while (result)`, or `do { ... } while (result)`).
+
+#### Rationale
+`Result` implements `operator true` and `operator false` to allow convenient truthy checks. However, an uninitialized `default(Result)` has `IsSuccess = false` and `IsFailure = false`. In an `if (result)` statement, `operator true` returns `false` without throwing an exception. Developers often assume that if `if (result)` does not execute, the result must be in a failure state, which is not true for uninitialized results and can mask critical initialization bugs.
+
+#### How to Fix
+Explicitly check `.IsSuccess` or `.IsFailure`:
+
+```csharp
+// ❌ Triggers RESULT013:
+if (result)
+{
+    // ...
+}
+
+// ✅ Correct:
+if (result.IsSuccess)
+{
+    // ...
+}
+```
+
+A companion code fix provider (`Alt+Enter`) automatically rewrites `if (result)` to `if (result.IsSuccess)` or `if (result.IsFailure)`.
 
 ---
 

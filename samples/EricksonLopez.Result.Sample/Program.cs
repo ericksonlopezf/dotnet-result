@@ -36,7 +36,20 @@ sealed class Program
         CombineAndMergeAdvanced.Run();
         WellKnownErrorsAndTry.Run();
         AdvancedApiCoverage.Run();
+        SerializationShowcase.Run();
+        OpenTelemetryShowcase.Run();
+        await FluentValidationShowcase.RunAsync();
+        await MediatRShowcase.RunAsync();
+        await PollyResilienceShowcase.RunAsync();
+        await EntityFrameworkCoreShowcase.RunAsync();
+        MassTransitShowcase.Run();
+        AspNetCoreAndOpenApiShowcase.Run();
+        TestingFrameworksShowcase.Run();
+        DomainErrorsGeneratorShowcase.Run();
+        DaprShowcase.Run();
+        GrpcShowcase.Run();
+        await ComprehensiveApiCoverageShowcase.RunAsync();
 
-        Console.WriteLine("\n[All Core Showcase Examples Finished Successfully]\n");
+        Console.WriteLine("\n[All 34 Showcase Examples Finished Successfully - 100% API Coverage]\n");
     }
 }

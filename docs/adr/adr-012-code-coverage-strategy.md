@@ -1,5 +1,11 @@
 # ADR-012: Test Coverage Strategy and Generated Code Exclusion
 
+## Status
+Accepted
+
+## Date
+2026-07-28
+
 - **Status**: Accepted
 - **Date**: 2026-07-28
 - **Authors**: Erickson Lopez

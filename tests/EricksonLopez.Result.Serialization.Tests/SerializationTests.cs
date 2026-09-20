@@ -9,8 +9,6 @@ using EricksonLopez.Result.Serialization;
 using EricksonLopez.Result.Testing;
 using Xunit;
 
-#pragma warning disable CS0619 // Tests intentionally exercise the reflection-based constructor (Obsolete error:true)
-#pragma warning disable CS0618 // And the warning-level obsolete constructor
 namespace EricksonLopez.Result.Serialization.Tests;
 
 public class SerializationTests

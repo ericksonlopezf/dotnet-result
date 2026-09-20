@@ -20,6 +20,7 @@
       "ConfigureGeneratedCodeAnalysis",
       "EnableConcurrentExecution"
     ],
-    "ignore-mutations": []
+    "ignore-mutations": [],
+    "concurrency": 2
   }
 }

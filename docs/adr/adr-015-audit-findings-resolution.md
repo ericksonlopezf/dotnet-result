@@ -1,5 +1,11 @@
 # ADR-015: Architecture Audit Findings Resolution and Deferrals
 
+## Status
+Accepted
+
+## Date
+2026-08-01
+
 - **Status**: Accepted (Updated 2026-08-01 — third ARB audit, preview.5)
 - **Date**: 2026-07-31 (last updated: 2026-08-01)
 - **Authors**: Erickson Lopez

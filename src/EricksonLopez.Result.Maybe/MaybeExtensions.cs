@@ -7,7 +7,7 @@ using EricksonLopez.Result;
 namespace EricksonLopez.Result.Maybe;
 
 /// <summary>
-/// Asynchronous extension methods for <see cref="Maybe{T}"/>.
+/// Provides asynchronous extension methods for <see cref="Maybe{T}"/>.
 /// </summary>
 public static class MaybeExtensions
 {

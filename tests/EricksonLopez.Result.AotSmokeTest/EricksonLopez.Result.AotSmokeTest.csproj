@@ -2,13 +2,11 @@
   <!-- Copyright © Erickson Lopez. MIT License. -->
 
   <PropertyGroup>
-    <!-- Smoke test targets net8.0 (LTS) for broadest compatibility.
-         The CI workflow uses .NET 9 SDK which includes the NativeAOT ILC for both TFMs. -->
-    <TargetFramework>net8.0</TargetFramework>
+    <!-- Smoke test targets net8.0 (LTS) and net10.0 for broadest and latest compatibility. -->
+    <TargetFrameworks>net8.0;net10.0</TargetFrameworks>
     <OutputType>Exe</OutputType>
     <LangVersion>latest</LangVersion>
     <Nullable>enable</Nullable>
-    <ImplicitUsings>disable</ImplicitUsings>
 
     <!-- NativeAOT publish settings -->
     <PublishAot>true</PublishAot>

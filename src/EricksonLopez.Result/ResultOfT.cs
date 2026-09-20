@@ -49,7 +49,7 @@ public readonly partial struct Result<TValue> : IResultOutcome, IEquatable<Resul
     /// <summary>Gets a value indicating whether the operation failed.</summary>
     /// <remarks>
     /// <b>⚠ Uninitialized default:</b> Returns <see langword="false"/> for an uninitialized
-    /// <c>default(Result&lt;TValue&gt;)</c> — the same as a success (neither true nor false
+    /// <c>default(Result&lt;TValue&gt;)</c> — the same as a success (neither <see langword="true"/> nor <see langword="false"/>
     /// corresponds to the uninitialized state). Use <see cref="IsUninitialized"/> to distinguish.
     /// </remarks>
     public bool IsFailure => _state == ResultState.Failure;
@@ -59,9 +59,9 @@ public readonly partial struct Result<TValue> : IResultOutcome, IEquatable<Resul
 
 
     /// <summary>
-    /// The success value. Throws if accessed on a failed or uninitialized result.
+    /// Gets the success value.
     /// </summary>
-    /// <exception cref="InvalidOperationException">When accessed on a failure or uninitialized result.</exception>
+    /// <exception cref="InvalidOperationException">The result is a failure or uninitialized default value</exception>
     // Stryker disable String : Exception messages
     public TValue Value => _state switch
     {
@@ -73,8 +73,8 @@ public readonly partial struct Result<TValue> : IResultOutcome, IEquatable<Resul
 
     /// <summary>
     /// Gets the error associated with this result.
-    /// Throws an InvalidOperationException if the result is successful.
     /// </summary>
+    /// <exception cref="InvalidOperationException">The result is successful</exception>
     // Stryker disable String : Exception messages
     public Error Error => _state switch
     {
@@ -96,7 +96,7 @@ public readonly partial struct Result<TValue> : IResultOutcome, IEquatable<Resul
     /// <b>Null values:</b> If <typeparamref name="TValue"/> is a nullable reference type
     /// (e.g., <c>Result&lt;string?&gt;</c>), <see langword="null"/> is a valid success value
     /// and will not throw. The .NET nullable type system provides compile-time protection
-    /// for non-nullable reference types; no runtime null check is applied.
+    /// for non-nullable reference types; no runtime <see langword="null"/> check is applied.
     /// </para>
     /// <para>
     /// For value types, <see langword="null"/> is prevented at compile time by the type system.
@@ -325,7 +325,7 @@ public readonly partial struct Result<TValue> : IResultOutcome, IEquatable<Resul
     /// <returns>The current result instance unchanged.</returns>
     /// <exception cref="InvalidOperationException">The result is an uninitialized default value</exception>
     /// <remarks>
-    /// This method executes the action <b>only on success</b> and is symmetric with <see cref="TapOnFailure(Action{Error})"/>.
+    /// Executes the action <b>only on success</b>; symmetric with <see cref="TapOnFailure(Action{Error})"/>.
     /// Use <see cref="Inspect(Action{Result{TValue}})"/> for unconditional execution (both success and failure).
     /// <para>
     /// <b>💡 Allocation tip:</b> Use <c>TapOnSuccess&lt;TState&gt;(TState, Action&lt;TState, TValue&gt;)</c> to avoid
@@ -356,12 +356,26 @@ public readonly partial struct Result<TValue> : IResultOutcome, IEquatable<Resul
         return this;
     }
 
+    /// <summary>Executes <paramref name="action"/> if this result is successful, then returns this result unchanged.</summary>
+    /// <param name="action">The action to execute if the result is successful.</param>
+    /// <returns>The current result instance unchanged.</returns>
+    /// <exception cref="InvalidOperationException">The result is an uninitialized default value</exception>
+    public Result<TValue> Tap(Action<TValue> action) => TapOnSuccess(action);
+
+    /// <summary>Executes <paramref name="action"/> with captured state if this result is successful, then returns this result unchanged.</summary>
+    /// <typeparam name="TState">The type of the state object passed to the action.</typeparam>
+    /// <param name="state">The state value passed to the action.</param>
+    /// <param name="action">The action to execute if the result is successful.</param>
+    /// <returns>The current result instance unchanged.</returns>
+    /// <exception cref="InvalidOperationException">The result is an uninitialized default value</exception>
+    public Result<TValue> Tap<TState>(TState state, Action<TState, TValue> action) => TapOnSuccess(state, action);
+
     /// <summary>Executes <paramref name="action"/> if this result is a failure, then returns this result unchanged.</summary>
     /// <param name="action">The action to execute with the <see cref="Error"/> if the result is a failure.</param>
     /// <returns>The current result instance unchanged.</returns>
     /// <exception cref="InvalidOperationException">The result is an uninitialized default value</exception>
     /// <remarks>
-    /// This method executes the action <b>only on failure</b> and is symmetric with <see cref="TapOnSuccess(Action{TValue})"/>.
+    /// Executes the action <b>only on failure</b>; symmetric with <see cref="TapOnSuccess(Action{TValue})"/>.
     /// <para>
     /// <b>💡 Allocation tip:</b> Use <c>TapOnFailure&lt;TState&gt;(TState, Action&lt;TState, Error&gt;)</c> to avoid
     /// closure allocations when capturing outer variables.
@@ -669,7 +683,7 @@ public readonly partial struct Result<TValue> : IResultOutcome, IEquatable<Resul
     /// <returns>The success value if successful; otherwise, <paramref name="defaultValue"/>.</returns>
     /// <remarks>
     /// Returns <paramref name="defaultValue"/> for failure and uninitialized states.
-    /// This method <b>never throws</b>, consistent with the BCL convention for
+    /// Never throws, consistent with the BCL convention for
     /// <c>*OrDefault</c> methods (e.g., <see cref="System.Nullable{T}.GetValueOrDefault()"/>,
     /// <c>Dictionary.TryGetValue</c>).
     /// Use <see cref="GetValueOrFallback(Func{Error, TValue})"/> if you need to distinguish
@@ -853,6 +867,19 @@ public readonly partial struct Result<TValue> : IResultOutcome, IEquatable<Resul
     /// <summary>Converts an <see cref="Error"/> implicitly into a failed <see cref="Result{TValue}"/>.</summary>
     /// <param name="error">The error to wrap in a failed result.</param>
     public static implicit operator Result<TValue>(Error error) => Failure(error);
+
+    /// <summary>
+    /// Converts a typed <see cref="Result{TValue}"/> implicitly to a non-generic <see cref="Result"/>,
+    /// preserving the outcome state and error while discarding the typed value.
+    /// </summary>
+    /// <param name="result">The typed result to convert.</param>
+    public static implicit operator Result(in Result<TValue> result) =>
+        result._state switch
+        {
+            ResultState.Success => Result.Success(),
+            ResultState.Failure => Result.Failure(result._error!),
+            _ => default
+        };
 
     private string GetDebuggerDisplay() => _state switch
     {

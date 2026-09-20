@@ -1,4 +1,5 @@
 <Project>
+  <Import Project="$([MSBuild]::GetPathOfFileAbove('Directory.Build.props', '$(MSBuildThisFileDirectory)../'))" Condition="Exists($([MSBuild]::GetPathOfFileAbove('Directory.Build.props', '$(MSBuildThisFileDirectory)../')))" />
   <!-- Copyright © Erickson Lopez. MIT License. -->
 
   <PropertyGroup>
@@ -6,12 +7,12 @@
          This is the AUTHORITATIVE source of truth for the version number.
          Update any documentation (docs/audit.md, ADRs, README badges) to match this value
          whenever VersionPrefix or VersionSuffix changes. -->
-    <VersionPrefix>2.0.0</VersionPrefix>
+    <VersionPrefix>3.0.0</VersionPrefix>
     <VersionSuffix></VersionSuffix>
 
     <!-- NuGet package metadata -->
     <Authors>Erickson Lopez</Authors>
-    <Company>EricksonLopez</Company>
+    <Company>Erickson Lopez</Company>
     <Copyright>Copyright © Erickson Lopez. MIT License.</Copyright>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageProjectUrl>https://ericksonlopez.dev/result</PackageProjectUrl>
@@ -19,13 +20,14 @@
     <RepositoryType>git</RepositoryType>
     <PackageReadmeFile>README.md</PackageReadmeFile>
     <PackageIcon>icon.png</PackageIcon>
-    <CommonPackageTags>dotnet;csharp;result;result-pattern;error-handling;railway-oriented-programming;functional-programming</CommonPackageTags>
+    <CommonPackageTags>dotnet;.net;csharp;open-source</CommonPackageTags>
     <PackageTags>$(CommonPackageTags)</PackageTags>
 
     <!-- Build settings -->
     <LangVersion>latest</LangVersion>
     <Nullable>enable</Nullable>
-    <ImplicitUsings>enable</ImplicitUsings>
+    <ImplicitUsings Condition="'$(TargetFramework)' != 'netstandard2.0'">enable</ImplicitUsings>
+    <ImplicitUsings Condition="'$(TargetFramework)' == 'netstandard2.0'">disable</ImplicitUsings>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
     <WarningLevel>5</WarningLevel>
     <AnalysisLevel>latest-recommended</AnalysisLevel>
@@ -47,6 +49,7 @@
     <EmbedUntrackedSources>true</EmbedUntrackedSources>
     <IncludeSymbols>true</IncludeSymbols>
     <SymbolPackageFormat>snupkg</SymbolPackageFormat>
+    <EnableSourceControlManagerQueries>true</EnableSourceControlManagerQueries>
 
     <!-- Security -->
     <NuGetAudit>true</NuGetAudit>

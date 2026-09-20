@@ -7,7 +7,7 @@ using EricksonLopez.Result.Testing;
 namespace EricksonLopez.Result.Testing.NUnit;
 
 /// <summary>
-/// Configuration entry point for integrating <see cref="ResultAssertions"/> with NUnit.
+/// Provides configuration entry points for integrating <see cref="ResultAssertions"/> with NUnit.
 /// </summary>
 /// <remarks>
 /// <para>

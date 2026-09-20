@@ -7,7 +7,7 @@ using System.Diagnostics;
 namespace EricksonLopez.Result;
 
 /// <summary>
-/// A fluent, stack-allocated builder for constructing <see cref="Error"/> instances with multiple optional properties.
+/// Represents a fluent, stack-allocated builder for constructing <see cref="Error"/> instances with multiple optional properties.
 /// The builder struct itself incurs no heap allocation; however, <see cref="WithMetadata(string, object)"/> and
 /// <see cref="WithInnerError"/> allocate heap nodes in the backing <see cref="System.Collections.Immutable.ImmutableDictionary{TKey,TValue}"/>
 /// and <see cref="System.Collections.Immutable.ImmutableArray{T}"/> respectively (O(log k) per entry for metadata).
@@ -58,6 +58,9 @@ namespace EricksonLopez.Result;
 /// <para>
 /// Obtain an instance via <see cref="Error.Create(string, string)"/> for new errors,
 /// or via <see cref="Error.ToBuilder"/> to mutate an existing error efficiently.
+/// </para>
+/// <para>
+/// <b>Thread Safety:</b> Not thread-safe. Use from a single thread only.
 /// </para>
 /// </remarks>
 public readonly struct ErrorBuilder
@@ -121,6 +124,8 @@ public readonly struct ErrorBuilder
     /// Creates an <see cref="ErrorBuilder"/> pre-seeded from an existing <see cref="Error"/>.
     /// Called by <see cref="Error.ToBuilder"/>.
     /// </summary>
+    /// <param name="source">The source error to populate the builder from.</param>
+    /// <returns>A new <see cref="ErrorBuilder"/> initialized with the state of <paramref name="source"/>.</returns>
     /// <remarks>
     /// Uses internal Error accessors to propagate the raw <c>ActivityTraceId</c> struct without calling
     /// <see cref="ActivityTraceId.ToString"/>, avoiding a heap allocation when the error was captured from
@@ -240,6 +245,9 @@ public readonly struct ErrorBuilder
     /// <remarks>
     /// Uses <see cref="ImmutableArray{T}.AddRange"/> to append all elements in a single
     /// structural operation, avoiding repeated intermediate copies.
+    /// <para>
+    /// Recommended practice is to restrict inner errors to &lt; 100 entries to minimize memory footprint.
+    /// </para>
     /// </remarks>
     public ErrorBuilder WithInnerErrors(IEnumerable<Error> innerErrors)
     {
@@ -250,7 +258,7 @@ public readonly struct ErrorBuilder
     }
 
     /// <summary>
-    /// Constructs and returns the configured immutable <see cref="Error"/> instance.
+    /// Creates the configured immutable <see cref="Error"/> instance.
     /// </summary>
     /// <returns>A new <see cref="Error"/> instance configured with the builder state.</returns>
     /// <remarks>

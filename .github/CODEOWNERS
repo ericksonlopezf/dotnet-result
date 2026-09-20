@@ -12,6 +12,7 @@
 # Roslyn analyzers and source generators — compiler tooling requires extra scrutiny
 /src/EricksonLopez.Result.Analyzers/                @ericksonlopezf
 /src/EricksonLopez.Result.Serialization.Generators/ @ericksonlopezf
+/src/EricksonLopez.Result.DomainErrors.Generators/  @ericksonlopezf
 
 # CI/CD workflows — infrastructure changes require extra scrutiny
 /.github/workflows/         @ericksonlopezf

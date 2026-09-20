@@ -10,13 +10,6 @@ using Xunit;
 
 namespace EricksonLopez.Result.Serialization.Tests;
 
-[JsonSerializable(typeof(Result<string>))]
-[JsonSerializable(typeof(Result<List<int>>))]
-[JsonSerializable(typeof(Result<int[]>))]
-public partial class IntegrationTestContext : JsonSerializerContext
-{
-}
-
 [Trait("Category", "Integration")]
 public class JsonGeneratorIntegrationTests
 {

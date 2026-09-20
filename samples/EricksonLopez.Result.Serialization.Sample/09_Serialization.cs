@@ -36,9 +36,7 @@ public static class SerializationExample
         };
         options.Converters.Add(new ResultJsonConverter());
         options.Converters.Add(new ErrorJsonConverter());
-#pragma warning disable CS0618 // Type or member is obsolete
         options.Converters.Add(new ResultOfTJsonConverter<UserDto>());
-#pragma warning restore CS0618
 
         var user = new UserDto(101, "Alice Smith", "alice@example.com");
         Result<UserDto> successResult = Result.Success(user);

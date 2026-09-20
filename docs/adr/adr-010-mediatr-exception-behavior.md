@@ -1,5 +1,11 @@
 # ADR-010: MediatR Exception Behavior Pipeline
 
+## Status
+Accepted
+
+## Date
+2026-07-28
+
 - **Status**: Accepted
 - **Date**: 2026-07-28
 - **Authors**: Erickson Lopez

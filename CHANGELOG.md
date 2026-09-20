@@ -4,20 +4,89 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [2.0.0](https://github.com/ericksonlopezf/dotnet-result/compare/v1.0.0...v2.0.0) (2026-08-24)
-
-
-### ⚠ BREAKING CHANGES
-
-* introduce comprehensive Result framework with analyzers, serialization generators, and integration supporty
-
-### ✨ Features
-
-* introduce comprehensive Result framework with analyzers, serialization generators, and integration supporty ([ed8fe87](https://github.com/ericksonlopezf/dotnet-result/commit/ed8fe879144fc1f32a4116f0026f8d907f0377b5))
-
 ## [Unreleased]
 
-## [2.0.0] - 2026-08-23
+## [3.0.0](https://github.com/ericksonlopezf/dotnet-result/compare/v2.0.0...v3.0.0) - 2026-09-20
+
+### Added
+- **Core (`EricksonLopez.Result`)**:
+  - Added implicit conversion operator `Result(in Result<TValue>)` enabling direct type decay from typed `Result<T>` to non-generic `Result` while preserving outcome state and error.
+  - Added `Error.Message` property alias for `Error.Description`.
+  - Added sentinel and factory helpers: `Error.None`, `Error.NullValue`, and `Error.Business(string, string)`.
+  - Added `Error.NotFound<TId>(string entity, TId id) where TId : struct` strongly-typed entity missing helper.
+  - Added `Error.Validation` and `Error.Conflict` factory overloads accepting structured metadata `IReadOnlyDictionary<string, object>`.
+  - Added `Result.ValidateAllParallelAsync` overloads executing validation rules concurrently via `Task.WhenAll` with error accumulation.
+  - Added `Result.Tap` and `Result<TValue>.Tap` instance methods (and their zero-allocation `TState` overloads) as aliases for `TapOnSuccess`.
+- **Generic (`EricksonLopez.Result.Generic`)**:
+  - Added `Result<TValue, TError>.IsUninitialized` property to detect default struct states.
+- **Serialization (`EricksonLopez.Result.Serialization`)**:
+  - Added `ErrorJsonConverter.MaxAllowedDepth` public constant (value 32) defining the recursion threshold.
+- **Domain Errors Source Generator (`EricksonLopez.Result.DomainErrors.Generators`)**:
+  - Introduced incremental Roslyn source generator emitting compile-time type-safe static `Error` factory classes from `*.errors.json` additional file definitions.
+- **Entity Framework Core Adapter (`EricksonLopez.Result.EntityFrameworkCore`)**:
+  - Added `SaveChangesAsyncToResult`, `FirstOrDefaultToResultAsync`, `SingleOrDefaultToResultAsync`, and `ToListToResultAsync` extensions mapping `DbUpdateConcurrencyException`, `DbUpdateException`, and timeouts to standardized domain `Result<T>` envelopes.
+- **Polly v8 Resilience (`EricksonLopez.Result.Polly`)**:
+  - Added `AddResultRetry` strategy and `ExecuteResult`/`ExecuteResultAsync` extensions directly on Polly v8 `ResiliencePipeline`, evaluating `ErrorRetryability.Transient` without exception allocations.
+- **MassTransit Bus Integration (`EricksonLopez.Result.MassTransit`)**:
+  - Added immutable transport-safe `ResultFault` message contract and `ResultConsumeFilter` middleware for distributed message error propagation.
+- **Roslyn Analyzers & CodeFixes (`EricksonLopez.Result.Analyzers`)**:
+  - Added `DefaultResultReturnCodeFix` for `RESULT012` to rewrite uninitialized `default` returns to explicit factory calls.
+  - Added `HashSetErrorEqualityCodeFix` for `RESULT007` to automatically pass `ErrorEqualityComparer.Strict`.
+  - Added `BoolOperatorUsageCodeFix` for `RESULT013` to convert implicit boolean evaluation to `.IsSuccess` or `.IsFailure`.
+- **Dapr Integration (`EricksonLopez.Result.Dapr`)**:
+  - Added `DaprResultStateExtensions` for state store operations with ETag concurrency mapping (`Error.Conflict` on mismatch) and bulk operations.
+  - Added `DaprResultPubSubExtensions` translating domain `Result` outcomes into canonical `TopicEventResponse` (Success, Drop, Retry).
+- **gRPC Integration (`EricksonLopez.Result.Grpc`)**:
+  - Added `ResultServerInterceptor` automatically mapping domain failures to canonical `RpcException` with corresponding `StatusCode` (`InvalidArgument`, `NotFound`, `PermissionDenied`, etc.).
+  - Added rich metadata trailer propagation including error code, error type, severity, retryability, trace ID, and correlation ID.
+  - Added client extensions for unpacking `RpcException` into structured domain `Result<T>` envelopes.
+- **Showcase & Reference Implementations**:
+  - Added progressive interactive showcase documentation across 11 pedagogical levels (`docs/showcase/` Levels 00 to 10).
+  - Added runnable showcase sample modules 22 through 34 in `samples/EricksonLopez.Result.Sample`.
+- **Repository Tooling & Governance**:
+  - Added `global.json` at repository root pinning .NET SDK 10 (`version: 10.0.100`, `rollForward: latestFeature`).
+  - Added automated Link Integrity & Linux Case-Sensitivity gate to `scripts/verify-compliance.ps1`.
+
+### Fixed
+- **CI/CD (`.github/workflows/publish.yml`)**:
+  - Fixed packaging gap in `publish.yml` by adding explicit `dotnet pack` commands and GitHub Release manifests for `EricksonLopez.Result.Dapr` and `EricksonLopez.Result.Grpc`.
+
+### Breaking Changes
+- **Generic — Strict Uninitialized Guard on Monadic Operators (BC-U01)**:
+  - `Result<TValue, TError>.Map`, `MapError`, `Bind`, `Match`, and `ToResult` now throw `InvalidOperationException` if invoked on an uninitialized default struct (`default(Result<TValue, TError>)`).
+  - **Impact**: Code operating on default uninitialized structs will throw `InvalidOperationException` at the guard point rather than executing the failure branch with `null` error.
+  - **Migration**: Always initialize results using `Result<TValue, TError>.Success(value)` or `Result<TValue, TError>.Failure(error)`. Guard uninitialized instances using `.IsUninitialized`.
+- **Generic — Corrected `IsFailure` and `TryGetError` Semantics on Default Struct (BC-U02)**:
+  - `Result<TValue, TError>.IsFailure` and `TryGetError` now return `false` on uninitialized `default(Result<TValue, TError>)`, matching the non-generic `Result` and `Result<T>` core contract.
+  - **Impact**: Code relying on `if (result.IsFailure)` to catch default uninitialized structs will no longer enter the branch.
+  - **Migration**: Update guard logic from `if (result.IsFailure)` to `if (result.IsFailure || result.IsUninitialized)`.
+- **Generic — Updated `ToString()` Representation on Default Struct (BC-U03)**:
+  - `Result<TValue, TError>.ToString()` on an uninitialized struct now returns `"Uninitialized"` instead of `"Failure()"`.
+  - **Impact**: String parsing or test assertions expecting `"Failure()"` on default structs will fail.
+  - **Migration**: Update assertions to expect `"Uninitialized"`.
+- **FluentValidation — Automatic Redaction of Sensitive Properties in Error Metadata (BC-U04)**:
+  - `FluentValidationResultExtensions.ToValidationResult` now redacts `attemptedValue` to `"[REDACTED]"` when the failing property name matches sensitive patterns (`password`, `token`, `secret`, `creditcard`, `cardnumber`, `cvv`, `ssn`, `pin`, `apikey`, `auth`).
+  - **Impact**: Test assertions or logging pipelines expecting plain-text values in `error.Metadata["attemptedValue"]` for sensitive fields will receive `"[REDACTED]"`.
+  - **Migration**: Update test expectations for sensitive property validations.
+- **Roslyn Analyzers — New `RESULT013` Warning on Direct Boolean Conversion (BC-U05)**:
+  - Added `RESULT013` (`BoolOperatorUsageAnalyzer` + `BoolOperatorUsageCodeFix`) with default `Warning` severity. Flags usages of `Result` or `Result<T>` directly in conditional expressions (e.g., `if (result)`).
+  - **Impact**: In projects with `<TreatWarningsAsErrors>true</TreatWarningsAsErrors>`, existing code using `if (result)` will fail compilation with build error `RESULT013`.
+  - **Migration**: Use the provided Roslyn code fix to rewrite `if (result)` to `if (result.IsSuccess)` or `if (result.IsFailure)`. Alternatively, suppress `RESULT013` in `.editorconfig` if implicit boolean evaluation is explicitly desired.
+- **Serialization — Deserialization Recursion Depth Defense (BC-U06)**:
+  - `ErrorJsonConverter` now enforces a maximum nesting depth of 32 (`MaxAllowedDepth`). Exceeding this limit throws `JsonException`.
+  - **Impact**: Highly nested error graphs exceeding 32 levels will fail deserialization.
+  - **Migration**: Ensure inner error chains and nested metadata dictionaries do not exceed 32 levels before serializing.
+- **OpenTelemetry — Uninitialized Result Telemetry Error Classification (BC-U07)**:
+  - Calling `TraceOutcome` on an uninitialized `Result` or `Result<T>` now marks the target `Activity` with `ActivityStatusCode.Error` (description: `"Result is uninitialized"`) and sets tag `result.outcome = "uninitialized"`.
+  - **Impact**: Tracing default structs now flags spans as errors in APM monitors and telemetry dashboards.
+  - **Migration**: Ensure only initialized results are piped into telemetry tracing extensions.
+- **Serialization — Wire Format Serialization Discriminator for Uninitialized Results (BC-U08)**:
+  - Uninitialized `Result` and `Result<T>` instances now serialize with `"isUninitialized": true` in addition to `"isSuccess": false, "isFailure": false`.
+  - **Impact**: Strict JSON schema validators disallowing unknown properties (`additionalProperties: false`) will fail if not updated.
+  - **Migration**: Update downstream JSON schema definitions to accept the optional boolean property `isUninitialized`.
+
+
+## [2.0.0](https://github.com/ericksonlopezf/dotnet-result/compare/v1.0.0...v2.0.0) - 2026-08-24
 
 ### Added
 - **`EricksonLopez.Result.Generic` Package**:
@@ -71,6 +140,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
   - Fixed `EricksonLopez.Result.Testing.NUnit.csproj` package reference and upgraded `NUnit` to `4.6.1`.
   - Upgraded `xunit.v3.assert` to `4.0.0` in `EricksonLopez.Result.Testing.XUnit`.
   - **Impact**: Test projects using these assertions should align their test framework runner versions.
+- **Analyzers — New `RESULT012` Warning on Default Result Return (BC-011)**:
+  - Added `RESULT012` (`DefaultResultReturnAnalyzer`) with default `Warning` severity. Flags returning `default`, `default(Result)`, or `default(Result<T>)` from methods.
+  - **Impact**: In projects with `<TreatWarningsAsErrors>true</TreatWarningsAsErrors>`, returning `default` results will fail compilation with build error `RESULT012`.
+  - **Migration**: Always construct results explicitly using `Result.Success` or `Result.Failure`.
 
 ## [1.0.0] - 2026-08-01
 

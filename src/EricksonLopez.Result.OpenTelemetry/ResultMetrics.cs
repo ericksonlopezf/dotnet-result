@@ -12,7 +12,7 @@ namespace EricksonLopez.Result.OpenTelemetry;
 /// </summary>
 /// <remarks>
 /// <para>
-/// This class has two usage modes:
+/// Supports two usage modes:
 /// <list type="number">
 ///   <item><b>DI mode (recommended)</b>: Construct with a <see cref="Meter"/> provided by your DI container
 ///   (e.g., via <c>IMeterFactory</c> in Microsoft.Extensions.Diagnostics). The caller is responsible for
@@ -31,11 +31,11 @@ namespace EricksonLopez.Result.OpenTelemetry;
 /// </remarks>
 public sealed class ResultMetrics : IDisposable
 {
-    /// <summary>The OpenTelemetry Meter name for all Result metrics.</summary>
+    /// <summary>Gets the OpenTelemetry Meter name for all Result metrics.</summary>
     public const string MeterName = "EricksonLopez.Result";
 
     /// <summary>
-    /// The assembly version string baked in at compile time by a source generator.
+    /// Gets the assembly version string baked in at compile time by a source generator.
     /// </summary>
     /// <remarks>
     /// <para>
@@ -48,9 +48,9 @@ public sealed class ResultMetrics : IDisposable
     /// This eliminates the previous reflection-based reading of <see cref="System.Reflection.AssemblyInformationalVersionAttribute"/>,
     /// providing:
     /// <list type="bullet">
-    ///   <item>Zero runtime overhead — the value is a compile-time constant inlined by the JIT</item>
-    ///   <item>100% NativeAOT-safe — no reflection, no trimmer annotations required for version lookup</item>
-    ///   <item>No fallback path — the version is always correct and always available</item>
+    ///   <item>Zero runtime overhead — the value is a compile-time constant inlined by the JIT.</item>
+    ///   <item>100% NativeAOT-safe — no reflection, no trimmer annotations required for version lookup.</item>
+    ///   <item>No fallback path — the version is always correct and always available.</item>
     /// </list>
     /// </para>
     /// </remarks>
@@ -82,7 +82,7 @@ public sealed class ResultMetrics : IDisposable
     private volatile bool _disposed;
 
     /// <summary>
-    /// Initializes a new instance of <see cref="ResultMetrics"/> using an externally provided <see cref="Meter"/>.
+    /// Initializes a new instance of the <see cref="ResultMetrics"/> class using an externally provided <see cref="Meter"/>.
     /// </summary>
     /// <param name="meter">The meter to create instruments on. Typically obtained from an <c>IMeterFactory</c> in DI.</param>
     /// <param name="ownsMeter">
@@ -93,6 +93,8 @@ public sealed class ResultMetrics : IDisposable
     /// Leave <see langword="false"/> when the meter is provided by <c>IMeterFactory</c> in DI —  the factory
     /// manages the meter lifecycle automatically. See <c>AddResultMetrics()</c> for the DI registration.
     /// </param>
+    /// <exception cref="ArgumentNullException"><paramref name="meter"/> is <see langword="null"/></exception>
+    /// <exception cref="InvalidOperationException">DI mode cannot be initialized because static mode is already active</exception>
     public ResultMetrics(Meter meter, bool ownsMeter = true)
     {
         ArgumentNullException.ThrowIfNull(meter);
@@ -281,10 +283,10 @@ public sealed class ResultMetrics : IDisposable
     /// <see cref="StaticTrackFailure"/> will create fresh instruments.
     /// </summary>
     /// <remarks>
-    /// This method is <c>internal</c> and intended only for test scenarios where tests need
-    /// isolated static meter state. Access is granted via <c>InternalsVisibleTo</c>.
+    /// Intended only for test scenarios where tests need isolated static meter state.
+    /// Access is granted via <c>InternalsVisibleTo</c>.
     /// <para>
-    /// <b>Thread safety:</b> This method acquires the static lock. Do not call concurrently
+    /// <b>Thread safety:</b> Acquires the static lock. Do not call concurrently
     /// with <see cref="StaticTrackSuccess"/> or <see cref="StaticTrackFailure"/>.
     /// </para>
     /// </remarks>

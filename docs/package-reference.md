@@ -6,7 +6,7 @@ Comprehensive reference for all NuGet packages in the `EricksonLopez.Result` eco
 
 ## 1. Packages Overview
 
-The ecosystem ships **14 NuGet packages**, all versioned in lockstep from a single `VersionPrefix` in `Directory.Build.props`.
+The ecosystem ships **20 NuGet packages**, all versioned in lockstep from a single `VersionPrefix` in `Directory.Build.props`.
 
 | Package | Type | Target Frameworks | AOT | Trimmable | Strong Named |
 |---|---|---|---|---|---|
@@ -20,6 +20,12 @@ The ecosystem ships **14 NuGet packages**, all versioned in lockstep from a sing
 | `EricksonLopez.Result.OpenTelemetry` | Observability | `net8.0; net9.0; net10.0` | ✅ Yes | ✅ Yes | ✅ Yes |
 | `EricksonLopez.Result.Serialization` | JSON converters | `net8.0; net9.0; net10.0` | ⚠️ Partial | ⚠️ Partial | ✅ Yes |
 | `EricksonLopez.Result.Serialization.Generators` | Source generator | `netstandard2.0` | ✅ Yes | ✅ Yes | ✅ Yes |
+| `EricksonLopez.Result.DomainErrors.Generators` | Source generator | `netstandard2.0` | ✅ Yes | ✅ Yes | ✅ Yes |
+| `EricksonLopez.Result.EntityFrameworkCore` | ORM persistence | `net8.0; net9.0; net10.0` | ✅ Yes | ✅ Yes | ✅ Yes |
+| `EricksonLopez.Result.Polly` | Resilience pipelines | `net8.0; net9.0; net10.0` | ✅ Yes | ✅ Yes | ✅ Yes |
+| `EricksonLopez.Result.MassTransit` | Messaging & events | `net8.0; net9.0; net10.0` | ❌ No | ❌ No | ✅ Yes |
+| `EricksonLopez.Result.Dapr` | Distributed state & pub/sub | `net8.0; net9.0; net10.0` | ✅ Yes | ✅ Yes | ✅ Yes |
+| `EricksonLopez.Result.Grpc` | gRPC integration | `net8.0; net9.0; net10.0` | ✅ Yes | ✅ Yes | ✅ Yes |
 | `EricksonLopez.Result.Analyzers` | Roslyn analyzer | `netstandard2.0` | N/A | N/A | ✅ Yes |
 | `EricksonLopez.Result.Testing` | Test assertions | `net8.0; net9.0; net10.0` | ✅ Yes | ✅ Yes | ✅ Yes |
 | `EricksonLopez.Result.Testing.XUnit` | xUnit test helpers | `net8.0; net9.0; net10.0` | ❌ No | ❌ No | ✅ Yes |
@@ -45,6 +51,12 @@ graph TD
     TestingNUnit["Testing.NUnit"]
     FluentVal["FluentValidation"]
     MediatR["MediatR"]
+    EFCore["EntityFrameworkCore"]
+    Polly["Polly"]
+    MassTransit["MassTransit"]
+    Dapr["Dapr"]
+    Grpc["Grpc"]
+    DomainErrors["DomainErrors.Generators<br/>(netstandard2.0)"]
 
     Core -->|Bundled Analyzer| Analyzers
     Generic -->|ProjectReference| Core
@@ -60,13 +72,21 @@ graph TD
     TestingNUnit -->|ProjectReference| Testing
     FluentVal -->|ProjectReference| Core
     MediatR -->|ProjectReference| Core
+    EFCore -->|ProjectReference| Core
+    EFCore -->|ProjectReference| Maybe
+    Polly -->|ProjectReference| Core
+    MassTransit -->|ProjectReference| Core
+    Dapr -->|ProjectReference| Core
+    Grpc -->|ProjectReference| Core
 
     %% External dependencies
     AspNetCore -.->|FrameworkReference| AspNetApp["Microsoft.AspNetCore.App"]
     OpenApi -.->|PackageReference| OApiPkg["Microsoft.AspNetCore.OpenApi 10.0.11"]
-    OTel -.->|PackageReference| DIAbstractions["Microsoft.Extensions.DependencyInjection.Abstractions 10.0.11"]
+    OTel -.->|PackageReference| DIAbstractions["Microsoft.Extensions.DependencyInjection.Abstractions 10.0.12"]
     FluentVal -.->|PackageReference| FV["FluentValidation 12.1.1"]
     MediatR -.->|PackageReference| MR["MediatR 14.2.0"]
+    Dapr -.->|PackageReference| DClient["Dapr.Client 1.18.5"]
+    Grpc -.->|PackageReference| GrpcApi["Grpc.Core.Api 2.83.0"]
     TestingXUnit -.->|PackageReference| XUAssert["xunit.v3.assert 4.0.0"]
     TestingNUnit -.->|PackageReference| NU["NUnit 4.6.1"]
     Analyzers -.->|PackageReference| Roslyn["Microsoft.CodeAnalysis.CSharp 5.9.0"]
@@ -74,6 +94,7 @@ graph TD
     style Core fill:#512BD4,stroke:#333,color:#fff
     style Analyzers fill:#E8DAEF,stroke:#333
     style Generators fill:#E8DAEF,stroke:#333
+    style DomainErrors fill:#E8DAEF,stroke:#333
 ```
 
 ---
@@ -134,7 +155,7 @@ graph TD
 - **Package Type**: Development dependency (`DevelopmentDependency=true`)
 
 ### 11. `EricksonLopez.Result.Analyzers`
-- **Summary**: Roslyn diagnostic analyzers (RESULT001–RESULT012, RESULT_OTEL_001) and code fix providers enforcing zero-allocation and security best practices.
+- **Summary**: Roslyn diagnostic analyzers (RESULT001–RESULT013, RESULT_OTEL_001, RESULT_GEN_001) and code fix providers enforcing zero-allocation and security best practices.
 - **Target Framework**: `netstandard2.0`
 - **Package Type**: Development dependency bundled with Core (`OutputItemType="Analyzer"`)
 
@@ -152,3 +173,36 @@ graph TD
 - **Summary**: NUnit assertion adapter ensuring test failures surface as `AssertionException`.
 - **Target Frameworks**: `net8.0; net9.0; net10.0`
 - **Dependencies**: `EricksonLopez.Result.Testing`, `NUnit`
+
+### 15. `EricksonLopez.Result.EntityFrameworkCore`
+- **Summary**: Direct, exception-safe conversion of EF Core operations (`SaveChangesAsyncToResult`, `FirstOrDefaultToResultAsync`, `SingleOrDefaultToResultAsync`, `ToListToResultAsync`) into `Result<T>` with automatic mapping of concurrency conflicts and update exceptions.
+- **Target Frameworks**: `net8.0; net9.0; net10.0`
+- **Dependencies**: `EricksonLopez.Result`, `EricksonLopez.Result.Maybe`, `Microsoft.EntityFrameworkCore`
+
+### 16. `EricksonLopez.Result.Polly`
+- **Summary**: Polly v8 resilience pipeline integration providing Result-aware execution strategies (`ExecuteResult`, `ExecuteResultAsync`, `AddResultRetry`) and predicates inspecting `Error.Retryability`.
+- **Target Frameworks**: `net8.0; net9.0; net10.0`
+- **Dependencies**: `EricksonLopez.Result`, `Polly.Core`
+
+### 17. `EricksonLopez.Result.MassTransit`
+- **Summary**: MassTransit consumer middleware (`ResultConsumeFilter`) capturing consumer exceptions and transforming them into Result failure message contracts (`ResultFault`).
+- **Target Frameworks**: `net8.0; net9.0; net10.0`
+- **Dependencies**: `EricksonLopez.Result`, `MassTransit.Abstractions`
+
+### 18. `EricksonLopez.Result.DomainErrors.Generators`
+- **Summary**: Incremental Roslyn source generator producing strongly-typed domain error factory classes from `*.errors.json` additional file declarations.
+- **Target Framework**: `netstandard2.0`
+- **Package Type**: Development dependency (`DevelopmentDependency=true`)
+
+### 19. `EricksonLopez.Result.Dapr`
+- **Summary**: Dapr distributed application runtime integration bridging state store optimistic concurrency (`GetStateWithResultAsync`, `SaveStateWithResultAsync`, `DeleteStateWithResultAsync`) and Pub/Sub event bindings (`ToDaprTopicResult()`) directly into Result envelopes.
+- **Target Frameworks**: `net8.0; net9.0; net10.0`
+- **AOT / Trimming**: 100% Compatible (`IsAotCompatible=true`, `EnableTrimAnalyzer=true`).
+- **Dependencies**: `EricksonLopez.Result`, `Dapr.Client`, `Dapr.AspNetCore`
+
+### 20. `EricksonLopez.Result.Grpc`
+- **Summary**: gRPC server interceptor (`ResultServerInterceptor`) and client extensions mapping domain `ErrorType` failures to canonical gRPC `StatusCode` values with rich metadata trailers (`x-error-code`, `x-error-type`, `x-error-severity`, `x-trace-id`, `x-correlation-id`).
+- **Target Frameworks**: `net8.0; net9.0; net10.0`
+- **AOT / Trimming**: 100% Compatible (`IsAotCompatible=true`, `EnableTrimAnalyzer=true`).
+- **Dependencies**: `EricksonLopez.Result`, `Grpc.Core.Api`, `Grpc.AspNetCore.Server`
+

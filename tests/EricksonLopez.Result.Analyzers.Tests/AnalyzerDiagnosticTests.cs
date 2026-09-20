@@ -14,9 +14,7 @@ using Xunit;
 namespace EricksonLopez.Result.Analyzers.Tests;
 
 /// <summary>
-/// Roslyn diagnostic tests for RESULT009 (IncludeDescriptionSecurityAnalyzer)
-/// and the LINQ extension of RESULT007 (HashSetErrorEqualityAnalyzer).
-/// Uses Microsoft.CodeAnalysis.CSharp directly (no testing framework dependency).
+/// Verifies diagnostic analyzers for RESULT009 and the LINQ extension of RESULT007.
 /// </summary>
 public class AnalyzerDiagnosticTests
 {
@@ -201,6 +199,31 @@ namespace TestCode
         var analyzer = new HashSetErrorEqualityAnalyzer();
         Assert.Single(analyzer.SupportedDiagnostics);
         Assert.Equal("RESULT007", analyzer.SupportedDiagnostics[0].Id);
+    }
+
+    // ─── RESULT013 metadata: BoolOperatorUsageAnalyzer ───────────────────────
+
+    [Fact]
+    public void RESULT013_DiagnosticId_IsCorrect()
+    {
+        var analyzer = new BoolOperatorUsageAnalyzer();
+        Assert.Contains(analyzer.SupportedDiagnostics, d => d.Id == "RESULT013");
+    }
+
+    [Fact]
+    public void RESULT013_DefaultSeverity_IsWarning()
+    {
+        var analyzer = new BoolOperatorUsageAnalyzer();
+        var rule = analyzer.SupportedDiagnostics.Single(d => d.Id == "RESULT013");
+        Assert.Equal(DiagnosticSeverity.Warning, rule.DefaultSeverity);
+    }
+
+    [Fact]
+    public void RESULT013_Category_IsUsage()
+    {
+        var analyzer = new BoolOperatorUsageAnalyzer();
+        var rule = analyzer.SupportedDiagnostics.Single(d => d.Id == "RESULT013");
+        Assert.Equal("Usage", rule.Category);
     }
 }
 

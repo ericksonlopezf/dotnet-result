@@ -9,7 +9,7 @@ using Microsoft.CodeAnalysis.Text;
 namespace EricksonLopez.Result.Serialization.Generators;
 
 /// <summary>
-/// Incremental source generator that emits a <c>ResultMetricsVersionConstants</c> class
+/// Represents an incremental source generator that emits a <c>ResultMetricsVersionConstants</c> class
 /// into the <c>EricksonLopez.Result.OpenTelemetry</c> assembly at build time.
 /// </summary>
 /// <remarks>

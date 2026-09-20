@@ -7,7 +7,7 @@ using Microsoft.Extensions.DependencyInjection;
 namespace EricksonLopez.Result.OpenTelemetry;
 
 /// <summary>
-/// Extension methods for configuring Result OpenTelemetry integrations in an <see cref="IServiceCollection"/>.
+/// Provides extension methods for configuring Result OpenTelemetry integrations in an <see cref="IServiceCollection"/>.
 /// </summary>
 public static class ResultServiceCollectionExtensions
 {
@@ -21,7 +21,7 @@ public static class ResultServiceCollectionExtensions
     /// <remarks>
     /// The <see cref="Meter"/> is created via <see cref="IMeterFactory"/> and is disposed automatically
     /// when the host disposes the DI container. <see cref="ResultMetrics.Dispose"/> is a no-op for the
-    /// meter itself when registered this way (ownsMeter=false). Do NOT also call the static
+    /// meter itself when registered this way (<c>ownsMeter: false</c>). Do NOT also call the static
     /// <see cref="ResultMetrics.StaticTrackSuccess"/> / <see cref="ResultMetrics.StaticTrackFailure"/>
     /// methods in the same application — that would cause double-counting via two separate meters.
     /// </remarks>

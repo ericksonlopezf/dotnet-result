@@ -1,6 +1,6 @@
 # EricksonLopez.Result Comprehensive Technical Audit
 
-> **Audited Version:** 2.0.0 | **Ecosystem:** `EricksonLopez.Result v2.0.0` | **Status:** Enterprise Production Ready | **Language:** English
+> **Audited Version:** 3.0.0 | **Ecosystem:** `EricksonLopez.Result v3.0.0` | **Status:** Enterprise Production Ready | **Language:** English
 
 ---
 
@@ -15,7 +15,7 @@
 3. **Zero-Dependency Core**: The core package (`EricksonLopez.Result`) relies exclusively on the .NET Base Class Library (BCL) with zero transitive third-party dependencies.
 4. **Native AOT & Trimming-First**: Every component is strictly validated against Native AOT compilation, trimming analyzers (`EnableTrimAnalyzer=true`), and AOT smoke tests.
 5. **Closure-Free Monadic Pipelines**: Monadic operators support `TState` overloads to eliminate compiler-generated closure display classes and delegate allocations in critical hot paths.
-6. **Compile-Time Governance**: Comprehensive Roslyn diagnostic analyzers and CodeFix providers (RESULT001–RESULT012, RESULT_OTEL_001, RESULT_GEN_001) enforce correct monadic usage at build time.
+6. **Compile-Time Governance**: Comprehensive Roslyn diagnostic analyzers and CodeFix providers (RESULT001–RESULT013, RESULT_OTEL_001, RESULT_GEN_001) enforce correct monadic usage at build time.
 
 ---
 
@@ -39,18 +39,34 @@ graph TD
         FV["EricksonLopez.Result.FluentValidation<br/><i>(ValidationResult mapping)</i>"]
         MediatR["EricksonLopez.Result.MediatR<br/><i>(Pipeline Behaviors)</i>"]
         OTel["EricksonLopez.Result.OpenTelemetry<br/><i>(ActivitySource & Metrics)</i>"]
+        EF["EricksonLopez.Result.EntityFrameworkCore<br/><i>(EF Core Interceptors & Converters)</i>"]
+        Polly["EricksonLopez.Result.Polly<br/><i>(Resilience Pipelines)</i>"]
+        MT["EricksonLopez.Result.MassTransit<br/><i>(Consumer Filters & Faults)</i>"]
+        Dapr["EricksonLopez.Result.Dapr<br/><i>(Dapr Client & State Store)</i>"]
+        Grpc["EricksonLopez.Result.Grpc<br/><i>(gRPC Status Mapping & RpcException)</i>"]
         Serialization["EricksonLopez.Result.Serialization<br/><i>(System.Text.Json Converters)</i>"]
-        Generators["EricksonLopez.Result.Serialization.Generators<br/><i>(Source Generators)</i>"]
-        Analyzers["EricksonLopez.Result.Analyzers<br/><i>(Roslyn Rules)</i>"]
 
         AspNetCore --> Core
-        OpenApi --> AspNetCore
+        OpenApi --> Core
         FV --> Core
         MediatR --> Core
         OTel --> Core
+        EF --> Core
+        Polly --> Core
+        MT --> Core
+        Dapr --> Core
+        Grpc --> Core
         Serialization --> Core
-        Generators --> Serialization
+    end
+
+    subgraph "Compiler Tooling & Code Generation"
+        Analyzers["EricksonLopez.Result.Analyzers<br/><i>(Roslyn Rules & CodeFixes)</i>"]
+        SerializationGen["EricksonLopez.Result.Serialization.Generators<br/><i>(AOT Serializer Generator)</i>"]
+        DomainErrorsGen["EricksonLopez.Result.DomainErrors.Generators<br/><i>(Domain Error Catalog Generator)</i>"]
+
         Analyzers -.-> Core
+        SerializationGen --> Serialization
+        DomainErrorsGen -.-> Core
     end
 
     subgraph "Testing & Assertions"
@@ -95,18 +111,43 @@ graph TD
 - **System.Text.Json Converters**: High-speed, custom JSON converters (`ResultJsonConverter`, `ResultOfTJsonConverter<T>`, `ErrorJsonConverter`).
 - **Source Generator**: Roslyn `IIncrementalGenerator` producing AOT-safe converter registrations for zero-reflection serialization.
 
-### 3.7 `EricksonLopez.Result.Analyzers`
-- **Diagnostic Rules**:
+### 3.7 `EricksonLopez.Result.DomainErrors.Generators`
+- **Source Generator**: Roslyn `IIncrementalGenerator` monitoring `*.errors.json` additional files declared in the project.
+- **Catalog Synthesis**: Emits compile-time static error factory classes with type-safe methods, standardized error codes, localized description keys, and zero-allocation static caching. Certified 100% Native AOT compatible.
+
+### 3.8 `EricksonLopez.Result.EntityFrameworkCore`
+- **Persistence Extensions**: `SaveChangesAsyncToResult` on `DbContext` safely mapping `DbUpdateConcurrencyException` to `Error.Conflict`, `DbUpdateException` to `Error.Failure`, and `TimeoutException` to `Error.Unavailable(Transient)`.
+- **Query Extensions**: Extensions on `IQueryable<T>` (`FirstOrDefaultToResultAsync`, `SingleOrDefaultToResultAsync`, `ToListToResultAsync`) returning clean `Result<T>` envelopes without throwing on missing records.
+
+### 3.9 `EricksonLopez.Result.Polly`
+- **Resilience Pipelines**: Native integration with Polly v8 `ResiliencePipeline` architecture.
+- **Execution & Retry**: `ExecuteResult` and `ExecuteResultAsync` extensions with `TState` state-passing to eliminate closure allocations, and `AddResultRetry` configuring retry strategies specifically for errors with `ErrorRetryability.Transient`.
+
+### 3.10 `EricksonLopez.Result.MassTransit`
+- **Consumer Filter**: `ResultConsumeFilter<TMessage>` intercepting consumer pipelines to coordinate domain `Result` return types.
+- **Fault Management**: Immutable, transport-safe `ResultFault` message contract for error propagation across message broker networks.
+
+### 3.11 `EricksonLopez.Result.Dapr`
+- **Dapr Client Extensions**: `InvokeMethodGrpcResultAsync`, `GetStateResultAsync`, `GetStateAndETagResultAsync`, `SaveStateResultAsync`, `DeleteStateResultAsync`, and `ExecuteTransactionResultAsync` mapping Dapr exceptions and HTTP status codes to standardized domain `Error` instances.
+
+### 3.12 `EricksonLopez.Result.Grpc`
+- **gRPC Status Mapping**: Bidirectional status code conversion between `StatusCode` and `ErrorType`.
+- **RpcException Integration**: `ToRpcException(this Error)` and `ToResult<T>(this RpcException)` for seamless boundary translation.
+- **Unary Call Extensions**: `ExecuteResultAsync` extensions for `AsyncUnaryCall<TResponse>`.
+
+### 3.13 `EricksonLopez.Result.Analyzers`
+- **Diagnostic Rules & CodeFix Providers**:
   - `RESULT001`: Large `Result<T>` struct value type (>32 bytes).
   - `RESULT003`: `ErrorBuilder` return value discarded (Severity: Error, with CodeFix).
   - `RESULT004`: Closure allocation in Result pipeline (Severity: Warning, with CodeFix).
   - `RESULT005`: `Error.WithMetadata()` chained 3+ times without batching.
   - `RESULT006`: `ErrorBuilder.WithInnerError()` chained 2+ times consecutively.
-  - `RESULT007`: Missing `ErrorEqualityComparer.Strict` in collection deduplication.
+  - `RESULT007`: Missing `ErrorEqualityComparer.Strict` in collection deduplication (Severity: Warning, with CodeFix).
   - `RESULT008`: Endpoint filter used without `.Produces<T>()`.
   - `RESULT009`: `IncludeDescription = true` set without environment guard.
   - `RESULT010`: `Exception.Message` used in `ResultExceptionBehavior`.
-  - `RESULT012`: Method returns uninitialized `default(Result)` or `default(Result<T>)`.
+  - `RESULT012`: Method returns uninitialized `default(Result)` or `default(Result<T>)` (Severity: Warning, with CodeFix).
+  - `RESULT013`: Avoid implicit boolean conversion of `Result` or `Result<T>` in condition contexts (Severity: Warning, with CodeFix).
   - `RESULT_OTEL_001`: `TraceOutcome` called without `ResultMetrics` registered.
   - `RESULT_GEN_001`: `[JsonSerializable(typeof(Result))]` on serializer context has no effect.
 
@@ -134,7 +175,7 @@ BenchmarkDotNet measurements executed under .NET 10.0 (x64, RyuJIT):
 
 ## 5. Security & Invariant Verification
 
-1. **Uninitialized Struct Safety**: `default(Result)` and `default(Result<T>)` are detected via `IsUninitialized` and throw `InvalidOperationException` upon accessing `.Value` or `.Error`, preventing undefined states.
+1. **Uninitialized Struct Safety**: `default(Result)` and `default(Result<T>)` are detected via `IsUninitialized`. Accessing `.Value` on an uninitialized struct throws `InvalidOperationException`, while accessing `.Error` safely returns `WellKnownErrors.UninitializedError` without throwing, preventing undefined states.
 2. **Error Detail Sanitization**: Sensitive exception messages and stack traces are protected via `IncludeDescription` guards in `ResultHttpOptions`.
 3. **Thread Safety**: All `Error` and `Result` instances are strictly immutable; thread-safe across concurrent reader tasks.
 

@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang='en'>
+<head>
+<meta charset='utf-8' />
+<title>EricksonLopez.Result.Benchmarks.MediatRColdStartBenchmarks-20260920-074229</title>
+
+<style type="text/css">
+	table { border-collapse: collapse; display: block; width: 100%; overflow: auto; }
+	td, th { padding: 6px 13px; border: 1px solid #ddd; text-align: right; }
+	tr { background-color: #fff; border-top: 1px solid #ccc; }
+	tr:nth-child(even) { background: #f8f8f8; }
+</style>
+</head>
+<body>
+<pre><code>
+BenchmarkDotNet v0.15.8, Linux Ubuntu 24.04.5 LTS (Noble Numbat)
+AMD EPYC 7763 2.45GHz, 1 CPU, 4 logical and 2 physical cores
+.NET SDK 10.0.401
+  [Host]    : .NET 10.0.12 (10.0.12, 10.0.1226.42308), X64 RyuJIT x86-64-v3
+  .NET 10.0 : .NET 10.0.12 (10.0.12, 10.0.1226.42308), X64 RyuJIT x86-64-v3
+  .NET 8.0  : .NET 8.0.31 (8.0.31, 8.0.3126.42015), X64 RyuJIT x86-64-v3
+  .NET 9.0  : .NET 9.0.20 (9.0.20, 9.0.2026.41315), X64 RyuJIT x86-64-v3
+  ShortRun  : .NET 10.0.12 (10.0.12, 10.0.1226.42308), X64 RyuJIT x86-64-v3
+</code></pre>
+<pre><code></code></pre>
+
+<table>
+<thead><tr><th>Method                             </th><th>Job</th><th>Runtime</th><th>IterationCount</th><th>LaunchCount</th><th>WarmupCount</th><th>TypesCount</th><th>Mean</th><th>Error</th><th>StdDev</th><th>Ratio</th><th>Gen0</th><th>Allocated</th><th>Alloc Ratio</th>
+</tr>
+</thead><tbody><tr><td>&#39;Expression.Compile Cold Start (N types)&#39;</td><td>.NET 10.0</td><td>.NET 10.0</td><td>Default</td><td>Default</td><td>Default</td><td>10</td><td>1.737 ms</td><td>0.0026 ms</td><td>0.0025 ms</td><td>1.08</td><td>-</td><td>51.61 KB</td><td>1.00</td>
+</tr><tr><td>&#39;Expression.Compile Cold Start (N types)&#39;</td><td>.NET 8.0</td><td>.NET 8.0</td><td>Default</td><td>Default</td><td>Default</td><td>10</td><td>1.606 ms</td><td>0.0113 ms</td><td>0.0105 ms</td><td>1.00</td><td>-</td><td>51.61 KB</td><td>1.00</td>
+</tr><tr><td>&#39;Expression.Compile Cold Start (N types)&#39;</td><td>.NET 9.0</td><td>.NET 9.0</td><td>Default</td><td>Default</td><td>Default</td><td>10</td><td>1.580 ms</td><td>0.0020 ms</td><td>0.0018 ms</td><td>0.98</td><td>1.9531</td><td>51.97 KB</td><td>1.01</td>
+</tr><tr><td>&#39;Expression.Compile Cold Start (N types)&#39;</td><td>ShortRun</td><td>.NET 10.0</td><td>3</td><td>1</td><td>3</td><td>10</td><td>1.765 ms</td><td>0.2405 ms</td><td>0.0132 ms</td><td>1.10</td><td>-</td><td>51.75 KB</td><td>1.00</td>
+</tr><tr><td>&#39;Expression.Compile Cold Start (N types)&#39;</td><td>.NET 10.0</td><td>.NET 10.0</td><td>Default</td><td>Default</td><td>Default</td><td>25</td><td>4.523 ms</td><td>0.0279 ms</td><td>0.0248 ms</td><td>1.11</td><td>7.8125</td><td>130.89 KB</td><td>1.00</td>
+</tr><tr><td>&#39;Expression.Compile Cold Start (N types)&#39;</td><td>.NET 8.0</td><td>.NET 8.0</td><td>Default</td><td>Default</td><td>Default</td><td>25</td><td>4.062 ms</td><td>0.0080 ms</td><td>0.0071 ms</td><td>1.00</td><td>7.8125</td><td>131.1 KB</td><td>1.00</td>
+</tr><tr><td>&#39;Expression.Compile Cold Start (N types)&#39;</td><td>.NET 9.0</td><td>.NET 9.0</td><td>Default</td><td>Default</td><td>Default</td><td>25</td><td>4.051 ms</td><td>0.0211 ms</td><td>0.0198 ms</td><td>1.00</td><td>7.8125</td><td>131.1 KB</td><td>1.00</td>
+</tr><tr><td>&#39;Expression.Compile Cold Start (N types)&#39;</td><td>ShortRun</td><td>.NET 10.0</td><td>3</td><td>1</td><td>3</td><td>25</td><td>4.539 ms</td><td>0.3441 ms</td><td>0.0189 ms</td><td>1.12</td><td>7.8125</td><td>130.89 KB</td><td>1.00</td>
+</tr><tr><td>&#39;Expression.Compile Cold Start (N types)&#39;</td><td>.NET 10.0</td><td>.NET 10.0</td><td>Default</td><td>Default</td><td>Default</td><td>50</td><td>9.274 ms</td><td>0.0393 ms</td><td>0.0367 ms</td><td>1.10</td><td>15.6250</td><td>266.81 KB</td><td>1.00</td>
+</tr><tr><td>&#39;Expression.Compile Cold Start (N types)&#39;</td><td>.NET 8.0</td><td>.NET 8.0</td><td>Default</td><td>Default</td><td>Default</td><td>50</td><td>8.453 ms</td><td>0.0449 ms</td><td>0.0420 ms</td><td>1.00</td><td>15.6250</td><td>267.77 KB</td><td>1.00</td>
+</tr><tr><td>&#39;Expression.Compile Cold Start (N types)&#39;</td><td>.NET 9.0</td><td>.NET 9.0</td><td>Default</td><td>Default</td><td>Default</td><td>50</td><td>8.205 ms</td><td>0.0180 ms</td><td>0.0150 ms</td><td>0.97</td><td>15.6250</td><td>266.35 KB</td><td>0.99</td>
+</tr><tr><td>&#39;Expression.Compile Cold Start (N types)&#39;</td><td>ShortRun</td><td>.NET 10.0</td><td>3</td><td>1</td><td>3</td><td>50</td><td>9.243 ms</td><td>1.0580 ms</td><td>0.0580 ms</td><td>1.09</td><td>15.6250</td><td>267.3 KB</td><td>1.00</td>
+</tr></tbody></table>
+</body>
+</html>

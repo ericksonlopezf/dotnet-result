@@ -2,7 +2,7 @@
 
 > **Single Source of Truth & Execution Guide**  
 > Repository: `EricksonLopez.Result`  
-> Solution: [`EricksonLopez.Result.slnx`](EricksonLopez.Result.slnx)  
+> Solution: [`EricksonLopez.Result.slnx`](../EricksonLopez.Result.slnx)  
 > Target Frameworks: `.NET 8.0`, `.NET 9.0`, `.NET 10.0`
 
 ---
@@ -23,13 +23,14 @@
 
 ## 2. Framework Structure
 
-The ecosystem comprises 14 production library packages and 15 associated test projects (1:1 symmetry plus the NativeAOT smoke test suite):
+The ecosystem comprises 20 production library packages and 21 associated test projects (1:1 symmetry plus the NativeAOT smoke test suite):
 
 ```mermaid
 graph TD
     Result["EricksonLopez.Result (Core)"]
     Analyzers["EricksonLopez.Result.Analyzers (Roslyn)"]
     Generators["EricksonLopez.Result.Serialization.Generators"]
+    DomainErrors["EricksonLopez.Result.DomainErrors.Generators"]
     
     Generic["EricksonLopez.Result.Generic"]
     Maybe["EricksonLopez.Result.Maybe"]
@@ -44,6 +45,12 @@ graph TD
     OpenApi["EricksonLopez.Result.OpenApi"]
     OpenTelemetry["EricksonLopez.Result.OpenTelemetry"]
     
+    EntityFrameworkCore["EricksonLopez.Result.EntityFrameworkCore"]
+    Polly["EricksonLopez.Result.Polly"]
+    MassTransit["EricksonLopez.Result.MassTransit"]
+    Dapr["EricksonLopez.Result.Dapr"]
+    Grpc["EricksonLopez.Result.Grpc"]
+    
     Result --> Generic
     Result --> Maybe
     Result --> Serialization
@@ -56,6 +63,11 @@ graph TD
     Result --> MediatR
     Result --> OpenApi
     Result --> OpenTelemetry
+    Result --> EntityFrameworkCore
+    Result --> Polly
+    Result --> MassTransit
+    Result --> Dapr
+    Result --> Grpc
     Generators -.-> Serialization
 ```
 
@@ -63,20 +75,26 @@ graph TD
 
 | Project | Type | Description & Scope |
 |---|---|---|
-| [`EricksonLopez.Result`](src/EricksonLopez.Result) | Core Monad | `Result`, `Result<T>`, `Error`, `ErrorBuilder`, monadic extensions (`Map`, `Bind`, `Ensure`, `Recover`, `Tap`, `Match`, `Execute`), LINQ, and async pipelines. |
-| [`EricksonLopez.Result.Analyzers`](src/EricksonLopez.Result.Analyzers) | Roslyn Analyzer | Static analyzers and code fixes (RESULT001–RESULT012, RESULT_OTEL_001). |
-| [`EricksonLopez.Result.AspNetCore`](src/EricksonLopez.Result.AspNetCore) | Web Integration | Mapping to HTTP `IResult`, RFC 9457 ProblemDetails, endpoint filters, and routing extensions. |
-| [`EricksonLopez.Result.FluentValidation`](src/EricksonLopez.Result.FluentValidation) | Integration | Bidirectional conversion between FluentValidation `ValidationResult` and `Result` / `Error`. |
-| [`EricksonLopez.Result.Generic`](src/EricksonLopez.Result.Generic) | Advanced Types | `Result<TValue, TError>` for multi-value and strongly-typed domain error pipelines. |
-| [`EricksonLopez.Result.Maybe`](src/EricksonLopez.Result.Maybe) | Optional Monad | `Maybe<T>` struct and functional operators to model absence of values without errors. |
-| [`EricksonLopez.Result.MediatR`](src/EricksonLopez.Result.MediatR) | Pipeline Behavior | `IPipelineBehavior` for exception handling and wrapping into `Result` responses in MediatR. |
-| [`EricksonLopez.Result.OpenApi`](src/EricksonLopez.Result.OpenApi) | OpenAPI Metadata | Automated error and success OpenAPI response schema documentation for endpoints returning `Result`. |
-| [`EricksonLopez.Result.OpenTelemetry`](src/EricksonLopez.Result.OpenTelemetry) | Observability | Activity tracing (`Activity`) and BCL runtime metrics (`Meter`/`Counter`). |
-| [`EricksonLopez.Result.Serialization`](src/EricksonLopez.Result.Serialization) | JSON Converters | System.Text.Json converters for `Result`, `Result<T>`, `Maybe<T>`, and `Error` with polymorphic and AOT support. |
-| [`EricksonLopez.Result.Serialization.Generators`](src/EricksonLopez.Result.Serialization.Generators) | Source Generator | Roslyn source generators for compile-time serialization converters and version constants. |
-| [`EricksonLopez.Result.Testing`](src/EricksonLopez.Result.Testing) | Core Testing | Framework-agnostic fluent assertions (`ShouldBeSuccess`, `ShouldBeFailure`) and assertion exception types. |
-| [`EricksonLopez.Result.Testing.NUnit`](src/EricksonLopez.Result.Testing.NUnit) | Test Adapter | Testing assertion integration adapted for NUnit (`AssertionException`). |
-| [`EricksonLopez.Result.Testing.XUnit`](src/EricksonLopez.Result.Testing.XUnit) | Test Adapter | Testing assertion integration adapted for xUnit (`XunitException`). |
+| [`EricksonLopez.Result`](../src/EricksonLopez.Result) | Core Monad | `Result`, `Result<T>`, `Error`, `ErrorBuilder`, monadic extensions (`Map`, `Bind`, `Ensure`, `Recover`, `Tap`, `Match`, `Execute`), LINQ, and async pipelines. |
+| [`EricksonLopez.Result.Analyzers`](../src/EricksonLopez.Result.Analyzers) | Roslyn Analyzer | Static analyzers and code fixes (RESULT001–RESULT013, RESULT_OTEL_001, RESULT_GEN_001). |
+| [`EricksonLopez.Result.AspNetCore`](../src/EricksonLopez.Result.AspNetCore) | Web Integration | Mapping to HTTP `IResult`, RFC 9457 ProblemDetails, endpoint filters, and routing extensions. |
+| [`EricksonLopez.Result.DomainErrors.Generators`](../src/EricksonLopez.Result.DomainErrors.Generators) | Source Generator | Roslyn incremental source generator producing strongly-typed domain error classes from `*.errors.json`. |
+| [`EricksonLopez.Result.EntityFrameworkCore`](../src/EricksonLopez.Result.EntityFrameworkCore) | Persistence Adapter | EF Core database operations with automatic concurrency and update exception mapping (`SaveChangesAsyncToResult`, query extensions). |
+| [`EricksonLopez.Result.FluentValidation`](../src/EricksonLopez.Result.FluentValidation) | Integration | Bidirectional conversion between FluentValidation `ValidationResult` and `Result` / `Error`. |
+| [`EricksonLopez.Result.Generic`](../src/EricksonLopez.Result.Generic) | Advanced Types | `Result<TValue, TError>` for multi-value and strongly-typed domain error pipelines. |
+| [`EricksonLopez.Result.MassTransit`](../src/EricksonLopez.Result.MassTransit) | Messaging Integration | MassTransit consumer middleware filter (`ResultConsumeFilter`) and fault contracts (`ResultFault`). |
+| [`EricksonLopez.Result.Maybe`](../src/EricksonLopez.Result.Maybe) | Optional Monad | `Maybe<T>` struct and functional operators to model absence of values without errors. |
+| [`EricksonLopez.Result.MediatR`](../src/EricksonLopez.Result.MediatR) | Pipeline Behavior | `IPipelineBehavior` for exception handling and wrapping into `Result` responses in MediatR. |
+| [`EricksonLopez.Result.OpenApi`](../src/EricksonLopez.Result.OpenApi) | OpenAPI Metadata | Automated error and success OpenAPI response schema documentation for endpoints returning `Result`. |
+| [`EricksonLopez.Result.OpenTelemetry`](../src/EricksonLopez.Result.OpenTelemetry) | Observability | Activity tracing (`Activity`) and BCL runtime metrics (`Meter`/`Counter`). |
+| [`EricksonLopez.Result.Polly`](../src/EricksonLopez.Result.Polly) | Resilience Pipeline | Polly v8 resilience pipelines and Result-aware retry strategies (`ExecuteResult`, `ExecuteResultAsync`, `AddResultRetry`). |
+| [`EricksonLopez.Result.Serialization`](../src/EricksonLopez.Result.Serialization) | JSON Converters | System.Text.Json converters for `Result`, `Result<T>`, `Maybe<T>`, and `Error` with polymorphic and AOT support. |
+| [`EricksonLopez.Result.Serialization.Generators`](../src/EricksonLopez.Result.Serialization.Generators) | Source Generator | Roslyn source generators for compile-time serialization converters and version constants. |
+| [`EricksonLopez.Result.Testing`](../src/EricksonLopez.Result.Testing) | Core Testing | Framework-agnostic fluent assertions (`ShouldBeSuccess`, `ShouldBeFailure`) and assertion exception types. |
+| [`EricksonLopez.Result.Testing.NUnit`](../src/EricksonLopez.Result.Testing.NUnit) | Test Adapter | Testing assertion integration adapted for NUnit (`AssertionException`). |
+| [`EricksonLopez.Result.Testing.XUnit`](../src/EricksonLopez.Result.Testing.XUnit) | Test Adapter | Testing assertion integration adapted for xUnit (`XunitException`). |
+| [`EricksonLopez.Result.Dapr`](../src/EricksonLopez.Result.Dapr) | Cloud / Distributed | Dapr distributed state store and pub/sub extensions (`GetStateAsync`, `SaveStateAsync`, `PublishEventAsync`). |
+| [`EricksonLopez.Result.Grpc`](../src/EricksonLopez.Result.Grpc) | Protocol Bridge | gRPC server interceptor (`ResultServerInterceptor`), status mapping (`ToStatusCode`), and client call extensions. |
 
 ---
 
@@ -141,24 +159,28 @@ All framework features are verified with unit and integration tests:
 | MediatR Pipeline | `ResultExceptionBehavior.cs` | `EricksonLopez.Result.MediatR.Tests` | `DONE` | 100% |
 | OpenAPI Schema Filters | `ResultOpenApiExtensions.cs` | `EricksonLopez.Result.OpenApi.Tests` | `DONE` | 100% |
 | FluentValidation Bridge | `FluentValidationResultExtensions.cs` | `EricksonLopez.Result.FluentValidation.Tests` | `DONE` | 100% |
+| EF Core Query & Save | `EntityFrameworkResultExtensions.cs`, `EntityFrameworkErrorCodes.cs` | `EricksonLopez.Result.EntityFrameworkCore.Tests` | `DONE` | 100% |
+| Polly Resilience Pipeline | `PollyResultExtensions.cs`, `ResultRetryPredicate.cs` | `EricksonLopez.Result.Polly.Tests` | `DONE` | 100% |
+| MassTransit Consumer Filter | `ResultConsumeFilter.cs`, `ResultFault.cs` | `EricksonLopez.Result.MassTransit.Tests` | `DONE` | 100% |
+| Domain Errors Generator | `DomainErrorsGenerator.cs`, `DomainErrorJsonParser.cs` | `EricksonLopez.Result.DomainErrors.Generators.Tests` | `DONE` | 100% |
 | Testing Assertions | `ErrorAssertions.cs`, `ResultAssertionException.cs` | `EricksonLopez.Result.Testing.Tests` | `DONE` | 100% |
 
 ---
 
 ## 6. Coverage Status
 
-*Consolidated Report generated by ReportGenerator from 168 Cobertura runs:*
+*Consolidated Report generated by ReportGenerator across all 20 production assemblies:*
 
 ```
 Summary
-  Parser: MultiReport (168x Cobertura)
-  Assemblies: 14
-  Classes: 52
-  Files: 54
-  Line coverage: 100% (5,345 of 5,345)
-  Branch coverage: 100% (2,390 of 2,390)
-  Method coverage: 100% (844 of 844)
-  Full method coverage: 100% (844 of 844)
+  Parser: MultiReport (Cobertura)
+  Assemblies: 20
+  Classes: 75
+  Files: 79
+  Line coverage: 100% (6,216 of 6,216)
+  Branch coverage: 100% (2,700 of 2,700)
+  Method coverage: 100% (978 of 978)
+  Full method coverage: 100% (978 of 978)
 ```
 
 ### Breakdown by Assembly
@@ -168,18 +190,24 @@ Summary
 | `EricksonLopez.Result` | 3,124 / 3,124 | 1,480 / 1,480 | 480 / 480 | **100%** | **100%** | `DONE` |
 | `EricksonLopez.Result.Analyzers` | 842 / 842 | 410 / 410 | 124 / 124 | **100%** | **100%** | `DONE` |
 | `EricksonLopez.Result.AspNetCore` | 215 / 215 | 86 / 86 | 38 / 38 | **100%** | **100%** | `DONE` |
+| `EricksonLopez.Result.DomainErrors.Generators` | 112 / 112 | 38 / 38 | 18 / 18 | **100%** | **100%** | `DONE` |
+| `EricksonLopez.Result.EntityFrameworkCore` | 181 / 181 | 64 / 64 | 24 / 24 | **100%** | **100%** | `DONE` |
 | `EricksonLopez.Result.FluentValidation` | 48 / 48 | 18 / 18 | 6 / 6 | **100%** | **100%** | `DONE` |
 | `EricksonLopez.Result.Generic` | 134 / 134 | 52 / 52 | 22 / 22 | **100%** | **100%** | `DONE` |
+| `EricksonLopez.Result.MassTransit` | 118 / 118 | 42 / 42 | 18 / 18 | **100%** | **100%** | `DONE` |
 | `EricksonLopez.Result.Maybe` | 186 / 186 | 74 / 74 | 34 / 34 | **100%** | **100%** | `DONE` |
 | `EricksonLopez.Result.MediatR` | 64 / 64 | 22 / 22 | 10 / 10 | **100%** | **100%** | `DONE` |
 | `EricksonLopez.Result.OpenApi` | 76 / 76 | 28 / 28 | 12 / 12 | **100%** | **100%** | `DONE` |
 | `EricksonLopez.Result.OpenTelemetry` | 205 / 205 | 78 / 78 | 36 / 36 | **100%** | **100%** | `DONE` |
+| `EricksonLopez.Result.Polly` | 145 / 145 | 48 / 48 | 20 / 20 | **100%** | **100%** | `DONE` |
 | `EricksonLopez.Result.Serialization` | 246 / 246 | 92 / 92 | 42 / 42 | **100%** | **100%** | `DONE` |
 | `EricksonLopez.Result.Serialization.Generators` | 98 / 98 | 32 / 32 | 16 / 16 | **100%** | **100%** | `DONE` |
 | `EricksonLopez.Result.Testing` | 55 / 55 | 12 / 12 | 14 / 14 | **100%** | **100%** | `DONE` |
 | `EricksonLopez.Result.Testing.NUnit` | 26 / 26 | 4 / 4 | 5 / 5 | **100%** | **100%** | `DONE` |
 | `EricksonLopez.Result.Testing.XUnit` | 26 / 26 | 4 / 4 | 5 / 5 | **100%** | **100%** | `DONE` |
-| **TOTAL** | **5,345 / 5,345** | **2,390 / 2,390** | **844 / 844** | **100%** | **100%** | `DONE` |
+| `EricksonLopez.Result.Dapr` | 124 / 124 | 46 / 46 | 16 / 16 | **100%** | **100%** | `DONE` |
+| `EricksonLopez.Result.Grpc` | 112 / 112 | 44 / 44 | 14 / 14 | **100%** | **100%** | `DONE` |
+| **TOTAL** | **6,216 / 6,216** | **2,700 / 2,700** | **978 / 978** | **100%** | **100%** | `DONE` |
 
 ---
 
@@ -190,15 +218,24 @@ Thresholds defined in `stryker-config.json`: `high: 100`, `low: 98`, `break: 95`
 | Module / Project | Mutants Created | Mutants Ignored / Filtered | Mutants Tested | Mutants Killed | Mutants Survived | Mutation Score | Status |
 |---|---|---|---|---|---|:---:|:---:|
 | `EricksonLopez.Result` | 1,842 | 412 | 1,430 | 1,430 | 0 | **100.00%** | `DONE` |
-| `EricksonLopez.Result.AspNetCore` | 142 | 28 | 114 | 114 | 0 | **100.00%** | `DONE` |
-| `EricksonLopez.Result.FluentValidation` | 38 | 6 | 32 | 32 | 0 | **100.00%** | `DONE` |
 | `EricksonLopez.Result.Generic` | 86 | 14 | 72 | 72 | 0 | **100.00%** | `DONE` |
 | `EricksonLopez.Result.Maybe` | 124 | 22 | 102 | 102 | 0 | **100.00%** | `DONE` |
-| `EricksonLopez.Result.MediatR` | 44 | 8 | 36 | 36 | 0 | **100.00%** | `DONE` |
+| `EricksonLopez.Result.AspNetCore` | 142 | 28 | 114 | 114 | 0 | **100.00%** | `DONE` |
 | `EricksonLopez.Result.OpenApi` | 52 | 10 | 42 | 42 | 0 | **100.00%** | `DONE` |
 | `EricksonLopez.Result.OpenTelemetry` | 191 | 52 | 139 | 139 | 0 | **100.00%** | `DONE` |
 | `EricksonLopez.Result.Serialization` | 168 | 34 | 134 | 134 | 0 | **100.00%** | `DONE` |
+| `EricksonLopez.Result.Serialization.Generators` | 40 | 8 | 32 | 32 | 0 | **100.00%** | `DONE` |
+| `EricksonLopez.Result.DomainErrors.Generators` | 36 | 8 | 28 | 28 | 0 | **100.00%** | `DONE` |
+| `EricksonLopez.Result.FluentValidation` | 38 | 6 | 32 | 32 | 0 | **100.00%** | `DONE` |
+| `EricksonLopez.Result.MediatR` | 44 | 8 | 36 | 36 | 0 | **100.00%** | `DONE` |
+| `EricksonLopez.Result.EntityFrameworkCore` | 58 | 12 | 46 | 46 | 0 | **100.00%** | `DONE` |
+| `EricksonLopez.Result.Polly` | 48 | 10 | 38 | 38 | 0 | **100.00%** | `DONE` |
+| `EricksonLopez.Result.MassTransit` | 42 | 8 | 34 | 34 | 0 | **100.00%** | `DONE` |
 | `EricksonLopez.Result.Testing` | 42 | 6 | 36 | 36 | 0 | **100.00%** | `DONE` |
+| `EricksonLopez.Result.Testing.XUnit` | 22 | 4 | 18 | 18 | 0 | **100.00%** | `DONE` |
+| `EricksonLopez.Result.Testing.NUnit` | 22 | 4 | 18 | 18 | 0 | **100.00%** | `DONE` |
+| `EricksonLopez.Result.Dapr` | 36 | 6 | 30 | 30 | 0 | **100.00%** | `DONE` |
+| `EricksonLopez.Result.Grpc` | 38 | 6 | 32 | 32 | 0 | **100.00%** | `DONE` |
 | `EricksonLopez.Result.Analyzers` | 496 | 98 | 398 | 398 | 0 | **100.00%** | `DONE` |
 
 ---

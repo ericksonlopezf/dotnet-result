@@ -1,6 +1,4 @@
 // Copyright © Erickson Lopez. MIT License.
-#pragma warning disable CS0619 // Intentionally testing the reflection-based constructor (Obsolete error:true)
-#pragma warning disable CS0618
 using System;
 using System.Collections.Generic;
 using System.Text.Json;
@@ -164,6 +162,23 @@ public class ResultNullabilityTests
         Assert.False(twoOverloadResult);
         Assert.Null(error2);
         Assert.True(isUninitialized);
+    }
+
+    [Fact]
+    public void Error_ReturnsUninitializedSentinel_OnUninitializedResult()
+    {
+        var uninit = default(Result);
+        Assert.Equal(WellKnownErrors.UninitializedError, uninit.Error);
+        Assert.Throws<InvalidOperationException>(() => uninit.Match(() => 1, _ => 2));
+    }
+
+    [Fact]
+    public void UninitializedResultOfT_Behavior_IsConsistent()
+    {
+        var uninit = default(Result<int>);
+        Assert.Equal(WellKnownErrors.UninitializedError, uninit.Error);
+        Assert.Throws<InvalidOperationException>(() => _ = uninit.Value);
+        Assert.Throws<InvalidOperationException>(() => uninit.Match(_ => 1, _ => 2));
     }
 
 

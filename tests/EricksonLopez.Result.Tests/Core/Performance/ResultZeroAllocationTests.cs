@@ -8,8 +8,8 @@ using Xunit;
 namespace EricksonLopez.Result.Tests.Core.Performance;
 
 /// <summary>
-/// Regression and quality test suite ensuring that the core Result and Result{T} value-type operations
-/// remain strictly allocation-free (zero bytes allocated on the heap) when used with value types and stateful delegates.
+/// Verifies that core Result and <see cref="Result{TValue}"/> value-type operations
+/// remain strictly allocation-free when used with value types and stateful delegates.
 /// </summary>
 public class ResultZeroAllocationTests
 {

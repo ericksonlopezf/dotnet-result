@@ -32,7 +32,7 @@ public readonly struct Maybe<T> : IEquatable<Maybe<T>>
     /// <summary>
     /// Gets the underlying value if present; otherwise throws an <see cref="InvalidOperationException"/>.
     /// </summary>
-    /// <exception cref="InvalidOperationException">Thrown when <see cref="HasValue"/> is false.</exception>
+    /// <exception cref="InvalidOperationException">The instance does not contain a value</exception>
     public T Value
     {
         get
@@ -44,12 +44,12 @@ public readonly struct Maybe<T> : IEquatable<Maybe<T>>
     }
 
     /// <summary>
-    /// Represents an empty <see cref="Maybe{T}"/> with no value.
+    /// Gets an empty <see cref="Maybe{T}"/> with no value.
     /// </summary>
     public static Maybe<T> None => default;
 
     /// <summary>
-    /// Creates a <see cref="Maybe{T}"/> containing the specified value, or <see cref="None"/> if null.
+    /// Creates a <see cref="Maybe{T}"/> containing the specified value, or <see cref="None"/> if <see langword="null"/>.
     /// </summary>
     /// <param name="value">The optional value to wrap.</param>
     /// <returns>A <see cref="Maybe{T}"/> containing <paramref name="value"/> if not <see langword="null"/>; otherwise <see cref="None"/>.</returns>
@@ -70,7 +70,7 @@ public readonly struct Maybe<T> : IEquatable<Maybe<T>>
     }
 
     /// <summary>
-    /// Attempts to retrieve the value. Returns true if present, otherwise false.
+    /// Attempts to retrieve the underlying value if present.
     /// </summary>
     /// <param name="value">When this method returns, contains the underlying value if present; otherwise, the default value.</param>
     /// <returns><see langword="true"/> if this instance contains a value; otherwise, <see langword="false"/>.</returns>

@@ -999,43 +999,67 @@ public class ResultActivityAsyncExtensionsTests : IDisposable
     [Fact]
     public async Task Cover_ResultActivity_ValueTask()
     {
-        await GetUncompletedValueTask(Result.Success()).TraceOutcome("A");
-        await GetUncompletedValueTask(Result.Success()).TraceOnSuccess("A");
-        await GetUncompletedValueTask(Result.Success()).TraceOnFailure("A");
+        var r1 = await GetUncompletedValueTask(Result.Success()).TraceOutcome("A");
+        var r2 = await GetUncompletedValueTask(Result.Success()).TraceOnSuccess("A");
+        var r3 = await GetUncompletedValueTask(Result.Success()).TraceOnFailure("A");
 
-        await GetUncompletedValueTask(Result.Failure(Error.Failure("A", "B"))).TraceOutcome("A");
-        await GetUncompletedValueTask(Result.Failure(Error.Failure("A", "B"))).TraceOnSuccess("A");
-        await GetUncompletedValueTask(Result.Failure(Error.Failure("A", "B"))).TraceOnFailure("A");
+        var r4 = await GetUncompletedValueTask(Result.Failure(Error.Failure("A", "B"))).TraceOutcome("A");
+        var r5 = await GetUncompletedValueTask(Result.Failure(Error.Failure("A", "B"))).TraceOnSuccess("A");
+        var r6 = await GetUncompletedValueTask(Result.Failure(Error.Failure("A", "B"))).TraceOnFailure("A");
 
-        await GetUncompletedValueTask(Result.Success(1)).TraceOutcome("A");
-        await GetUncompletedValueTask(Result.Success(1)).TraceOnSuccess("A");
-        await GetUncompletedValueTask(Result.Success(1)).TraceOnFailure("A");
+        var r7 = await GetUncompletedValueTask(Result.Success(1)).TraceOutcome("A");
+        var r8 = await GetUncompletedValueTask(Result.Success(1)).TraceOnSuccess("A");
+        var r9 = await GetUncompletedValueTask(Result.Success(1)).TraceOnFailure("A");
 
-        await GetUncompletedValueTask(Result.Failure<int>(Error.Failure("A", "B"))).TraceOutcome("A");
-        await GetUncompletedValueTask(Result.Failure<int>(Error.Failure("A", "B"))).TraceOnSuccess("A");
-        await GetUncompletedValueTask(Result.Failure<int>(Error.Failure("A", "B"))).TraceOnFailure("A");
+        var r10 = await GetUncompletedValueTask(Result.Failure<int>(Error.Failure("A", "B"))).TraceOutcome("A");
+        var r11 = await GetUncompletedValueTask(Result.Failure<int>(Error.Failure("A", "B"))).TraceOnSuccess("A");
+        var r12 = await GetUncompletedValueTask(Result.Failure<int>(Error.Failure("A", "B"))).TraceOnFailure("A");
+        Assert.True(r1.IsSuccess);
+        Assert.True(r2.IsSuccess);
+        Assert.True(r3.IsSuccess);
+        Assert.True(r4.IsFailure);
+        Assert.True(r5.IsFailure);
+        Assert.True(r6.IsFailure);
+        Assert.True(r7.IsSuccess);
+        Assert.True(r8.IsSuccess);
+        Assert.True(r9.IsSuccess);
+        Assert.True(r10.IsFailure);
+        Assert.True(r11.IsFailure);
+        Assert.True(r12.IsFailure);
     }
 
     [Fact]
     public async Task Cover_ResultActivity_Task()
     {
-        await GetUncompletedTask(Result.Success()).TraceOutcome("A");
-        await GetUncompletedTask(Result.Success()).TraceOnSuccess("A");
-        await GetUncompletedTask(Result.Success()).TraceOnFailure("A");
+        var r1 = await GetUncompletedTask(Result.Success()).TraceOutcome("A");
+        var r2 = await GetUncompletedTask(Result.Success()).TraceOnSuccess("A");
+        var r3 = await GetUncompletedTask(Result.Success()).TraceOnFailure("A");
 
-        await GetUncompletedTask(Result.Failure(Error.Failure("A", "B"))).TraceOutcome("A");
-        await GetUncompletedTask(Result.Failure(Error.Failure("A", "B"))).TraceOnSuccess("A");
-        await GetUncompletedTask(Result.Failure(Error.Failure("A", "B"))).TraceOnFailure("A");
+        var r4 = await GetUncompletedTask(Result.Failure(Error.Failure("A", "B"))).TraceOutcome("A");
+        var r5 = await GetUncompletedTask(Result.Failure(Error.Failure("A", "B"))).TraceOnSuccess("A");
+        var r6 = await GetUncompletedTask(Result.Failure(Error.Failure("A", "B"))).TraceOnFailure("A");
 
-        await GetUncompletedTask(Result.Success(1)).TraceOutcome("A");
-        await GetUncompletedTask(Result.Success(1)).TraceOnSuccess("A");
-        await GetUncompletedTask(Result.Success(1)).TraceOnFailure("A");
+        var r7 = await GetUncompletedTask(Result.Success(1)).TraceOutcome("A");
+        var r8 = await GetUncompletedTask(Result.Success(1)).TraceOnSuccess("A");
+        var r9 = await GetUncompletedTask(Result.Success(1)).TraceOnFailure("A");
 
-        await GetUncompletedTask(Result.Failure<int>(Error.Failure("A", "B"))).TraceOutcome("A");
-        await GetUncompletedTask(Result.Failure<int>(Error.Failure("A", "B"))).TraceOnSuccess("A");
-        await GetUncompletedTask(Result.Failure<int>(Error.Failure("A", "B"))).TraceOnFailure("A");
+        var r10 = await GetUncompletedTask(Result.Failure<int>(Error.Failure("A", "B"))).TraceOutcome("A");
+        var r11 = await GetUncompletedTask(Result.Failure<int>(Error.Failure("A", "B"))).TraceOnSuccess("A");
+        var r12 = await GetUncompletedTask(Result.Failure<int>(Error.Failure("A", "B"))).TraceOnFailure("A");
+
+        Assert.True(r1.IsSuccess);
+        Assert.True(r2.IsSuccess);
+        Assert.True(r3.IsSuccess);
+        Assert.True(r4.IsFailure);
+        Assert.True(r5.IsFailure);
+        Assert.True(r6.IsFailure);
+        Assert.True(r7.IsSuccess);
+        Assert.True(r8.IsSuccess);
+        Assert.True(r9.IsSuccess);
+        Assert.True(r10.IsFailure);
+        Assert.True(r11.IsFailure);
+        Assert.True(r12.IsFailure);
     }
-
 }
 
 

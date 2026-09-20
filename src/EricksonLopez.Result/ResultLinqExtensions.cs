@@ -91,7 +91,7 @@ public static class ResultLinqExtensions
     /// a failure result with a <see cref="ErrorType.Validation"/> error otherwise.
     /// </returns>
     /// <remarks>
-    /// This method enables the LINQ <c>where</c> clause on <see cref="Result{TValue}"/> pipelines:
+    /// Enables the LINQ <c>where</c> clause on <see cref="Result{TValue}"/> pipelines:
     /// <code>
     /// var result =
     ///     from order in GetOrder(id)

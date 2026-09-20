@@ -7,6 +7,9 @@ using System.Diagnostics.Contracts;
 #pragma warning disable RESULT001 // Result.Combine creates large ValueTuples, which is acceptable
 namespace EricksonLopez.Result;
 
+/// <summary>
+/// Partial declaration of <see cref="Result"/> providing aggregation and combination operations.
+/// </summary>
 public readonly partial struct Result
 {
     // ─── Combine (Zero Allocation with ReadOnlySpan and ArrayPool) ────────────
@@ -17,6 +20,7 @@ public readonly partial struct Result
     /// </summary>
     /// <param name="results">The span of results to aggregate.</param>
     /// <returns>A successful <see cref="Result"/> if all inputs succeed; otherwise, a compound failure containing all errors.</returns>
+    /// <exception cref="InvalidOperationException">One or more results are uninitialized</exception>
     [Pure]
     public static Result Combine(params ReadOnlySpan<Result> results)
     {
@@ -31,24 +35,23 @@ public readonly partial struct Result
             {
                 // Stryker disable once Statement : Equivalent mutation, Value property also throws InvalidOperationException
                 if (result.IsUninitialized) ResultThrowHelper.ThrowUninitialized();
-                if (result.IsFailure)
+                if (!result.IsFailure) continue;
+
+                failureCount++;
+                if (failureCount == 1)
                 {
-                    failureCount++;
-                    if (failureCount == 1)
-                    {
-                        firstError = result.Error;
-                    }
-                    else
-                    {
-                        if (failureCount == 2)
-                        {
-                            pooledArray = ArrayPool<Error>.Shared.Rent(results.Length);
-                            errors = pooledArray.AsSpan();
-                            errors[0] = firstError;
-                        }
-                        errors[failureCount - 1] = result.Error;
-                    }
+                    firstError = result.Error;
+                    continue;
                 }
+
+                if (failureCount == 2)
+                {
+                    pooledArray = ArrayPool<Error>.Shared.Rent(results.Length);
+                    errors = pooledArray.AsSpan();
+                    errors[0] = firstError;
+                }
+
+                errors[failureCount - 1] = result.Error;
             }
 
             if (failureCount == 0) return Success();
@@ -83,6 +86,7 @@ public readonly partial struct Result
     /// <typeparam name="T">The type of the successful values.</typeparam>
     /// <param name="results">The span of typed results to aggregate.</param>
     /// <returns>A successful <see cref="Result{TValue}"/> containing a list of all values if all inputs succeed; otherwise, a compound failure containing all errors.</returns>
+    /// <exception cref="InvalidOperationException">One or more results are uninitialized</exception>
     [Pure]
     public static Result<IReadOnlyList<T>> Combine<T>(params ReadOnlySpan<Result<T>> results)
     {
@@ -182,6 +186,7 @@ public readonly partial struct Result
     /// </summary>
     /// <param name="results">The array of results to aggregate.</param>
     /// <returns>A successful <see cref="Result"/> if all inputs succeed; otherwise, a compound failure containing all errors.</returns>
+    /// <exception cref="InvalidOperationException">One or more results are uninitialized</exception>
     /// <remarks>
     /// This overload accepts <c>params Result[]</c> for compatibility with C# 12 and earlier,
     /// which do not support <c>params ReadOnlySpan&lt;T&gt;</c>. It delegates to the
@@ -198,6 +203,7 @@ public readonly partial struct Result
     /// <typeparam name="T">The type of the successful values.</typeparam>
     /// <param name="results">The array of typed results to aggregate.</param>
     /// <returns>A successful <see cref="Result{TValue}"/> containing a list of all values if all inputs succeed; otherwise, a compound failure containing all errors.</returns>
+    /// <exception cref="InvalidOperationException">One or more results are uninitialized</exception>
     /// <remarks>
     /// This overload accepts <c>params Result&lt;T&gt;[]</c> for compatibility with C# 12 and earlier,
     /// which do not support <c>params ReadOnlySpan&lt;T&gt;</c>. It delegates to the
@@ -215,6 +221,7 @@ public readonly partial struct Result
     /// <param name="r1">The first result, passed by readonly reference.</param>
     /// <param name="r2">The second result, passed by readonly reference.</param>
     /// <returns>A successful <see cref="Result{TValue}"/> containing a tuple of values if all inputs succeed; otherwise, a compound failure containing all errors.</returns>
+    /// <exception cref="InvalidOperationException">One or more results are uninitialized</exception>
     [Pure]
     public static Result<(T1, T2)> Combine<T1, T2>(in Result<T1> r1, in Result<T2> r2)
     {
@@ -250,6 +257,7 @@ public readonly partial struct Result
     /// <param name="r2">The second result, passed by readonly reference.</param>
     /// <param name="r3">The third result, passed by readonly reference.</param>
     /// <returns>A successful <see cref="Result{TValue}"/> containing a tuple of values if all inputs succeed; otherwise, a compound failure containing all errors.</returns>
+    /// <exception cref="InvalidOperationException">One or more results are uninitialized</exception>
     [Pure]
     public static Result<(T1, T2, T3)> Combine<T1, T2, T3>(
         in Result<T1> r1, in Result<T2> r2, in Result<T3> r3)
@@ -297,6 +305,7 @@ public readonly partial struct Result
     /// <param name="r3">The third result, passed by readonly reference.</param>
     /// <param name="r4">The fourth result, passed by readonly reference.</param>
     /// <returns>A successful <see cref="Result{TValue}"/> containing a tuple of values if all inputs succeed; otherwise, a compound failure containing all errors.</returns>
+    /// <exception cref="InvalidOperationException">One or more results are uninitialized</exception>
     [Pure]
     public static Result<(T1, T2, T3, T4)> Combine<T1, T2, T3, T4>(
         in Result<T1> r1, in Result<T2> r2, in Result<T3> r3, in Result<T4> r4)
@@ -346,6 +355,7 @@ public readonly partial struct Result
     /// <param name="r4">The fourth result, passed by readonly reference.</param>
     /// <param name="r5">The fifth result, passed by readonly reference.</param>
     /// <returns>A successful <see cref="Result{TValue}"/> containing a tuple of values if all inputs succeed; otherwise, a compound failure containing all errors.</returns>
+    /// <exception cref="InvalidOperationException">One or more results are uninitialized</exception>
     [Pure]
     public static Result<(T1, T2, T3, T4, T5)> Combine<T1, T2, T3, T4, T5>(
         in Result<T1> r1, in Result<T2> r2, in Result<T3> r3, in Result<T4> r4, in Result<T5> r5)
@@ -391,6 +401,7 @@ public readonly partial struct Result
     /// <param name="guard">The guard result to check first, passed by readonly reference.</param>
     /// <param name="next">The typed result to return if the guard succeeds, passed by readonly reference.</param>
     /// <returns>The failure from <paramref name="guard"/> if it failed; otherwise, <paramref name="next"/>.</returns>
+    /// <exception cref="InvalidOperationException"><paramref name="guard"/> or <paramref name="next"/> is uninitialized</exception>
     [Pure]
     public static Result<T> Merge<T>(in Result guard, in Result<T> next)
     {

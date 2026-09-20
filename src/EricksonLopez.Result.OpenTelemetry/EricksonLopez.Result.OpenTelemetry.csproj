@@ -9,14 +9,12 @@
     <PackageId>EricksonLopez.Result.OpenTelemetry</PackageId>
     <Authors>Erickson Lopez</Authors>
     <Company>Erickson Lopez</Company>
-    <Copyright>Copyright © 2026 Erickson Lopez</Copyright>
     <Description>OpenTelemetry ActivitySource tracing and Metrics integration for EricksonLopez.Result.</Description>
     <PackageProjectUrl>https://ericksonlopez.dev/result</PackageProjectUrl>
     <RepositoryUrl>https://github.com/ericksonlopezf/dotnet-result</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
-    <PackageTags>$(CommonPackageTags);opentelemetry;telemetry;observability;tracing;metrics;activitysource;distributed-tracing;native-aot</PackageTags>
-    <ImplicitUsings>disable</ImplicitUsings>
+    <PackageTags>$(CommonPackageTags);result;opentelemetry;observability;distributed-tracing;metrics;activitysource;native-aot</PackageTags>
     <Nullable>enable</Nullable>
     <IsAotCompatible>true</IsAotCompatible>
     <EnableTrimAnalyzer>true</EnableTrimAnalyzer>

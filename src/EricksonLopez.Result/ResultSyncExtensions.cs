@@ -29,7 +29,7 @@ namespace EricksonLopez.Result;
 /// because reference types are already passed as 8-byte pointers.
 /// </para>
 /// <para>
-/// <b>Uninitialized contract:</b> All monadic methods in this class (<c>Map</c>, <c>Bind</c>,
+/// <b>Uninitialized contract:</b> All monadic extension methods (<c>Map</c>, <c>Bind</c>,
 /// <c>Ensure</c>, <c>Match</c>) throw <see cref="InvalidOperationException"/> when called on an
 /// uninitialized <c>default(Result&lt;T&gt;)</c>, identical to the corresponding instance methods
 /// on <see cref="Result{TValue}"/>. The only exceptions are
@@ -349,7 +349,7 @@ public static class ResultSyncExtensions
     /// <param name="value">When this method returns <see langword="true"/>, contains the success value.</param>
     /// <returns><see langword="true"/> if the result is a success; otherwise <see langword="false"/>.</returns>
     /// <remarks>
-    /// Per BCL <c>Try*</c> convention, this method never throws — it returns <see langword="false"/>
+    /// Never throws per BCL <c>Try*</c> convention — returns <see langword="false"/>
     /// and sets <paramref name="value"/> to <c>default!</c> for both Failure and Uninitialized states.
     /// Use <see cref="Match{TValue,TOut}(in Result{TValue},Func{TValue,TOut},Func{Error,TOut})"/>
     /// if you need to distinguish Failure from Uninitialized and want an exception for the latter.
@@ -377,14 +377,13 @@ public static class ResultSyncExtensions
     /// Returns the success value, or <paramref name="defaultValue"/> if the result is not a success.
     /// The <c>in</c> parameter avoids copying the struct — use when <typeparamref name="TValue"/>
     /// is a large value type (≥ 16 bytes).
-    /// Per BCL convention, this method never throws, even for uninitialized results.
     /// </summary>
     /// <typeparam name="TValue">The source value type.</typeparam>
     /// <param name="result">The result to inspect, passed by readonly reference.</param>
     /// <param name="defaultValue">The fallback value to return if the result is not a success.</param>
     /// <returns>The success value if successful; otherwise, <paramref name="defaultValue"/>.</returns>
     /// <remarks>
-    /// This method intentionally does NOT throw for an uninitialized <c>default(Result&lt;TValue&gt;)</c>.
+    /// Intentionally does NOT throw for an uninitialized <c>default(Result&lt;TValue&gt;)</c>.
     /// Per BCL <c>*OrDefault</c> convention (e.g., <c>Enumerable.FirstOrDefault</c>,
     /// <c>Dictionary.GetValueOrDefault</c>), methods suffixed with <c>OrDefault</c> return
     /// a fallback value rather than throw for any non-Success state.

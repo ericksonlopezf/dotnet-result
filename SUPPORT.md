@@ -30,12 +30,18 @@ For security vulnerabilities, please refer to our [Security Policy](SECURITY.md)
 ## 📚 Documentation & Guides
 
 - [README.md](README.md) — Comprehensive quick start and package overview.
+- [Interactive Showcase](docs/showcase/readme.md) — 11-level progressive showcase and executable reference.
 - [Architecture Guide](docs/architecture.md) — Mermaid diagrams and design architecture.
+- [API Reference](docs/api-reference.md) — Microsoft Learn-style public API documentation.
+- [API Inventory](docs/api-inventory.md) — Exhaustive inventory of public API surface and examples.
 - [CI/CD Pipeline](docs/cicd.md) — GitHub Actions workflows, release strategy, and supply chain security.
 - [Quality Gates](docs/quality-gates.md) — Code coverage, mutation testing, and static analysis.
 - [Best Practices](docs/best-practices.md) — Production design patterns.
 - [Anti-Patterns](docs/anti-patterns.md) — Common pitfalls and mitigations.
 - [Cookbook](docs/cookbook.md) — Code recipes for Minimal APIs, OpenTelemetry, Testing, and LINQ.
+- [FAQ](docs/faq.md) — Frequently asked questions.
+- [Troubleshooting](docs/troubleshooting.md) — Common issues, diagnostics, and solutions.
+- [Roadmap](docs/roadmap.md) — Project milestones, phases, and vision.
 - [Internationalization (i18n)](docs/internationalization.md) — Multi-language error formatting.
 - [Migration Guide](docs/migration-guide.md) — Migrating from exceptions or other libraries.
 - [Package Reference](docs/package-reference.md) — Complete package matrix and API specifications.

@@ -14,7 +14,7 @@ using Microsoft.CodeAnalysis.Operations;
 namespace EricksonLopez.Result.Analyzers;
 
 /// <summary>
-/// Roslyn diagnostic analyzer that warns when lambda arguments to
+/// Represents a Roslyn diagnostic analyzer that warns when lambda arguments to
 /// <c>Result.Map()</c>, <c>Result.Bind()</c>, <c>Result.TapOnSuccess()</c>,
 /// <c>Result.TapOnFailure()</c>, <c>Result.Ensure()</c>, <c>Result.MapError()</c>,
 /// <c>Result.MapFailure()</c>, <c>Result.Execute()</c>, or <c>Result.Inspect()</c> capture
@@ -51,7 +51,7 @@ namespace EricksonLopez.Result.Analyzers;
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
 public sealed class ClosureCaptureAnalyzer : DiagnosticAnalyzer
 {
-    /// <summary>The diagnostic identifier for this analyzer rule.</summary>
+    /// <summary>Gets the diagnostic identifier for this analyzer rule.</summary>
     public const string DiagnosticId = "RESULT004";
 
     // Methods on Result / Result<T> that have TState overloads and should be checked.
@@ -142,6 +142,9 @@ public sealed class ClosureCaptureAnalyzer : DiagnosticAnalyzer
     /// Returns the distinct names of local variables and 'this' captured by a lambda or anonymous
     /// method expression. Returns an empty list for non-lambda operations.
     /// </summary>
+    /// <param name="operation">The operation syntax to inspect for closures.</param>
+    /// <param name="ct">A token that can be used to cancel the analysis operation.</param>
+    /// <returns>A list of variable names captured by the closure.</returns>
     internal static List<string> GetCapturedNames(IOperation operation, CancellationToken ct)
     {
         var result = new List<string>();
@@ -226,6 +229,8 @@ public sealed class ClosureCaptureAnalyzer : DiagnosticAnalyzer
     /// Checks whether the method is already the TState overload by verifying that the first
     /// parameter is a non-delegate, non-primitive generic-typed parameter (i.e., TState).
     /// </summary>
+    /// <param name="method">The method symbol to inspect.</param>
+    /// <returns><see langword="true"/> if the method signature is already a state-based overload; otherwise, <see langword="false"/>.</returns>
     private static bool IsAlreadyUsingStateOverload(IMethodSymbol method)
         => method.OriginalDefinition.Parameters.Length >= 2 && method.OriginalDefinition.Parameters[0].Type.TypeKind == TypeKind.TypeParameter;
 }
