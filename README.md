@@ -899,8 +899,14 @@ The test suite enforces rigorous quality guarantees verified across CI/CD:
 | `EricksonLopez.Result.OpenTelemetry` | ✅ | ✅ | ✅ | ✅ Certified | ✅ Certified | Native BCL Activity & Metrics |
 | `EricksonLopez.Result.Serialization` | ✅ | ✅ | ✅ | ⚠️ Partial | ⚠️ Partial | Use explicit `ResultOfTJsonConverter<T>` for AOT |
 | `EricksonLopez.Result.Serialization.Generators` | `netstandard2.0` | `netstandard2.0` | `netstandard2.0` | ✅ Tool | ✅ Tool | Roslyn Source Generator (compile time) |
+| `EricksonLopez.Result.DomainErrors.Generators` | `netstandard2.0` | `netstandard2.0` | `netstandard2.0` | ✅ Tool | ✅ Tool | Roslyn Source Generator (compile time) |
 | `EricksonLopez.Result.FluentValidation` | ✅ | ✅ | ✅ | ✅ Certified | ✅ Certified | No reflection in mapping layer |
 | `EricksonLopez.Result.MediatR` | ✅ | ✅ | ✅ | ❌ No | ❌ No | MediatR uses dynamic reflection ([ADR-018](https://github.com/ericksonlopezf/dotnet-result/blob/main/docs/adr/adr-018-result-mediatr-non-aot-governance-and-deprecation-roadmap.md)) |
+| `EricksonLopez.Result.EntityFrameworkCore` | ✅ | ✅ | ✅ | ✅ Certified | ✅ Certified | DbContext & IQueryable operations to Result |
+| `EricksonLopez.Result.Polly` | ✅ | ✅ | ✅ | ✅ Certified | ✅ Certified | Resilience pipeline & retry integration |
+| `EricksonLopez.Result.MassTransit` | ✅ | ✅ | ✅ | ⚠️ Non-AOT | ⚠️ Non-AOT | MassTransit consumer filter ([ADR-025](https://github.com/ericksonlopezf/dotnet-result/blob/main/docs/adr/adr-025-masstransit-result-consumer-pipeline.md)) |
+| `EricksonLopez.Result.Dapr` | ✅ | ✅ | ✅ | ✅ Certified | ✅ Certified | Dapr state store & Pub/Sub bindings |
+| `EricksonLopez.Result.Grpc` | ✅ | ✅ | ✅ | ✅ Certified | ✅ Certified | gRPC server interceptor & status code mapping |
 | `EricksonLopez.Result.Testing` | ✅ | ✅ | ✅ | ❌ Test Only | ❌ Test Only | Test assertions library |
 | `EricksonLopez.Result.Testing.XUnit` | ✅ | ✅ | ✅ | ❌ Test Only | ❌ Test Only | xUnit test runner adapter |
 | `EricksonLopez.Result.Testing.NUnit` | ✅ | ✅ | ✅ | ❌ Test Only | ❌ Test Only | NUnit test runner adapter |

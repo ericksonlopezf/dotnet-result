@@ -584,7 +584,38 @@ public class ResultActivityExtensionsTests : IDisposable
         finally { Activity.Current = previous; }
         Assert.NotEqual(ActivityStatusCode.Unset, currentAct.Status);
     }
+
+    [Fact]
+    public void TraceOutcome_Result_Uninitialized_Sets_ErrorStatus_And_Uninitialized_Tags()
+    {
+        using var act = CreateTestActivity();
+        var uninitialized = default(Result);
+
+        var returned = uninitialized.TraceOutcome("UninitOp", act);
+
+        Assert.True(returned.IsUninitialized);
+        Assert.Equal(ActivityStatusCode.Error, act.Status);
+        Assert.Equal("Result is uninitialized", act.StatusDescription);
+        Assert.Equal("UninitOp", act.GetTagItem("ericksonlopez.result.operation.name"));
+        Assert.Equal("uninitialized", act.GetTagItem("ericksonlopez.result.outcome"));
+    }
+
+    [Fact]
+    public void TraceOutcome_ResultT_Uninitialized_Sets_ErrorStatus_And_Uninitialized_Tags()
+    {
+        using var act = CreateTestActivity();
+        var uninitialized = default(Result<int>);
+
+        var returned = uninitialized.TraceOutcome("UninitOpT", act);
+
+        Assert.True(returned.IsUninitialized);
+        Assert.Equal(ActivityStatusCode.Error, act.Status);
+        Assert.Equal("Result is uninitialized", act.StatusDescription);
+        Assert.Equal("UninitOpT", act.GetTagItem("ericksonlopez.result.operation.name"));
+        Assert.Equal("uninitialized", act.GetTagItem("ericksonlopez.result.outcome"));
+    }
 }
+
 
 
 

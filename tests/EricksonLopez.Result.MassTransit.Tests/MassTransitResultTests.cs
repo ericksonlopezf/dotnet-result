@@ -18,6 +18,8 @@ public class MassTransitResultTests
             .WithSeverity(ErrorSeverity.Warning)
             .WithRetryability(ErrorRetryability.Permanent)
             .WithDescriptionKey("orders.invalid_qty")
+            .WithTraceId("trace-xyz")
+            .WithCorrelationId("corr-xyz")
             .WithMetadata("Field", "Quantity")
             .Build();
 
@@ -28,6 +30,8 @@ public class MassTransitResultTests
         fault.Type.Should().Be("Validation");
         fault.Severity.Should().Be("Warning");
         fault.Retryability.Should().Be("Permanent");
+        fault.TraceId.Should().Be("trace-xyz");
+        fault.CorrelationId.Should().Be("corr-xyz");
         fault.DescriptionKey.Should().Be("orders.invalid_qty");
         fault.Metadata["Field"].Should().Be("Quantity");
     }
@@ -130,5 +134,16 @@ public class MassTransitResultTests
         configurator.Received(1).AddPipeSpecification(Arg.Any<IPipeSpecification<ConsumeContext<TestMessage>>>());
 
         Assert.Throws<ArgumentNullException>(() => ResultConsumePipeConfiguratorExtensions.UseResultFilter<TestMessage>(null!));
+    }
+
+    [Fact]
+    public void UseResultFilter_With_Custom_OnFault_Registers_Filter_On_Configurator()
+    {
+        var configurator = Substitute.For<IConsumePipeConfigurator>();
+        System.Func<ConsumeContext<TestMessage>, Error, Task> onFault = (ctx, err) => Task.CompletedTask;
+
+        configurator.UseResultFilter(onFault);
+
+        configurator.Received(1).AddPipeSpecification(Arg.Any<IPipeSpecification<ConsumeContext<TestMessage>>>());
     }
 }

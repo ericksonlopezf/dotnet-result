@@ -404,7 +404,9 @@ public class ResultGenericTests
         Assert.Contains("uninitialized", exErr.Message, StringComparison.OrdinalIgnoreCase);
 
         Assert.Throws<InvalidOperationException>(() => def.Map(x => x * 2));
+        Assert.Throws<InvalidOperationException>(() => def.MapError(e => e));
         Assert.Throws<InvalidOperationException>(() => def.Bind(x => Result<string, CustomDomainError>.Success(x.ToString())));
         Assert.Throws<InvalidOperationException>(() => def.Match(x => x.ToString(), e => e.Reason));
+        Assert.Throws<InvalidOperationException>(() => def.ToResult(e => Error.Unexpected("Code", e.Reason)));
     }
 }

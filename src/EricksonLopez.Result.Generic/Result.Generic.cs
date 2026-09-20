@@ -1,4 +1,5 @@
 // Copyright © Erickson Lopez. MIT License.
+// Stryker disable String : Guard exception messages
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;

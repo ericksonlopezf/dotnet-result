@@ -110,6 +110,8 @@ public sealed class DomainErrorModel : IEquatable<DomainErrorModel>
     public override bool Equals(object? obj) => Equals(obj as DomainErrorModel);
 
     /// <inheritdoc/>
+    [System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverage]
+    // Stryker disable all : Hash code contract
     public override int GetHashCode()
     {
         unchecked
@@ -125,4 +127,5 @@ public sealed class DomainErrorModel : IEquatable<DomainErrorModel>
             return hash;
         }
     }
+    // Stryker restore all
 }

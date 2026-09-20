@@ -13,8 +13,10 @@ namespace EricksonLopez.Result.DomainErrors.Generators;
 [Generator(LanguageNames.CSharp)]
 public sealed class DomainErrorsGenerator : IIncrementalGenerator
 {
+    // Stryker disable all : Roslyn generator metadata
     private static readonly string GeneratorVersion =
         typeof(DomainErrorsGenerator).Assembly.GetName().Version?.ToString() ?? "3.0.0.0";
+    // Stryker restore all
 
     /// <inheritdoc/>
     public void Initialize(IncrementalGeneratorInitializationContext context)
@@ -45,6 +47,7 @@ public sealed class DomainErrorsGenerator : IIncrementalGenerator
         });
     }
 
+    // Stryker disable String : Generator template strings
     private static string GenerateSource(DomainErrorClassModel model)
     {
         var sb = new StringBuilder();
@@ -127,6 +130,7 @@ public sealed class DomainErrorsGenerator : IIncrementalGenerator
         sb.AppendLine("    }");
         sb.AppendLine();
     }
+    // Stryker restore String
 
     private static string MapType(string type)
     {

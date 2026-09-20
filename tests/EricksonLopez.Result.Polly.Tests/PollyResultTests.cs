@@ -152,13 +152,31 @@ public class PollyResultTests
     }
 
     [Fact]
-    public void PollyResultExtensions_Validate_Null_Arguments()
+    public async Task PollyResultExtensions_Validate_Null_Arguments()
     {
         ResiliencePipeline nullPipeline = null!;
         Assert.Throws<ArgumentNullException>(() => nullPipeline.ExecuteResult(() => Result.Success()));
         Assert.Throws<ArgumentNullException>(() => nullPipeline.ExecuteResult(1, _ => Result.Success()));
         Assert.Throws<ArgumentNullException>(() => nullPipeline.ExecuteResult(() => Result<int>.Success(1)));
         Assert.Throws<ArgumentNullException>(() => nullPipeline.ExecuteResult(1, _ => Result<int>.Success(1)));
+
+        await Assert.ThrowsAsync<ArgumentNullException>(async () => await nullPipeline.ExecuteResultAsync(ct => ValueTask.FromResult(Result.Success())));
+        await Assert.ThrowsAsync<ArgumentNullException>(async () => await nullPipeline.ExecuteResultAsync(ct => ValueTask.FromResult(Result<int>.Success(1))));
+
+        ResiliencePipeline<Result<int>> nullGenericPipeline = null!;
+        await Assert.ThrowsAsync<ArgumentNullException>(async () => await nullGenericPipeline.ExecuteResultAsync(ct => ValueTask.FromResult(Result<int>.Success(1))));
+
+        var pipeline = new ResiliencePipelineBuilder().Build();
+        Assert.Throws<ArgumentNullException>(() => pipeline.ExecuteResult((Func<Result<int>>)null!));
+        Assert.Throws<ArgumentNullException>(() => pipeline.ExecuteResult(1, (Func<int, Result<int>>)null!));
+        Assert.Throws<ArgumentNullException>(() => pipeline.ExecuteResult((Func<Result>)null!));
+        Assert.Throws<ArgumentNullException>(() => pipeline.ExecuteResult(1, (Func<int, Result>)null!));
+
+        await Assert.ThrowsAsync<ArgumentNullException>(async () => await pipeline.ExecuteResultAsync((Func<System.Threading.CancellationToken, ValueTask<Result<int>>>)null!));
+        await Assert.ThrowsAsync<ArgumentNullException>(async () => await pipeline.ExecuteResultAsync((Func<System.Threading.CancellationToken, ValueTask<Result>>)null!));
+
+        var genericPipeline = new ResiliencePipelineBuilder<Result<int>>().Build();
+        await Assert.ThrowsAsync<ArgumentNullException>(async () => await genericPipeline.ExecuteResultAsync((Func<System.Threading.CancellationToken, ValueTask<Result<int>>>)null!));
 
         ResiliencePipelineBuilder<Result> nullBuilder = null!;
         Assert.Throws<ArgumentNullException>(() => nullBuilder.AddResultRetry());
@@ -171,5 +189,19 @@ public class PollyResultTests
 
         PredicateBuilder<Result<int>> nullGenericPredicate = null!;
         Assert.Throws<ArgumentNullException>(() => nullGenericPredicate.HandleRetryableError());
+    }
+
+    [Fact]
+    public void AddResultRetry_DefaultDelay_BuildsSuccessfully()
+    {
+        var pipeline = new ResiliencePipelineBuilder<Result>()
+            .AddResultRetry(maxRetryAttempts: 1)
+            .Build();
+        Assert.NotNull(pipeline);
+
+        var genericPipeline = new ResiliencePipelineBuilder<Result<int>>()
+            .AddResultRetry(maxRetryAttempts: 1)
+            .Build();
+        Assert.NotNull(genericPipeline);
     }
 }

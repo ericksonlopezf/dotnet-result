@@ -1,8 +1,14 @@
 // Copyright © Erickson Lopez. MIT License.
 using System;
+using System.Collections;
+using System.Collections.Generic;
+using System.Linq;
+using System.Linq.Expressions;
+using System.Threading;
 using System.Threading.Tasks;
 using AwesomeAssertions;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Query;
 using Xunit;
 
 namespace EricksonLopez.Result.EntityFrameworkCore.Tests;
@@ -164,6 +170,103 @@ public class EntityFrameworkResultTests
 
         using var canceledCtx = new FaultyDbContext(new OperationCanceledException());
         await Assert.ThrowsAsync<OperationCanceledException>(() => canceledCtx.SaveChangesAsyncToResult());
+    }
+
+    [Fact]
+    public async Task FirstOrDefaultToResultAsync_Throws_When_Cancelled()
+    {
+        using var context = CreateContext(Guid.NewGuid().ToString());
+        using var cts = new System.Threading.CancellationTokenSource();
+        cts.Cancel();
+
+        await Assert.ThrowsAnyAsync<OperationCanceledException>(() =>
+            context.Items.FirstOrDefaultToResultAsync(x => true, Error.NotFound("A", "B"), cts.Token));
+    }
+
+    [Fact]
+    public async Task SingleOrDefaultToResultAsync_Throws_When_Cancelled()
+    {
+        using var context = CreateContext(Guid.NewGuid().ToString());
+        using var cts = new System.Threading.CancellationTokenSource();
+        cts.Cancel();
+
+        await Assert.ThrowsAnyAsync<OperationCanceledException>(() =>
+            context.Items.SingleOrDefaultToResultAsync(x => true, Error.NotFound("A", "B"), cts.Token));
+    }
+
+    [Fact]
+    public async Task ToListToResultAsync_Throws_When_Cancelled()
+    {
+        using var context = CreateContext(Guid.NewGuid().ToString());
+        using var cts = new System.Threading.CancellationTokenSource();
+        cts.Cancel();
+
+        await Assert.ThrowsAnyAsync<OperationCanceledException>(() =>
+            context.Items.ToListToResultAsync(cts.Token));
+    }
+
+    [Fact]
+    public async Task FirstOrDefaultToResultAsync_Returns_Unexpected_When_ExceptionThrown()
+    {
+        using var context = CreateContext(Guid.NewGuid().ToString());
+        context.Items.Add(new TestItem { Id = 1, Name = "Item" });
+        await context.SaveChangesAsync();
+
+        var result = await context.Items.FirstOrDefaultToResultAsync(
+            x => ThrowException(x),
+            Error.NotFound("A", "B"));
+
+        result.IsFailure.Should().BeTrue();
+        result.Error.Type.Should().Be(ErrorType.Unexpected);
+        result.Error.Code.Should().Be(EntityFrameworkErrorCodes.Unexpected);
+    }
+
+    [Fact]
+    public async Task SingleOrDefaultToResultAsync_Returns_Unexpected_When_NonInvalidOperationExceptionThrown()
+    {
+        var faultyQueryable = new FaultyQueryable<TestItem>(new TimeoutException("Database connection lost"));
+
+        var result = await faultyQueryable.SingleOrDefaultToResultAsync(
+            x => true,
+            Error.NotFound("A", "B"));
+
+        result.IsFailure.Should().BeTrue();
+        result.Error.Type.Should().Be(ErrorType.Unexpected);
+        result.Error.Code.Should().Be(EntityFrameworkErrorCodes.Unexpected);
+    }
+
+    [Fact]
+    public async Task ToListToResultAsync_Returns_Unexpected_When_ExceptionThrown()
+    {
+        var faultyQueryable = new FaultyQueryable<TestItem>(new TimeoutException("Database query failed"));
+
+        var result = await faultyQueryable.ToListToResultAsync();
+
+        result.IsFailure.Should().BeTrue();
+        result.Error.Type.Should().Be(ErrorType.Unexpected);
+        result.Error.Code.Should().Be(EntityFrameworkErrorCodes.Unexpected);
+    }
+
+    private static bool ThrowException(TestItem item) => throw new InvalidOperationException("EF query error");
+
+    private class FaultyQueryable<T> : IQueryable<T>, IAsyncQueryProvider, IAsyncEnumerable<T>
+    {
+        private readonly Exception _exception;
+        public FaultyQueryable(Exception exception) => _exception = exception;
+
+        public Type ElementType => typeof(T);
+        public Expression Expression => Expression.Constant(this);
+        public IQueryProvider Provider => this;
+
+        public IQueryable CreateQuery(Expression expression) => this;
+        public IQueryable<TElement> CreateQuery<TElement>(Expression expression) => new FaultyQueryable<TElement>(_exception);
+        public object? Execute(Expression expression) => throw _exception;
+        public TResult Execute<TResult>(Expression expression) => throw _exception;
+        public TResult ExecuteAsync<TResult>(Expression expression, CancellationToken cancellationToken = default) => throw _exception;
+
+        public IAsyncEnumerator<T> GetAsyncEnumerator(CancellationToken cancellationToken = default) => throw _exception;
+        public IEnumerator<T> GetEnumerator() => throw _exception;
+        IEnumerator IEnumerable.GetEnumerator() => throw _exception;
     }
 
     private class FaultyDbContext : DbContext

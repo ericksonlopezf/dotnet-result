@@ -133,4 +133,21 @@ public class ResultExceptionBehaviorTests
         var res2 = method2.Invoke(null, null);
         res2.Should().BeNull();
     }
+
+    [Fact]
+    public async Task Handle_CancelledToken_ThrowsOperationCanceledException()
+    {
+        var behavior = new ResultExceptionBehavior<DummyRequest, Result>();
+        using var cts = new CancellationTokenSource();
+        cts.Cancel();
+        await Assert.ThrowsAsync<OperationCanceledException>(() => behavior.Handle(new DummyRequest(), _ => Task.FromResult(Result.Success()), cts.Token));
+    }
+
+    [Fact]
+    public async Task Handle_NextThrowsOperationCanceledException_PropagatesException()
+    {
+        var behavior = new ResultExceptionBehavior<DummyRequest, Result>();
+        await Assert.ThrowsAsync<OperationCanceledException>(() => behavior.Handle(new DummyRequest(), _ => throw new OperationCanceledException(), CancellationToken.None));
+    }
 }
+

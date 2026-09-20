@@ -1,7 +1,7 @@
 # Mutation Testing Score — EricksonLopez.Result
 
-> **Baseline Version**: v2.0.0 (Certified baseline for v3.0.0 cycle)  
-> **Last updated**: 2026-08-23  
+> **Baseline Version**: v3.0.0 (Certified baseline for v3.0.0 cycle)  
+> **Last updated**: 2026-09-20  
 > **Tool**: Stryker.NET (dotnet-stryker)  
 > **CI Gate**: `mutation-testing.yml` — build exits non-zero when score < 95% (`break: 95`)
 

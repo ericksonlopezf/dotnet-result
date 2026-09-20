@@ -60,7 +60,7 @@ public static class GrpcErrorMapper
         {
             trailers.Add("error-correlationid", error.CorrelationId);
         }
-
+        // Stryker disable once Conditional : Equivalent mutation (error.Metadata is { Count: > 0 } to >= 0)
         if (error.Metadata is { Count: > 0 })
         {
             foreach (var kvp in error.Metadata)

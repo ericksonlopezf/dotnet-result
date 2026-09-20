@@ -45,7 +45,7 @@ Every design decision prioritizes:
 
 ---
 
-## ⚡ Phase 3: Monadic Parity & Wire-Format Modernization (v3.0.0 — Target Release)
+## ⚡ Phase 3: Monadic Parity & Wire-Format Modernization (v3.0.0 — Shipped)
 
 - ✅ **`Result<TValue, TError>` Full Monadic Pipeline** — Parity combinators (`Ensure`, `Recover`, `Inspect`, `TapOnSuccess`, `TapOnFailure`, `DiscardValue`, `Match`, `Execute`), interface implementations (`IResultOutcome`, `IEquatable`), and explicit comparison operators.
 - ✅ **Polymorphic & Wire-Format Serialization** — Standardized type discriminator properties and type safety across System.Text.Json serializers (`ErrorJsonConverter`, `ResultJsonConverter`).
