@@ -10,7 +10,7 @@ using Microsoft.CodeAnalysis.Operations;
 namespace EricksonLopez.Result.Analyzers;
 
 /// <summary>
-/// Roslyn diagnostic analyzer that warns when <c>Error.WithMetadata(string, object)</c>
+/// Represents a Roslyn diagnostic analyzer that warns when <c>Error.WithMetadata(string, object)</c>
 /// or <c>ErrorBuilder.WithMetadata(string, object?)</c> is chained 3 or more times
 /// consecutively, creating multiple intermediate allocations.
 /// </summary>
@@ -67,7 +67,7 @@ namespace EricksonLopez.Result.Analyzers;
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
 public sealed class MetadataChainingAnalyzer : DiagnosticAnalyzer
 {
-    /// <summary>The diagnostic identifier for this analyzer rule.</summary>
+    /// <summary>Gets the diagnostic identifier for this analyzer rule.</summary>
     public const string DiagnosticId = "RESULT005";
 
     private const string ErrorFullName = "EricksonLopez.Result.Error";
@@ -156,10 +156,13 @@ public sealed class MetadataChainingAnalyzer : DiagnosticAnalyzer
     }
 
     /// <summary>
-    /// Returns true if this invocation is an inner call in a chain (i.e., its result is
+    /// Determines whether this invocation is an inner call in a chain (i.e., its result is
     /// consumed by another WithMetadata call on the same type), meaning the outermost call
     /// will do the reporting.
     /// </summary>
+    /// <param name="invocation">The invocation operation to evaluate.</param>
+    /// <param name="containingTypeName">The fully qualified name of the containing type.</param>
+    /// <returns><see langword="true"/> if this invocation is an inner call in a chain; otherwise, <see langword="false"/>.</returns>
     private static bool IsInnerCallInChain(IInvocationOperation invocation, string containingTypeName)
     {
         // Check if this invocation is the receiver of a parent WithMetadata call on the same type.
@@ -180,6 +183,9 @@ public sealed class MetadataChainingAnalyzer : DiagnosticAnalyzer
     /// starting from the outermost call and walking inward through the receiver chain.
     /// Only counts calls on the same containing type (Error or ErrorBuilder).
     /// </summary>
+    /// <param name="outermost">The outermost invocation operation in the chain.</param>
+    /// <param name="containingTypeName">The fully qualified name of the containing type.</param>
+    /// <returns>The total number of consecutive calls in the chain.</returns>
     private static int CountChainLength(IInvocationOperation outermost, string containingTypeName)
     {
         int count = 1;

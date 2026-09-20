@@ -1,7 +1,9 @@
 #nullable enable
-static EricksonLopez.Result.Result.ValidateAll(params System.ReadOnlySpan<System.Func<EricksonLopez.Result.Result>>) -> EricksonLopez.Result.Result
-static EricksonLopez.Result.Result.ValidateAll<T>(T, params System.ReadOnlySpan<System.Func<T, EricksonLopez.Result.Result>>) -> EricksonLopez.Result.Result<T>
-static EricksonLopez.Result.Result.ValidateAllAsync(System.Collections.Generic.IReadOnlyList<System.Func<System.Threading.CancellationToken, System.Threading.Tasks.Task<EricksonLopez.Result.Result>>>!, System.Threading.CancellationToken cancellationToken = default) -> System.Threading.Tasks.Task<EricksonLopez.Result.Result>
-static EricksonLopez.Result.Result.ValidateAllAsync<T>(T, System.Collections.Generic.IReadOnlyList<System.Func<T, System.Threading.CancellationToken, System.Threading.Tasks.Task<EricksonLopez.Result.Result>>>!, System.Threading.CancellationToken cancellationToken = default) -> System.Threading.Tasks.Task<EricksonLopez.Result.Result<T>>
-static EricksonLopez.Result.Result.ValidateAllAsync(System.Collections.Generic.IReadOnlyList<System.Func<System.Threading.CancellationToken, System.Threading.Tasks.ValueTask<EricksonLopez.Result.Result>>>!, System.Threading.CancellationToken cancellationToken = default) -> System.Threading.Tasks.ValueTask<EricksonLopez.Result.Result>
-static EricksonLopez.Result.Result.ValidateAllAsync<T>(T, System.Collections.Generic.IReadOnlyList<System.Func<T, System.Threading.CancellationToken, System.Threading.Tasks.ValueTask<EricksonLopez.Result.Result>>>!, System.Threading.CancellationToken cancellationToken = default) -> System.Threading.Tasks.ValueTask<EricksonLopez.Result.Result<T>>
+EricksonLopez.Result.Error.Business(string! code, string! description) -> EricksonLopez.Result.Error!
+EricksonLopez.Result.Error.Conflict(string! code, string! description, System.Collections.Generic.IReadOnlyDictionary<string!, object!>! metadata) -> EricksonLopez.Result.Error!
+EricksonLopez.Result.Error.Message.get -> string!
+EricksonLopez.Result.Error.None -> EricksonLopez.Result.Error!
+EricksonLopez.Result.Error.NotFound<TId>(string! entity, TId id) -> EricksonLopez.Result.Error!
+EricksonLopez.Result.Error.NullValue -> EricksonLopez.Result.Error!
+EricksonLopez.Result.Error.Validation(string! code, string! description, System.Collections.Generic.IReadOnlyDictionary<string!, object!>! metadata) -> EricksonLopez.Result.Error!
+static EricksonLopez.Result.Result<TValue>.implicit operator EricksonLopez.Result.Result(in EricksonLopez.Result.Result<TValue>) -> EricksonLopez.Result.Result

@@ -1,5 +1,11 @@
 # ADR-006: Dedicated Unit Testing Fluent Assertions Package
 
+## Status
+Accepted
+
+## Date
+2026-07-28
+
 - **Status**: Accepted
 - **Date**: 2026-07-28
 - **Authors**: Erickson Lopez

@@ -1,5 +1,11 @@
 # ADR-001: Readonly Struct Result Implementation
 
+## Status
+Accepted
+
+## Date
+2026-07-28
+
 - **Status**: Accepted
 - **Date**: 2026-07-28
 - **Authors**: Erickson Lopez

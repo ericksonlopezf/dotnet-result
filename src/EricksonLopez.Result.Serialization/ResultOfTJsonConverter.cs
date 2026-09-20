@@ -9,7 +9,7 @@ using EricksonLopez.Result;
 namespace EricksonLopez.Result.Serialization;
 
 /// <summary>
-/// JsonConverter for generic <see cref="Result{T}"/>.
+/// Represents a <see cref="JsonConverter{T}"/> for generic <see cref="Result{T}"/> instances.
 /// </summary>
 /// <typeparam name="T">The result value type.</typeparam>
 /// <remarks>
@@ -42,17 +42,13 @@ public sealed class ResultOfTJsonConverter<T> : JsonConverter<Result<T>>
     private readonly JsonTypeInfo<T>? _typeInfo;
 
     /// <summary>
-    /// Initializes the converter using <see cref="JsonSerializerOptions"/> for value serialization
-    /// (reflection-based path). Requires <typeparamref name="T"/> to be preserved by trimming.
+    /// Initializes a new instance of the <see cref="ResultOfTJsonConverter{T}"/> class using reflection-based serialization.
     /// </summary>
     /// <remarks>
-    /// For NativeAOT applications, prefer
-    /// <see cref="ResultOfTJsonConverter{T}(System.Text.Json.Serialization.Metadata.JsonTypeInfo{T})"/>
-    /// which uses source-generated metadata and requires no reflection.
+    /// For NativeAOT or trimmed applications, use <see cref="ResultOfTJsonConverter{T}(JsonTypeInfo{T})"/> instead.
     /// </remarks>
     [RequiresUnreferencedCode(
-        "ResultOfTJsonConverter<T>() uses reflection-based JSON serialization. " +
-        "T and all its reachable types must be preserved by the trimmer. " +
+        "ResultOfTJsonConverter<T>() uses reflection-based JSON serialization which is not trim-safe. " +
         "For NativeAOT or trimmed apps, use ResultOfTJsonConverter<T>(JsonTypeInfo<T>) instead.")]
     [RequiresDynamicCode(
         "ResultOfTJsonConverter<T>() uses reflection-based JSON serialization which may require " +
@@ -61,8 +57,7 @@ public sealed class ResultOfTJsonConverter<T> : JsonConverter<Result<T>>
     public ResultOfTJsonConverter() { }
 
     /// <summary>
-    /// Initializes the converter using a <see cref="System.Text.Json.Serialization.Metadata.JsonTypeInfo{T}"/>
-    /// for fully AOT-safe and trim-safe value serialization.
+    /// Initializes a new instance of the <see cref="ResultOfTJsonConverter{T}"/> class using the specified <see cref="JsonTypeInfo{T}"/>.
     /// </summary>
     /// <param name="typeInfo">
     /// The compile-time generated type info for <typeparamref name="T"/>, typically obtained from
@@ -98,6 +93,8 @@ public sealed class ResultOfTJsonConverter<T> : JsonConverter<Result<T>>
         }
 
         bool? isSuccess = null;
+        bool? isFailure = null;
+        bool isUninitialized = false;
         T? value = default;
         bool hasValue = false;
         Error? error = null;
@@ -114,17 +111,17 @@ public sealed class ResultOfTJsonConverter<T> : JsonConverter<Result<T>>
                 var propertyName = reader.GetString();
                 reader.Read();
 
-                if (string.Equals(propertyName, "isSuccess", StringComparison.OrdinalIgnoreCase))
+                if (string.Equals(propertyName, "isUninitialized", StringComparison.OrdinalIgnoreCase))
+                {
+                    isUninitialized = reader.GetBoolean();
+                }
+                else if (string.Equals(propertyName, "isSuccess", StringComparison.OrdinalIgnoreCase))
                 {
                     isSuccess = reader.GetBoolean();
                 }
                 else if (string.Equals(propertyName, "isFailure", StringComparison.OrdinalIgnoreCase))
                 {
-                    // Accepted for backward compatibility; isSuccess takes precedence if both are present.
-                    if (isSuccess is null)
-                    {
-                        isSuccess = !reader.GetBoolean();
-                    }
+                    isFailure = reader.GetBoolean();
                 }
                 else if (string.Equals(propertyName, "value", StringComparison.OrdinalIgnoreCase))
                 {
@@ -149,9 +146,21 @@ public sealed class ResultOfTJsonConverter<T> : JsonConverter<Result<T>>
             }
         }
 
+        if (isUninitialized || (isSuccess == false && isFailure == false && error is null))
+        {
+            return default;
+        }
+
         if (isSuccess is null)
         {
-            throw new JsonException("Missing required property 'isSuccess' in Result<T> JSON.");
+            if (isFailure.HasValue)
+            {
+                isSuccess = !isFailure.Value;
+            }
+            else
+            {
+                throw new JsonException("Missing required property 'isSuccess' in Result<T> JSON.");
+            }
         }
 
         if (isSuccess.Value)
@@ -176,6 +185,15 @@ public sealed class ResultOfTJsonConverter<T> : JsonConverter<Result<T>>
     public override void Write(Utf8JsonWriter writer, Result<T> value, JsonSerializerOptions options)
     {
         writer.WriteStartObject();
+        if (value.IsUninitialized)
+        {
+            writer.WriteBoolean("isUninitialized", true);
+            writer.WriteBoolean("isSuccess", false);
+            writer.WriteBoolean("isFailure", false);
+            writer.WriteEndObject();
+            return;
+        }
+
         writer.WriteBoolean("isSuccess", value.IsSuccess);
         writer.WriteBoolean("isFailure", value.IsFailure);
         if (value.IsSuccess)

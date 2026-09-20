@@ -52,10 +52,13 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Setup .NET
+      - name: Setup .NET SDKs
         uses: actions/setup-dotnet@v4
         with:
-          dotnet-version: ${{ inputs.dotnet-version }}
+          dotnet-version: |
+            8.0.x
+            9.0.x
+            10.0.x
 
       - name: Restore Strong Name key
         env:
@@ -86,6 +89,7 @@ jobs:
             /d:sonar.host.url="https://sonarcloud.io" \
             /d:sonar.cs.opencover.reportsPaths="**/coverage.opencover.xml" \
             /d:sonar.exclusions="samples/**,benchmarks/**,scripts/**,**/bin/**,**/obj/**,**/*.js" \
+            /d:sonar.test.exclusions="scripts/**,**/*.js" \
             /d:sonar.coverage.exclusions="tests/**,samples/**,benchmarks/**,**/*Tests.cs,**/*Test*.cs,**/tests/**,**/benchmarks/**,**/samples/**,**/bin/**,**/obj/**" \
             /d:sonar.cpd.exclusions="tests/**,**/tests/**,**/*Tests.cs,**/*Test*.cs,**/samples/**,**/benchmarks/**,**/bin/**,**/obj/**,**/Result.Combine.cs,**/Result.ValidateAll.cs,**/Result.cs,**/ResultOfT.cs,**/ResultExtensions*.cs,**/ResultSyncExtensions.cs,**/ResultActivityExtensions.cs,**/*JsonConverter*.cs,**/*Analyzer*.cs"
 
@@ -122,7 +126,7 @@ jobs:
 
       - name: Upload coverage to Codecov
         if: always() && inputs.upload-coverage
-        uses: codecov/codecov-action@v4
+        uses: codecov/codecov-action@0fb7174895f61a3b6b78fc075e0cd60383518dac # v5.5.5
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
           files: "./test-results/**/coverage.cobertura.xml"

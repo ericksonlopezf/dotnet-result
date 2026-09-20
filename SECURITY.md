@@ -4,10 +4,12 @@
 
 The following versions of `EricksonLopez.Result` are currently supported with security updates:
 
-| Version | Supported |
+| Version | Status |
 |---|---|
-| 1.0.x | ✅ Yes |
-| < 1.0.0 | ❌ No |
+| 3.0.x | ✅ Supported (Active) |
+| 2.0.x | ⚠️ Maintenance |
+| 1.0.x | ❌ End of Life |
+| < 1.0.0 | ❌ End of Life |
 
 ## Reporting a Vulnerability
 

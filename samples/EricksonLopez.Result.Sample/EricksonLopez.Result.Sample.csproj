@@ -4,7 +4,6 @@
   <PropertyGroup>
     <OutputType>Exe</OutputType>
     <TargetFramework>net10.0</TargetFramework>
-    <ImplicitUsings>disable</ImplicitUsings>
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
@@ -13,6 +12,32 @@
     <ProjectReference Include="..\..\src\EricksonLopez.Result.Maybe\EricksonLopez.Result.Maybe.csproj" />
     <ProjectReference Include="..\..\src\EricksonLopez.Result.Generic\EricksonLopez.Result.Generic.csproj" />
     <ProjectReference Include="..\..\src\EricksonLopez.Result.Testing\EricksonLopez.Result.Testing.csproj" />
+    <ProjectReference Include="..\..\src\EricksonLopez.Result.Serialization\EricksonLopez.Result.Serialization.csproj" />
+    <ProjectReference Include="..\..\src\EricksonLopez.Result.OpenTelemetry\EricksonLopez.Result.OpenTelemetry.csproj" />
+    <ProjectReference Include="..\..\src\EricksonLopez.Result.FluentValidation\EricksonLopez.Result.FluentValidation.csproj" />
+    <ProjectReference Include="..\..\src\EricksonLopez.Result.MediatR\EricksonLopez.Result.MediatR.csproj" />
+    <ProjectReference Include="..\..\src\EricksonLopez.Result.Polly\EricksonLopez.Result.Polly.csproj" />
+    <ProjectReference Include="..\..\src\EricksonLopez.Result.EntityFrameworkCore\EricksonLopez.Result.EntityFrameworkCore.csproj" />
+    <ProjectReference Include="..\..\src\EricksonLopez.Result.MassTransit\EricksonLopez.Result.MassTransit.csproj" />
+    <ProjectReference Include="..\..\src\EricksonLopez.Result.AspNetCore\EricksonLopez.Result.AspNetCore.csproj" />
+    <ProjectReference Include="..\..\src\EricksonLopez.Result.OpenApi\EricksonLopez.Result.OpenApi.csproj" />
+    <ProjectReference Include="..\..\src\EricksonLopez.Result.Testing.NUnit\EricksonLopez.Result.Testing.NUnit.csproj" />
+    <ProjectReference Include="..\..\src\EricksonLopez.Result.Testing.XUnit\EricksonLopez.Result.Testing.XUnit.csproj" />
+    <ProjectReference Include="..\..\src\EricksonLopez.Result.Dapr\EricksonLopez.Result.Dapr.csproj" />
+    <ProjectReference Include="..\..\src\EricksonLopez.Result.Grpc\EricksonLopez.Result.Grpc.csproj" />
+    <ProjectReference Include="..\..\src\EricksonLopez.Result.DomainErrors.Generators\EricksonLopez.Result.DomainErrors.Generators.csproj"
+                      OutputItemType="Analyzer"
+                      ReferenceOutputAssembly="false" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <AdditionalFiles Include="order.errors.json" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.InMemory" />
+    <PackageReference Include="NSubstitute" />
   </ItemGroup>
 
 </Project>

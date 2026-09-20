@@ -1,5 +1,11 @@
 # ADR-009: FluentValidation Integration as Separate Package
 
+## Status
+Accepted
+
+## Date
+2026-07-28
+
 - **Status**: Accepted
 - **Date**: 2026-07-28
 - **Authors**: Erickson Lopez
@@ -14,7 +20,7 @@ Applications frequently use FluentValidation for input validation. Converting `F
 
 We created a dedicated companion package `EricksonLopez.Result.FluentValidation` that provides:
 
-1. `ToResult()` / `ToResult<T>()` extension methods on `ValidationResult`
+1. `ToValidationResult()` / `ToValidationResult<T>()` extension methods on `ValidationResult`
 2. `Validate()` / `ValidateToResult()` extensions directly on `IValidator<T>`
 3. `EnsureValid()` pipeline operator for composing validation within `Result<T>` chains
 4. Async variants for all operations
@@ -30,4 +36,11 @@ We created a dedicated companion package `EricksonLopez.Result.FluentValidation`
 - AOT-compatible — no reflection used in the library.
 
 ### Negative / Trade-Offs
-- Introduces a dependency on `FluentValidation 11.11.0`. Applications not using FluentValidation should not reference this package.
+- Introduces a dependency on `FluentValidation` (updated to `12.1.1` in v2.0.0; originally `11.11.0`). Applications not using FluentValidation should not reference this package.
+
+## Addendum (v2.0.0 Update)
+- Method `ValidationResult.ToResult()` was renamed to `ToValidationResult()` in v2.0.0 to eliminate ambiguity with monadic conversion methods.
+- The `FluentValidation` dependency was upgraded to `12.1.1` (BC-006).
+
+## Addendum (v3.0.0 Update)
+- In v3.0.0, `ValidationResult.ToValidationResult(bool aggregate = true)` defaults to cumulative multi-error aggregation (`aggregate = true`), bundling multiple validation failures into a single root `Error` containing structured `InnerErrors`. Callers requiring only the primary failure must pass `aggregate: false` explicitly (BC-U03).

@@ -22,8 +22,14 @@ Brief description of the changes in this PR.
 - [ ] `EricksonLopez.Result.OpenTelemetry`
 - [ ] `EricksonLopez.Result.Serialization`
 - [ ] `EricksonLopez.Result.Serialization.Generators`
+- [ ] `EricksonLopez.Result.DomainErrors.Generators`
 - [ ] `EricksonLopez.Result.FluentValidation`
 - [ ] `EricksonLopez.Result.MediatR`
+- [ ] `EricksonLopez.Result.EntityFrameworkCore`
+- [ ] `EricksonLopez.Result.Polly`
+- [ ] `EricksonLopez.Result.MassTransit`
+- [ ] `EricksonLopez.Result.Dapr`
+- [ ] `EricksonLopez.Result.Grpc`
 - [ ] `EricksonLopez.Result.Testing`
 - [ ] `EricksonLopez.Result.Testing.XUnit`
 - [ ] `EricksonLopez.Result.Testing.NUnit`
@@ -34,6 +40,8 @@ Brief description of the changes in this PR.
 - [ ] My code follows the project's code standards
 - [ ] I have added tests that prove my fix is effective or that my feature works
 - [ ] All new and existing tests pass (`dotnet test`)
+- [ ] Mutation score meets or exceeds quality gate (threshold: ≥95%)
+- [ ] Benchmark policy is respected (no performance regressions in hot paths)
 - [ ] My commits follow [Conventional Commits](https://www.conventionalcommits.org) format
 - [ ] I have updated `PublicAPI.Unshipped.txt` if I changed the public API surface
 - [ ] I have updated documentation as needed

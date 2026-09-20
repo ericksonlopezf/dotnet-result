@@ -2,7 +2,7 @@
 name: Mutation Testing (Stryker)
 
 # ─── Purpose ─────────────────────────────────────────────────────────────────
-# Runs Stryker.NET mutation testing across all EricksonLopez.Result packages:
+# Runs Stryker.NET mutation testing across EricksonLopez.Result packages:
 #   • Core Library (EricksonLopez.Result)
 #   • Generic (EricksonLopez.Result.Generic)
 #   • Maybe (EricksonLopez.Result.Maybe)
@@ -17,15 +17,32 @@ name: Mutation Testing (Stryker)
 #   • Testing Harness (EricksonLopez.Result.Testing)
 #   • Testing NUnit Adapter (EricksonLopez.Result.Testing.NUnit)
 #   • Testing XUnit Adapter (EricksonLopez.Result.Testing.XUnit)
+#   • Domain Errors Generators (EricksonLopez.Result.DomainErrors.Generators)
+#   • Entity Framework Core (EricksonLopez.Result.EntityFrameworkCore)
+#   • Polly (EricksonLopez.Result.Polly)
+#   • MassTransit (EricksonLopez.Result.MassTransit)
+#   • Dapr (EricksonLopez.Result.Dapr)
+#   • Grpc (EricksonLopez.Result.Grpc)
 #
 # Threshold policy (single source of truth defined in stryker-*.json):
 #   • high  (≥100%) — ✅ HIGH
 #   • low   (≥ 98%) — 🟡 LOW
 #   • warn  (≥ 95%) — 🟠 WARNING (approaching break threshold)
 #   • break (< 95%) — ❌ FAILED (Stryker exits with non-zero code)
+#
+# Execution Strategy:
+#   • In Pull Requests: Dynamically detects changed packages via scripts/detect-affected-projects.ps1
+#     running Stryker ONLY against affected packages (skips if docs-only).
+#   • On main, release, or schedule: Runs all 20 packages in parallel to guarantee complete evidence.
 # ─────────────────────────────────────────────────────────────────────────────
 
 on:
+  push:
+    branches: [ main ]
+    paths:
+      - "src/**"
+      - "tests/**"
+      - "stryker-*.json"
   workflow_dispatch:
     inputs:
       mutation-level:
@@ -37,12 +54,32 @@ on:
           - Basic
           - Standard
           - Advanced
+      run-all:
+        description: "Force execution across all packages (bypassing diff detection)"
+        required: false
+        default: true
+        type: boolean
   workflow_call:
     inputs:
       mutation-level:
         description: "Stryker mutation level (Basic, Standard, Advanced)"
         required: false
         default: "Standard"
+        type: string
+      run-all:
+        description: "Force execution across all packages"
+        required: false
+        default: false
+        type: boolean
+      base-ref:
+        description: "Git base reference for change detection"
+        required: false
+        default: "origin/main"
+        type: string
+      head-ref:
+        description: "Git head reference for change detection"
+        required: false
+        default: "HEAD"
         type: string
   # Weekly scheduled execution (Monday 04:00 UTC) to catch regressions early
   schedule:
@@ -60,70 +97,68 @@ permissions:
   contents: read
 
 jobs:
+  # ─── Job 1: Detect Affected Packages (Targeted PR Optimization) ─────────────
+  detect-changes:
+    name: Detect Affected Packages
+    runs-on: ubuntu-latest
+    outputs:
+      has_code_changes: ${{ steps.detect.outputs.has_code_changes }}
+      has_affected_packages: ${{ steps.detect.outputs.has_affected_packages }}
+      affected_count: ${{ steps.detect.outputs.affected_count }}
+      matrix: ${{ steps.detect.outputs.matrix }}
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Run Package Detection
+        id: detect
+        shell: pwsh
+        run: |
+          $isScheduled = "${{ github.event_name == 'schedule' }}"
+          $isDispatch = "${{ github.event_name == 'workflow_dispatch' }}"
+          $forceRunAll = "${{ inputs.run-all }}" -eq "true" -or $isScheduled -eq "true" -or ($isDispatch -eq "true" -and "${{ inputs.run-all }}" -ne "false")
+          $forceRunAllStr = if ($forceRunAll) { "true" } else { "false" }
+
+          Write-Host "Running detect-affected-projects with RunAllMode: $forceRunAllStr"
+          ./scripts/detect-affected-projects.ps1 `
+            -BaseRef "${{ inputs.base-ref || 'origin/main' }}" `
+            -HeadRef "${{ inputs.head-ref || 'HEAD' }}" `
+            -RunAllMode "$forceRunAllStr"
+
+  # ─── Job 2: Stryker Mutation Testing (Dynamic Matrix) ──────────────────────
+  # Package Configuration Manifest (1:1 per-package synchronization):
+  #   • Core: stryker-config.json
+  #   • Generic: stryker-generic-config.json
+  #   • Maybe: stryker-maybe-config.json
+  #   • AspNetCore: stryker-aspnetcore-config.json
+  #   • FluentValidation: stryker-fluentvalidation-config.json
+  #   • MediatR: stryker-mediatr-config.json
+  #   • OpenApi: stryker-openapi-config.json
+  #   • OpenTelemetry: stryker-opentelemetry-config.json
+  #   • Serialization: stryker-serialization-config.json
+  #   • SerializationGenerators: stryker-serialization-generators-config.json
+  #   • Analyzers: stryker-analyzers-config.json
+  #   • Testing: stryker-testing-config.json
+  #   • TestingNUnit: stryker-testing-nunit-config.json
+  #   • TestingXUnit: stryker-testing-xunit-config.json
+  #   • DomainErrorsGenerators: stryker-domainerrors-generators-config.json
+  #   • EntityFrameworkCore: stryker-efcore-config.json
+  #   • Polly: stryker-polly-config.json
+  #   • MassTransit: stryker-masstransit-config.json
+  #   • Dapr: stryker-dapr-config.json
+  #   • Grpc: stryker-grpc-config.json
   mutation-test:
     name: Stryker — ${{ matrix.name }}
     runs-on: ubuntu-latest
+    needs: detect-changes
+    if: needs.detect-changes.outputs.has_affected_packages == 'true'
     timeout-minutes: 480
     strategy:
       fail-fast: false
       matrix:
-        include:
-          - name: Core
-            config: stryker-config.json
-            output-dir: StrykerOutput/core
-            artifact-name: stryker-report-core
-          - name: Generic
-            config: stryker-generic-config.json
-            output-dir: StrykerOutput/generic
-            artifact-name: stryker-report-generic
-          - name: Maybe
-            config: stryker-maybe-config.json
-            output-dir: StrykerOutput/maybe
-            artifact-name: stryker-report-maybe
-          - name: AspNetCore
-            config: stryker-aspnetcore-config.json
-            output-dir: StrykerOutput/aspnetcore
-            artifact-name: stryker-report-aspnetcore
-          - name: FluentValidation
-            config: stryker-fluentvalidation-config.json
-            output-dir: StrykerOutput/fluentvalidation
-            artifact-name: stryker-report-fluentvalidation
-          - name: MediatR
-            config: stryker-mediatr-config.json
-            output-dir: StrykerOutput/mediatr
-            artifact-name: stryker-report-mediatr
-          - name: OpenApi
-            config: stryker-openapi-config.json
-            output-dir: StrykerOutput/openapi
-            artifact-name: stryker-report-openapi
-          - name: OpenTelemetry
-            config: stryker-opentelemetry-config.json
-            output-dir: StrykerOutput/opentelemetry
-            artifact-name: stryker-report-opentelemetry
-          - name: Serialization
-            config: stryker-serialization-config.json
-            output-dir: StrykerOutput/serialization
-            artifact-name: stryker-report-serialization
-          - name: SerializationGenerators
-            config: stryker-serialization-generators-config.json
-            output-dir: StrykerOutput/serialization-generators
-            artifact-name: stryker-report-serialization-generators
-          - name: Analyzers
-            config: stryker-analyzers-config.json
-            output-dir: StrykerOutput/analyzers
-            artifact-name: stryker-report-analyzers
-          - name: Testing
-            config: stryker-testing-config.json
-            output-dir: StrykerOutput/testing
-            artifact-name: stryker-report-testing
-          - name: TestingNUnit
-            config: stryker-testing-nunit-config.json
-            output-dir: StrykerOutput/testing-nunit
-            artifact-name: stryker-report-testing-nunit
-          - name: TestingXUnit
-            config: stryker-testing-xunit-config.json
-            output-dir: StrykerOutput/testing-xunit
-            artifact-name: stryker-report-testing-xunit
+        include: ${{ fromJson(needs.detect-changes.outputs.matrix) }}
 
     steps:
       - name: Checkout
@@ -162,6 +197,10 @@ jobs:
           STRYKER_EXIT_CODE=$?
           echo "exit_code=$STRYKER_EXIT_CODE" >> $GITHUB_OUTPUT
           echo "Stryker finished with exit code: $STRYKER_EXIT_CODE"
+          if [ $STRYKER_EXIT_CODE -ne 0 ] && [ $STRYKER_EXIT_CODE -ne 2 ]; then
+            echo "::error::Stryker execution failed fatally with exit code $STRYKER_EXIT_CODE"
+            exit $STRYKER_EXIT_CODE
+          fi
           exit 0
 
       - name: Upload Stryker report (${{ matrix.name }})
@@ -186,11 +225,11 @@ jobs:
           path: StrykerOutput/summary-${{ matrix.name }}.json
           retention-days: 30
 
-  # ─── Consolidated Gate Aggregation & Commit Status ───────────────────────────
+  # ─── Job 3: Consolidated Gate Aggregation & Commit Status ───────────────────
   mutation-gate-summary:
     name: Consolidated Quality Gate & Commit Status
     runs-on: ubuntu-latest
-    needs: mutation-test
+    needs: [detect-changes, mutation-test]
     if: always()
     permissions:
       contents: write
@@ -205,6 +244,7 @@ jobs:
           token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Download all summary artifacts
+        if: needs.detect-changes.outputs.has_affected_packages == 'true'
         uses: actions/download-artifact@v4
         with:
           pattern: stryker-summary-*
@@ -219,6 +259,39 @@ jobs:
           script: |
             const fs = require('fs');
             const path = require('path');
+
+            const hasAffected = '${{ needs.detect-changes.outputs.has_affected_packages }}' === 'true';
+            if (!hasAffected) {
+              console.log('ℹ️ No packages affected by this commit/PR (docs or non-code diff). Quality gate skipped with SUCCESS.');
+              let md = `\n# 🛡️ Consolidated Stryker Mutation Testing Gate\n\n`;
+              md += `| Status | Reason |\n`;
+              md += `|--------|--------|\n`;
+              md += `| ⏭️ **SKIPPED (SUCCESS)** | No production C# code or tests were modified in this PR/commit. |\n\n`;
+              md += `**Gate Verdict**: ✅ PASSED (No affected packages)\n`;
+
+              const summaryPath = process.env.GITHUB_STEP_SUMMARY;
+              if (summaryPath && fs.existsSync(path.dirname(summaryPath))) {
+                fs.appendFileSync(summaryPath, md, 'utf8');
+              }
+
+              // Post GitHub Commit Status
+              const targetSha = context.sha;
+              try {
+                await github.rest.repos.createCommitStatus({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  sha: targetSha,
+                  state: 'success',
+                  context: 'mutation-testing/stryker',
+                  description: 'Skipped - No packages affected by changes',
+                  target_url: `https://github.com/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`
+                });
+                console.log('✅ Successfully created commit status mutation-testing/stryker (Skipped/Success)');
+              } catch (err) {
+                console.error('⚠️ Failed to create commit status:', err.message);
+              }
+              return;
+            }
 
             const summariesDir = path.join(process.cwd(), 'all-summaries');
             let summaryFiles = [];
@@ -320,8 +393,8 @@ jobs:
               console.error('⚠️ Failed to create commit status:', err.message);
             }
 
-            // Update README.md badge with rounded-up integer score if gate passed
-            if (allPassed) {
+            // Update README.md badge only on main when full suite (all 18 packages) passed
+            if (allPassed && context.ref === 'refs/heads/main' && packages.length >= 18) {
               const roundedScore = Math.ceil(parseFloat(overallScore));
               const badgeColor = roundedScore >= 98 ? 'brightgreen' : (roundedScore >= 90 ? 'green' : 'yellow');
               const readmePath = 'README.md';

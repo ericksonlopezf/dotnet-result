@@ -1,8 +1,4 @@
 // Copyright © Erickson Lopez. MIT License.
-// Benchmarks intentionally use the reflection-based constructor to measure its performance baseline.
-// CS0618/CS0619: Suppressed because this benchmark explicitly measures the reflection path as a baseline
-// to compare against the AOT-safe JsonTypeInfo<T> overload.
-#pragma warning disable CS0618, CS0619
 using System;
 using System.Text.Json;
 using BenchmarkDotNet.Attributes;

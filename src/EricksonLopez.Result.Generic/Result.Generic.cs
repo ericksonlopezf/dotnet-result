@@ -19,51 +19,67 @@ namespace EricksonLopez.Result.Generic;
 public readonly struct Result<TValue, TError> : IEquatable<Result<TValue, TError>>
     where TError : class
 {
-    private readonly bool _isSuccess;
+    private enum State : byte
+    {
+        Uninitialized = 0,
+        Success = 1,
+        Failure = 2
+    }
+
+    private readonly State _state;
     private readonly TValue _value;
     private readonly TError? _error;
 
     /// <summary>
     /// Gets a value indicating whether the operation succeeded.
     /// </summary>
-    public bool IsSuccess => _isSuccess;
+    public bool IsSuccess => _state == State.Success;
 
     /// <summary>
     /// Gets a value indicating whether the operation failed.
     /// </summary>
-    public bool IsFailure => !_isSuccess;
+    public bool IsFailure => _state == State.Failure;
+
+    /// <summary>
+    /// Gets a value indicating whether the struct is an uninitialized default value.
+    /// </summary>
+    public bool IsUninitialized => _state == State.Uninitialized;
 
     /// <summary>
     /// Gets the success value.
     /// </summary>
-    /// <exception cref="InvalidOperationException">Thrown when the result is a failure.</exception>
+    /// <exception cref="InvalidOperationException">The result is a failure or uninitialized</exception>
     public TValue Value
     {
         get
         {
-            if (!_isSuccess)
+            if (_state == State.Success)
+                return _value!;
+            if (_state == State.Failure)
                 throw new InvalidOperationException($"Cannot access Value on a failure result. Error: {_error}");
-            return _value!;
+            throw new InvalidOperationException("Cannot access Value on an uninitialized default Result<TValue, TError>.");
         }
     }
 
     /// <summary>
     /// Gets the strongly-typed failure error.
     /// </summary>
-    /// <exception cref="InvalidOperationException">Thrown when the result is a success.</exception>
+    /// <exception cref="InvalidOperationException">The result is a success or uninitialized</exception>
     public TError Error
     {
         get
         {
-            if (_isSuccess)
+            if (_state == State.Failure)
+                return _error!;
+            if (_state == State.Success)
                 throw new InvalidOperationException("Cannot access Error on a success result.");
-            return _error!;
+            throw new InvalidOperationException("Cannot access Error on an uninitialized default Result<TValue, TError>.");
         }
     }
 
     private Result(TValue value)
     {
-        _isSuccess = true;
+        _state = State.Success;
         _value = value;
         _error = null;
     }
@@ -71,7 +87,7 @@ public readonly struct Result<TValue, TError> : IEquatable<Result<TValue, TError
     private Result(TError error)
     {
         ArgumentNullException.ThrowIfNull(error);
-        _isSuccess = false;
+        _state = State.Failure;
         _value = default!;
         _error = error;
     }
@@ -105,7 +121,7 @@ public readonly struct Result<TValue, TError> : IEquatable<Result<TValue, TError
     public bool TryGetValue([MaybeNullWhen(false)] out TValue value)
     {
         value = _value;
-        return _isSuccess;
+        return _state == State.Success;
     }
 
     /// <summary>
@@ -118,7 +134,7 @@ public readonly struct Result<TValue, TError> : IEquatable<Result<TValue, TError
     public bool TryGetError([MaybeNullWhen(false)] out TError error)
     {
         error = _error;
-        return !_isSuccess;
+        return _state == State.Failure;
     }
 
     /// <summary>
@@ -128,11 +144,14 @@ public readonly struct Result<TValue, TError> : IEquatable<Result<TValue, TError
     /// <param name="mapper">The projection function applied to the success value.</param>
     /// <returns>A new <see cref="Result{TNext, TError}"/> containing the projected value on success, or the original error on failure.</returns>
     /// <exception cref="ArgumentNullException"><paramref name="mapper"/> is <see langword="null"/></exception>
+    /// <exception cref="InvalidOperationException">The result is uninitialized</exception>
     [Pure]
     public Result<TNext, TError> Map<TNext>(Func<TValue, TNext> mapper)
     {
         ArgumentNullException.ThrowIfNull(mapper);
-        return _isSuccess ? Result<TNext, TError>.Success(mapper(_value!)) : Result<TNext, TError>.Failure(_error!);
+        if (_state == State.Uninitialized)
+            throw new InvalidOperationException("Cannot map on an uninitialized default Result<TValue, TError>.");
+        return _state == State.Success ? Result<TNext, TError>.Success(mapper(_value!)) : Result<TNext, TError>.Failure(_error!);
     }
 
     /// <summary>
@@ -142,12 +161,15 @@ public readonly struct Result<TValue, TError> : IEquatable<Result<TValue, TError
     /// <param name="errorMapper">The projection function applied to the failure error.</param>
     /// <returns>A new <see cref="Result{TValue, TNextError}"/> containing the original value on success, or the projected error on failure.</returns>
     /// <exception cref="ArgumentNullException"><paramref name="errorMapper"/> is <see langword="null"/></exception>
+    /// <exception cref="InvalidOperationException">The result is uninitialized</exception>
     [Pure]
     public Result<TValue, TNextError> MapError<TNextError>(Func<TError, TNextError> errorMapper)
         where TNextError : class
     {
         ArgumentNullException.ThrowIfNull(errorMapper);
-        return _isSuccess ? Result<TValue, TNextError>.Success(_value!) : Result<TValue, TNextError>.Failure(errorMapper(_error!));
+        if (_state == State.Uninitialized)
+            throw new InvalidOperationException("Cannot map error on an uninitialized default Result<TValue, TError>.");
+        return _state == State.Success ? Result<TValue, TNextError>.Success(_value!) : Result<TValue, TNextError>.Failure(errorMapper(_error!));
     }
 
     /// <summary>
@@ -157,11 +179,14 @@ public readonly struct Result<TValue, TError> : IEquatable<Result<TValue, TError
     /// <param name="bind">The operation to execute with the success value.</param>
     /// <returns>The result of executing <paramref name="bind"/> on success; otherwise, a failure with the original error.</returns>
     /// <exception cref="ArgumentNullException"><paramref name="bind"/> is <see langword="null"/></exception>
+    /// <exception cref="InvalidOperationException">The result is uninitialized</exception>
     [Pure]
     public Result<TNext, TError> Bind<TNext>(Func<TValue, Result<TNext, TError>> bind)
     {
         ArgumentNullException.ThrowIfNull(bind);
-        return _isSuccess ? bind(_value!) : Result<TNext, TError>.Failure(_error!);
+        if (_state == State.Uninitialized)
+            throw new InvalidOperationException("Cannot bind on an uninitialized default Result<TValue, TError>.");
+        return _state == State.Success ? bind(_value!) : Result<TNext, TError>.Failure(_error!);
     }
 
     /// <summary>
@@ -172,12 +197,15 @@ public readonly struct Result<TValue, TError> : IEquatable<Result<TValue, TError
     /// <param name="onFailure">The function to evaluate with the error if the result is a failure.</param>
     /// <returns>The value produced by either <paramref name="onSuccess"/> or <paramref name="onFailure"/>.</returns>
     /// <exception cref="ArgumentNullException"><paramref name="onSuccess"/> or <paramref name="onFailure"/> is <see langword="null"/></exception>
+    /// <exception cref="InvalidOperationException">The result is uninitialized</exception>
     [Pure]
     public TOut Match<TOut>(Func<TValue, TOut> onSuccess, Func<TError, TOut> onFailure)
     {
         ArgumentNullException.ThrowIfNull(onSuccess);
         ArgumentNullException.ThrowIfNull(onFailure);
-        return _isSuccess ? onSuccess(_value!) : onFailure(_error!);
+        if (_state == State.Uninitialized)
+            throw new InvalidOperationException("Cannot match on an uninitialized default Result<TValue, TError>.");
+        return _state == State.Success ? onSuccess(_value!) : onFailure(_error!);
     }
 
     /// <summary>
@@ -187,11 +215,14 @@ public readonly struct Result<TValue, TError> : IEquatable<Result<TValue, TError
     /// <param name="errorMapper">The mapping function that converts <typeparamref name="TError"/> to <see cref="EricksonLopez.Result.Error"/>.</param>
     /// <returns>A standard <see cref="EricksonLopez.Result.Result{TValue}"/> representing the outcome.</returns>
     /// <exception cref="ArgumentNullException"><paramref name="errorMapper"/> is <see langword="null"/></exception>
+    /// <exception cref="InvalidOperationException">The result is uninitialized</exception>
     [Pure]
     public EricksonLopez.Result.Result<TValue> ToResult(Func<TError, EricksonLopez.Result.Error> errorMapper)
     {
         ArgumentNullException.ThrowIfNull(errorMapper);
-        return _isSuccess
+        if (_state == State.Uninitialized)
+            throw new InvalidOperationException("Cannot convert an uninitialized default Result<TValue, TError>.");
+        return _state == State.Success
             ? EricksonLopez.Result.Result.Success(_value!)
             : EricksonLopez.Result.Result.Failure<TValue>(errorMapper(_error!));
     }
@@ -209,10 +240,13 @@ public readonly struct Result<TValue, TError> : IEquatable<Result<TValue, TError
     /// <returns><see langword="true"/> if both results represent the same outcome; otherwise, <see langword="false"/>.</returns>
     public bool Equals(Result<TValue, TError> other)
     {
-        if (_isSuccess != other._isSuccess) return false;
-        return _isSuccess
-            ? EqualityComparer<TValue>.Default.Equals(_value!, other._value!)
-            : EqualityComparer<TError>.Default.Equals(_error!, other._error!);
+        if (_state != other._state) return false;
+        return _state switch
+        {
+            State.Success => EqualityComparer<TValue>.Default.Equals(_value!, other._value!),
+            State.Failure => EqualityComparer<TError>.Default.Equals(_error!, other._error!),
+            _ => true
+        };
     }
 
     /// <inheritdoc/>
@@ -221,9 +255,12 @@ public readonly struct Result<TValue, TError> : IEquatable<Result<TValue, TError
     /// <inheritdoc/>
     public override int GetHashCode()
     {
-        return _isSuccess
-            ? HashCode.Combine(true, EqualityComparer<TValue>.Default.GetHashCode(_value!))
-            : HashCode.Combine(false, EqualityComparer<TError>.Default.GetHashCode(_error!));
+        return _state switch
+        {
+            State.Success => HashCode.Combine(true, _value is null ? 0 : EqualityComparer<TValue>.Default.GetHashCode(_value)),
+            State.Failure => HashCode.Combine(false, _error is null ? 0 : EqualityComparer<TError>.Default.GetHashCode(_error)),
+            _ => 0
+        };
     }
 
     /// <summary>Determines whether two <see cref="Result{TValue, TError}"/> instances are equal.</summary>
@@ -239,5 +276,10 @@ public readonly struct Result<TValue, TError> : IEquatable<Result<TValue, TError
     public static bool operator !=(Result<TValue, TError> left, Result<TValue, TError> right) => !left.Equals(right);
 
     /// <inheritdoc/>
-    public override string ToString() => _isSuccess ? $"Success({_value})" : $"Failure({_error})";
+    public override string ToString() => _state switch
+    {
+        State.Success => $"Success({_value})",
+        State.Failure => $"Failure({_error})",
+        _ => "Uninitialized"
+    };
 }

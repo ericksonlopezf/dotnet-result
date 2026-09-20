@@ -11,7 +11,7 @@ using FluentValidation.Results;
 namespace EricksonLopez.Result.FluentValidation;
 
 /// <summary>
-/// Extension methods for converting FluentValidation <see cref="ValidationResult"/>
+/// Provides extension methods for converting FluentValidation <see cref="ValidationResult"/>
 /// to <see cref="Result"/> and <see cref="Result{T}"/>.
 /// </summary>
 /// <remarks>
@@ -204,7 +204,7 @@ public static class FluentValidationResultExtensions
     }
 
     /// <summary>
-    /// Async version: Integrates validation into a Result pipeline.
+    /// Integrates validation asynchronously into a Result pipeline.
     /// </summary>
     /// <typeparam name="T">The type of the value to validate.</typeparam>
     /// <param name="resultTask">The task returning the result containing the value to validate.</param>
@@ -248,7 +248,8 @@ public static class FluentValidationResultExtensions
 
             if (failure.AttemptedValue is not null)
             {
-                builder = builder.WithMetadata("attemptedValue", failure.AttemptedValue);
+                var value = IsSensitivePropertyName(failure.PropertyName) ? "[REDACTED]" : failure.AttemptedValue;
+                builder = builder.WithMetadata("attemptedValue", value);
             }
 
             if (failure.FormattedMessagePlaceholderValues != null)
@@ -281,6 +282,21 @@ public static class FluentValidationResultExtensions
         global::FluentValidation.Severity.Info => ErrorSeverity.Info,
         _ => ErrorSeverity.Error
     };
+
+    private static bool IsSensitivePropertyName(string? propertyName)
+    {
+        if (string.IsNullOrEmpty(propertyName)) return false;
+        return propertyName.Contains("password", StringComparison.OrdinalIgnoreCase)
+            || propertyName.Contains("token", StringComparison.OrdinalIgnoreCase)
+            || propertyName.Contains("secret", StringComparison.OrdinalIgnoreCase)
+            || propertyName.Contains("creditcard", StringComparison.OrdinalIgnoreCase)
+            || propertyName.Contains("cardnumber", StringComparison.OrdinalIgnoreCase)
+            || propertyName.Contains("cvv", StringComparison.OrdinalIgnoreCase)
+            || propertyName.Contains("ssn", StringComparison.OrdinalIgnoreCase)
+            || propertyName.Contains("pin", StringComparison.OrdinalIgnoreCase)
+            || propertyName.Contains("apikey", StringComparison.OrdinalIgnoreCase)
+            || propertyName.Contains("auth", StringComparison.OrdinalIgnoreCase);
+    }
 }
 
 

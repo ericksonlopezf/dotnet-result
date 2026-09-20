@@ -10,7 +10,7 @@ using Microsoft.CodeAnalysis.Operations;
 namespace EricksonLopez.Result.Analyzers;
 
 /// <summary>
-/// Roslyn diagnostic analyzer that warns when <c>ErrorBuilder.WithInnerError(Error)</c>
+/// Represents a Roslyn diagnostic analyzer that warns when <c>ErrorBuilder.WithInnerError(Error)</c>
 /// is chained 2 or more times consecutively, causing O(n\u00b2) ImmutableArray copying.
 /// </summary>
 /// <remarks>
@@ -27,7 +27,7 @@ namespace EricksonLopez.Result.Analyzers;
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
 public sealed class InnerErrorChainingAnalyzer : DiagnosticAnalyzer
 {
-    /// <summary>The diagnostic identifier for this analyzer rule.</summary>
+    /// <summary>Gets the diagnostic identifier for this analyzer rule.</summary>
     public const string DiagnosticId = "RESULT006";
 
     private const string ErrorBuilderFullName = "EricksonLopez.Result.ErrorBuilder";

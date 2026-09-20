@@ -11,7 +11,11 @@ using Microsoft.CodeAnalysis.Operations;
 namespace EricksonLopez.Result.Analyzers;
 
 /// <summary>
-/// Roslyn diagnostic analyzer that warns when:
+/// Reports diagnostics when <c>Error</c> collections or LINQ operations omit an explicit equality comparer.
+/// </summary>
+/// <remarks>
+/// <para>
+/// Warns when:
 /// <list type="bullet">
 ///   <item><c>HashSet&lt;Error&gt;</c> or <c>Dictionary&lt;Error, TValue&gt;</c> is instantiated without
 ///   <c>ErrorEqualityComparer.Strict</c> (or <c>ErrorEqualityComparer.Default</c> if intentional).</item>
@@ -20,8 +24,7 @@ namespace EricksonLopez.Result.Analyzers;
 ///   <item>LINQ <c>Enumerable.DistinctBy()</c>, <c>Enumerable.GroupBy()</c>
 ///   use <c>Error</c> as the source type without an explicit strict comparer.</item>
 /// </list>
-/// </summary>
-/// <remarks>
+/// </para>
 /// <para>
 /// <b>Root cause:</b> <c>Error.Equals(Error?)</c> performs a
 /// <i>shallow</i> equality check on 5 semantic fields (<c>Code</c>, <c>Description</c>, <c>Type</c>,
@@ -41,7 +44,7 @@ namespace EricksonLopez.Result.Analyzers;
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
 public sealed class HashSetErrorEqualityAnalyzer : DiagnosticAnalyzer
 {
-    /// <summary>The diagnostic identifier for this analyzer rule.</summary>
+    /// <summary>Gets the diagnostic identifier for this analyzer rule.</summary>
     public const string DiagnosticId = "RESULT007";
 
     private const string HashSetMetadataName = "HashSet`1";

@@ -9,7 +9,7 @@ using EricksonLopez.Result;
 namespace EricksonLopez.Result.OpenTelemetry;
 
 /// <summary>
-/// Async extension methods for recording <see cref="Result"/> and <see cref="Result{T}"/> outcomes
+/// Provides asynchronous extension methods for recording <see cref="Result"/> and <see cref="Result{T}"/> outcomes
 /// as OpenTelemetry activities and metrics in async pipelines.
 /// </summary>
 /// <remarks>

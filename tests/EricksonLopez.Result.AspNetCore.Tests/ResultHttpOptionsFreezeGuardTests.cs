@@ -12,10 +12,7 @@ using Xunit;
 namespace EricksonLopez.Result.AspNetCore.Tests;
 
 /// <summary>
-/// Tests that verify the freeze guard introduced in ARB audit finding F2-04-A:
-/// all scalar properties of <see cref="ResultHttpOptions"/> throw
-/// <see cref="InvalidOperationException"/> when mutated after the first request
-/// (i.e., after <c>GetFrozenStatusCodeMap()</c> has been called).
+/// Verifies freeze guard enforcement on scalar properties of <see cref="ResultHttpOptions"/> when mutated after initialization.
 /// </summary>
 public class ResultHttpOptionsFreezeGuardTests
 {

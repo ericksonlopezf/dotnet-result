@@ -9,13 +9,13 @@ using Microsoft.CodeAnalysis.Operations;
 namespace EricksonLopez.Result.Analyzers;
 
 /// <summary>
-/// Roslyn diagnostic analyzer (RESULT010) that warns when <c>ex.Message</c> is used
+/// Represents a Roslyn diagnostic analyzer (RESULT010) that warns when <c>ex.Message</c> is used
 /// inside the errorFactory delegate for <c>AddResultExceptionBehavior</c>.
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
 public sealed class ResultExceptionBehaviorMessageAnalyzer : DiagnosticAnalyzer
 {
-    /// <summary>The diagnostic identifier for this analyzer rule.</summary>
+    /// <summary>Gets the diagnostic identifier for this analyzer rule.</summary>
     public const string DiagnosticId = "RESULT010";
 
     private const string ExtensionClassName = "ResultMediatRExtensions";

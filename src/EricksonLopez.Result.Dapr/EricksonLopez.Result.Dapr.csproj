@@ -1,0 +1,27 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!-- Copyright © Erickson Lopez. MIT License. -->
+  <PropertyGroup>
+    <TargetFrameworks>net8.0;net9.0;net10.0</TargetFrameworks>
+    <LangVersion>latest</LangVersion>
+    <AssemblyName>EricksonLopez.Result.Dapr</AssemblyName>
+    <RootNamespace>EricksonLopez.Result.Dapr</RootNamespace>
+    <IsPackable>true</IsPackable>
+    <PackageId>EricksonLopez.Result.Dapr</PackageId>
+    <Description>Dapr integration for EricksonLopez.Result. Bridges Dapr state store optimistic concurrency and Pub/Sub TopicEventResponse with Result envelopes and ErrorRetryability.</Description>
+    <PackageProjectUrl>https://ericksonlopez.dev/result</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/ericksonlopezf/dotnet-result</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageTags>$(CommonPackageTags);result;dapr;microservices;state-management;pubsub;cloudevents;native-aot</PackageTags>
+    <Nullable>enable</Nullable>
+    <IsAotCompatible>true</IsAotCompatible>
+    <EnableTrimAnalyzer>true</EnableTrimAnalyzer>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\EricksonLopez.Result\EricksonLopez.Result.csproj" />
+    <PackageReference Include="Dapr.Client" />
+    <PackageReference Include="Dapr.AspNetCore" />
+  </ItemGroup>
+</Project>

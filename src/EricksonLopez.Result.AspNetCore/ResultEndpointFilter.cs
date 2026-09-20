@@ -9,7 +9,7 @@ using Microsoft.Extensions.Options;
 namespace EricksonLopez.Result.AspNetCore;
 
 /// <summary>
-/// Minimal API Endpoint Filter that automatically transforms returned <see cref="Result"/> and <see cref="Result{T}"/> instances into HTTP responses.
+/// Provides a minimal API endpoint filter that automatically transforms returned <see cref="Result"/> and <see cref="Result{T}"/> instances into HTTP responses.
 /// Completely reflection-free and NativeAOT compatible.
 /// </summary>
 /// <remarks>

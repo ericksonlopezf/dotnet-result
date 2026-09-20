@@ -10,52 +10,58 @@ const {
 
 console.log('Running tests for verify-mutation-gate.js...\n');
 
-// Test 1: loadThresholds from stryker-config.json
-{
-  const thresholds = loadThresholds();
-  assert.strictEqual(thresholds.high, 100, 'Threshold high should be 100');
-  assert.strictEqual(thresholds.low, 98, 'Threshold low should be 98');
-  assert.strictEqual(thresholds.break, 95, 'Threshold break should be 95');
-  console.log('✅ Test 1 Passed: loadThresholds loads correct values from stryker-config.json');
-}
+const describe = (name, fn) => fn();
+const it = (name, fn) => fn();
+const test = it;
 
-// Test 2: parseScoreFromDescription
-{
-  assert.strictEqual(parseScoreFromDescription('Stryker: 100% (240/240 killed) - ✅ HIGH'), 100);
-  assert.strictEqual(parseScoreFromDescription('Stryker: 98.5% (200/203 killed) - 🟡 LOW'), 98.5);
-  assert.strictEqual(parseScoreFromDescription('Stryker: 95.0% - 🟠 WARNING'), 95.0);
-  assert.strictEqual(parseScoreFromDescription('Stryker: 94.2% - ❌ FAILED'), 94.2);
-  assert.strictEqual(parseScoreFromDescription(null), null);
-  assert.strictEqual(parseScoreFromDescription('No percentage here'), null);
-  console.log('✅ Test 2 Passed: parseScoreFromDescription correctly extracts numeric percentage');
-}
+describe('verify-mutation-gate', () => {
+  // Test 1: loadThresholds from stryker-config.json
+  it('loadThresholds loads correct values from stryker-config.json', () => {
+    const thresholds = loadThresholds();
+    assert.strictEqual(thresholds.high, 100, 'Threshold high should be 100');
+    assert.strictEqual(thresholds.low, 98, 'Threshold low should be 98');
+    assert.strictEqual(thresholds.break, 95, 'Threshold break should be 95');
+    console.log('✅ Test 1 Passed: loadThresholds loads correct values from stryker-config.json');
+  });
 
-// Test 3: evaluateScore
-{
-  const thresholds = { high: 100, low: 98, break: 95 };
+  // Test 2: parseScoreFromDescription
+  it('parseScoreFromDescription correctly extracts numeric percentage', () => {
+    assert.strictEqual(parseScoreFromDescription('Stryker: 100% (240/240 killed) - ✅ HIGH'), 100);
+    assert.strictEqual(parseScoreFromDescription('Stryker: 98.5% (200/203 killed) - 🟡 LOW'), 98.5);
+    assert.strictEqual(parseScoreFromDescription('Stryker: 95.0% - 🟠 WARNING'), 95.0);
+    assert.strictEqual(parseScoreFromDescription('Stryker: 94.2% - ❌ FAILED'), 94.2);
+    assert.strictEqual(parseScoreFromDescription(null), null);
+    assert.strictEqual(parseScoreFromDescription('No percentage here'), null);
+    console.log('✅ Test 2 Passed: parseScoreFromDescription correctly extracts numeric percentage');
+  });
 
-  const resHigh = evaluateScore(100, thresholds);
-  assert.strictEqual(resHigh.status, '✅ HIGH');
-  assert.strictEqual(resHigh.passedBreak, true);
+  // Test 3: evaluateScore
+  it('evaluateScore correctly categorizes scores and break gate', () => {
+    const thresholds = { high: 100, low: 98, break: 95 };
 
-  const resLow = evaluateScore(98.5, thresholds);
-  assert.strictEqual(resLow.status, '🟡 LOW');
-  assert.strictEqual(resLow.passedBreak, true);
+    const resHigh = evaluateScore(100, thresholds);
+    assert.strictEqual(resHigh.status, '✅ HIGH');
+    assert.strictEqual(resHigh.passedBreak, true);
 
-  const resWarn = evaluateScore(96.0, thresholds);
-  assert.strictEqual(resWarn.status, '🟠 WARNING');
-  assert.strictEqual(resWarn.passedBreak, true);
+    const resLow = evaluateScore(98.5, thresholds);
+    assert.strictEqual(resLow.status, '🟡 LOW');
+    assert.strictEqual(resLow.passedBreak, true);
 
-  const resBreakExact = evaluateScore(95.0, thresholds);
-  assert.strictEqual(resBreakExact.status, '🟠 WARNING');
-  assert.strictEqual(resBreakExact.passedBreak, true);
+    const resWarn = evaluateScore(96.0, thresholds);
+    assert.strictEqual(resWarn.status, '🟠 WARNING');
+    assert.strictEqual(resWarn.passedBreak, true);
 
-  const resFail = evaluateScore(94.9, thresholds);
-  assert.strictEqual(resFail.status, '❌ FAILED');
-  assert.strictEqual(resFail.passedBreak, false);
+    const resBreakExact = evaluateScore(95.0, thresholds);
+    assert.strictEqual(resBreakExact.status, '🟠 WARNING');
+    assert.strictEqual(resBreakExact.passedBreak, true);
 
-  console.log('✅ Test 3 Passed: evaluateScore correctly categorizes scores and break gate');
-}
+    const resFail = evaluateScore(94.9, thresholds);
+    assert.strictEqual(resFail.status, '❌ FAILED');
+    assert.strictEqual(resFail.passedBreak, false);
+
+    console.log('✅ Test 3 Passed: evaluateScore correctly categorizes scores and break gate');
+  });
+});
 
 // Test 4: verifyMutationGate with mock direct target SHA (Reusing valid evidence)
 (async () => {
@@ -80,7 +86,7 @@ console.log('Running tests for verify-mutation-gate.js...\n');
                   {
                     context: 'mutation-testing/stryker',
                     state: 'success',
-                    description: 'Score: 100.0% (14/14 packages >= 95%) - ✅ HIGH',
+                    description: 'Score: 100.0% (18/18 packages >= 95%) - ✅ HIGH',
                     updated_at: freshDate,
                     target_url: 'https://github.com/ericksonlopezf/dotnet-result/actions/runs/12345'
                   }
@@ -129,7 +135,7 @@ console.log('Running tests for verify-mutation-gate.js...\n');
                 {
                   context: 'mutation-testing/stryker',
                   state: 'failure',
-                  description: 'Score: 80.0% (10/14 packages >= 95%) - ❌ FAILED',
+                  description: 'Score: 80.0% (14/18 packages >= 95%) - ❌ FAILED',
                   updated_at: freshDate,
                   target_url: 'https://github.com/ericksonlopezf/dotnet-result/actions/runs/12346'
                 }
@@ -177,7 +183,7 @@ console.log('Running tests for verify-mutation-gate.js...\n');
                   {
                     context: 'mutation-testing/stryker',
                     state: 'success',
-                    description: 'Score: 95.0% (14/14 packages >= 95%) - 🟠 WARNING',
+                    description: 'Score: 95.0% (18/18 packages >= 95%) - 🟠 WARNING',
                     updated_at: freshDate,
                     target_url: 'https://github.com/ericksonlopezf/dotnet-result/actions/runs/12347'
                   }

@@ -7,7 +7,7 @@ using Microsoft.Extensions.DependencyInjection;
 namespace EricksonLopez.Result.MediatR;
 
 /// <summary>
-/// Extension methods for registering Result-aware MediatR pipeline behaviors.
+/// Provides extension methods for registering Result-aware MediatR pipeline behaviors.
 /// </summary>
 public static class ResultMediatRExtensions
 {
@@ -18,7 +18,7 @@ public static class ResultMediatRExtensions
     /// <param name="services">The service collection.</param>
     /// <param name="errorFactory">
     /// Optional factory to create <see cref="Error"/> from an <see cref="Exception"/>.
-    /// When null, uses <c>Error.Unexpected()</c> with the exception type and message.
+    /// When <see langword="null"/>, uses <c>Error.Unexpected()</c> with the exception type and message.
     /// </param>
     /// <returns>The service collection for chaining.</returns>
     /// <example>

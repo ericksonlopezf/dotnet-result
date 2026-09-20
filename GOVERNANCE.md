@@ -12,7 +12,7 @@ This document outlines the governance model for the `EricksonLopez.Result` proje
 Maintainers are individuals responsible for the overall direction, quality, security, and governance of the repository.
 
 **Current Maintainers:**
-- **Erickson Lopez** ([@ericksonlopez](https://github.com/ericksonlopez)) — Lead Architect & Project Maintainer
+- **Erickson Lopez** ([@ericksonlopezf](https://github.com/ericksonlopezf)) — Lead Architect & Project Maintainer
 
 **Maintainer Responsibilities:**
 - Reviewing and merging Pull Requests.

@@ -9,14 +9,12 @@
     <PackageId>EricksonLopez.Result.AspNetCore</PackageId>
     <Authors>Erickson Lopez</Authors>
     <Company>Erickson Lopez</Company>
-    <Copyright>Copyright © 2026 Erickson Lopez</Copyright>
     <Description>ASP.NET Core integration for EricksonLopez.Result providing ProblemDetails RFC 9457 formatting and Minimal API endpoint filters.</Description>
     <PackageProjectUrl>https://ericksonlopez.dev/result</PackageProjectUrl>
     <RepositoryUrl>https://github.com/ericksonlopezf/dotnet-result</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
-    <PackageTags>$(CommonPackageTags);aspnetcore;asp-net-core;minimal-apis;web-api;rest-api;problem-details;rfc9457;http;endpoint-filters;native-aot</PackageTags>
-    <ImplicitUsings>disable</ImplicitUsings>
+    <PackageTags>$(CommonPackageTags);result;aspnetcore;minimal-apis;web-api;problem-details;rfc9457;endpoint-filters;native-aot</PackageTags>
     <Nullable>enable</Nullable>
     <IsAotCompatible>true</IsAotCompatible>
     <EnableTrimAnalyzer>true</EnableTrimAnalyzer>

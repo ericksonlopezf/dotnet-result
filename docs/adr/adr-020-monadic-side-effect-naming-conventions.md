@@ -1,5 +1,11 @@
 # ADR-020: Monadic Side-Effect Operator Naming Conventions (`TapOnSuccess`, `TapOnFailure`, `Execute`)
 
+## Status
+Accepted
+
+## Date
+2026-08-23
+
 - **Status**: Accepted
 - **Date**: 2026-08-23
 - **Authors**: Erickson Lopez

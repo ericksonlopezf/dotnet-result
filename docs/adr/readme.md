@@ -27,5 +27,11 @@
 | [ADR-019](adr-019-json-converters-source-generation-aot.md) | System.Text.Json Converters & Source Generator for Native AOT | Accepted |
 | [ADR-020](adr-020-monadic-side-effect-naming-conventions.md) | Monadic Side-Effect Operator Naming Conventions | Accepted |
 | [ADR-021](adr-021-roslyn-analyzer-documentation-helplinks.md) | Roslyn Analyzer Documentation & HelpLinkUri Strategy | Accepted |
+| [ADR-022](adr-022-domain-errors-source-generator.md) | Domain Errors Incremental Source Generator | Accepted |
+| [ADR-023](adr-023-entity-framework-core-result-adapter.md) | Entity Framework Core Result Adapter | Accepted |
+| [ADR-024](adr-024-polly-v8-resilience-result-pipeline.md) | Polly v8 Resilience Pipeline Integration | Accepted |
+| [ADR-025](adr-025-masstransit-result-consumer-pipeline.md) | MassTransit Result Consumer Pipeline | Accepted |
+| [ADR-026](adr-026-dapr-state-and-pubsub-integration.md) | Dapr Distributed State & PubSub Integration | Accepted |
+| [ADR-027](adr-027-grpc-server-interceptor-and-status-mapping.md) | gRPC Server Interceptor & Status Mapping | Accepted |
 | [REJECT-001](reject-001-hybrid-entity-table-gateway-in-result.md) | Reject Hybrid Entity Table Gateway in Result | Rejected |
 | [REJECT-012](reject-012-native-aot-reflection-fallbacks.md) | Reject Native AOT Reflection Fallbacks | Rejected |

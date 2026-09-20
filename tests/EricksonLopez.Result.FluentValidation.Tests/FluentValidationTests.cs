@@ -6,6 +6,7 @@ using EricksonLopez.Result;
 using EricksonLopez.Result.FluentValidation;
 using EricksonLopez.Result.Testing;
 using FluentValidation;
+using FluentValidation.Results;
 using Xunit;
 
 namespace EricksonLopez.Result.FluentValidation.Tests;
@@ -87,6 +88,23 @@ public class FluentValidationTests
 
         Result.Success(validModel).EnsureValid(validator).ShouldBeSuccess();
         Result.Success(invalidModel).EnsureValid(validator).ShouldBeFailure();
+    }
+
+    [Fact]
+    public void ToValidationResult_WhenSensitiveFieldsFail_RedactsAttemptedValue()
+    {
+        var failure = new ValidationFailure("UserPassword", "Password is too short", "SuperSecretPassword123!")
+        {
+            ErrorCode = "TooShort"
+        };
+        var validationResult = new ValidationResult(new[] { failure });
+
+        var result = validationResult.ToValidationResult();
+
+        result.ShouldBeFailure();
+        var inner = result.Error.InnerErrors[0];
+        Assert.True(inner.HasMetadata);
+        Assert.Equal("[REDACTED]", inner.Metadata["attemptedValue"]);
     }
 }
 

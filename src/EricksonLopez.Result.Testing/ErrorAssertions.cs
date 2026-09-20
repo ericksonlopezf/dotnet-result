@@ -6,7 +6,9 @@ using EricksonLopez.Result;
 namespace EricksonLopez.Result.Testing;
 
 /// <summary>
-/// Fluent assertion extensions directly on <see cref="Error"/> instances.
+/// Provides fluent assertion extensions directly on <see cref="Error"/> instances.
+/// </summary>
+/// <example>
 /// Enables chained assertions after <see cref="ResultAssertions.ShouldBeFailure"/>:
 /// <code>
 /// result.ShouldBeFailure()
@@ -15,7 +17,7 @@ namespace EricksonLopez.Result.Testing;
 ///       .ShouldHaveSeverity(ErrorSeverity.Warning)
 ///       .ShouldHaveMetadata("orderId", expectedId);
 /// </code>
-/// </summary>
+/// </example>
 public static class ErrorAssertions
 {
     /// <summary>

@@ -1,4 +1,4 @@
-﻿# ADR-016: IResultOutcome as a Managed Interface on a Value-Type Struct
+# ADR-016: IResultOutcome as a Managed Interface on a Value-Type Struct
 
 - **Status**: Accepted
 - **Date**: 2026-08-01
@@ -126,7 +126,7 @@ app.MapGet("/orders/{id}", async (int id, IOrderService svc) =>
 
 ---
 
-## Evolution Path (v2.0 Considerations)
+## Evolution Path (v4.0 Considerations)
 
 C# and the .NET runtime may provide mechanisms in future versions that enable zero-allocation
 polymorphism on value types (e.g., static abstract interface members, `ref` struct interfaces
@@ -135,7 +135,7 @@ could be replaced with a source-generated dispatch table or static interface dis
 eliminating the boxing cost without breaking the `AddResultEndpointFilter()` ergonomics.
 
 Any such change would be a **breaking change** for consumers who have implemented
-`IResultOutcome` in their own types. It will be gated behind a major version bump (v2.0) with
+`IResultOutcome` in their own types. It will be gated behind a major version bump (v4.0) with
 a migration guide.
 
 ## Related

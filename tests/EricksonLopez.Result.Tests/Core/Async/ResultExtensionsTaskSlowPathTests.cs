@@ -1,5 +1,4 @@
 // Copyright © Erickson Lopez. MIT License.
-#pragma warning disable CS0618, CS0619
 using System;
 using System.Threading;
 using System.Threading.Tasks;

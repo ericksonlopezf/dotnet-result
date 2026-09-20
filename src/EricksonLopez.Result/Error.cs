@@ -92,6 +92,9 @@ public sealed class Error : IEquatable<Error>
     /// <summary>Gets the technical description of the error for diagnostics and logging.</summary>
     public string Description { get; }
 
+    /// <summary>Gets the descriptive message for the error (alias for <see cref="Description"/>).</summary>
+    public string Message => Description;
+
     /// <summary>Gets the optional localization resource key for the error message.</summary>
     public string? DescriptionKey { get; }
 
@@ -134,8 +137,8 @@ public sealed class Error : IEquatable<Error>
     /// <summary>
     /// Initializes a new instance of the <see cref="Error"/> class.
     /// </summary>
-    /// <param name="code">The unique machine-readable error code. Must not be null or whitespace.</param>
-    /// <param name="description">The human-readable description for diagnostic logging. Must not be null or whitespace.</param>
+    /// <param name="code">The unique machine-readable error code. Must not be <see langword="null"/> or whitespace.</param>
+    /// <param name="description">The human-readable description for diagnostic logging. Must not be <see langword="null"/> or whitespace.</param>
     /// <param name="type">The error category type. Defaults to <see cref="ErrorType.Failure"/>.</param>
     /// <param name="severity">The error severity level. Defaults to <see cref="ErrorSeverity.Error"/>.</param>
     /// <param name="retryability">The retry classification. Defaults to <see cref="ErrorRetryability.NotApplicable"/>.</param>
@@ -154,7 +157,7 @@ public sealed class Error : IEquatable<Error>
     /// but remains public for advanced and serialization scenarios.
     /// </para>
     /// <para>
-    /// When <paramref name="traceId"/> is null and an ambient <see cref="Activity"/> is active,
+    /// When <paramref name="traceId"/> is <see langword="null"/> and an ambient <see cref="Activity"/> is active,
     /// the current <see cref="Activity.TraceId"/> is captured as an <see cref="ActivityTraceId"/> struct
     /// (zero heap allocation). The string representation is materialized lazily only when
     /// <see cref="TraceId"/> is actually accessed.
@@ -241,8 +244,19 @@ public sealed class Error : IEquatable<Error>
     /// Creates an <see cref="Error"/> from <see cref="ErrorBuilder"/> state, bypassing argument
     /// validation (already validated by the builder) and avoiding re-capture of
     /// <see cref="Activity.Current"/> (the builder holds an explicit <paramref name="traceId"/> string
-    /// if one was needed, or null if not set).
+    /// if one was needed, or <see langword="null"/> if not set).
     /// </summary>
+    /// <param name="code">The unique machine-readable error code.</param>
+    /// <param name="description">The human-readable description for diagnostic logging.</param>
+    /// <param name="type">The error category type.</param>
+    /// <param name="severity">The error severity level.</param>
+    /// <param name="retryability">The retry classification.</param>
+    /// <param name="descriptionKey">The optional resource key for localized messages.</param>
+    /// <param name="traceId">The optional distributed trace identifier string.</param>
+    /// <param name="correlationId">The optional distributed correlation identifier string.</param>
+    /// <param name="innerErrors">The collection of child errors composing this error.</param>
+    /// <param name="metadata">The optional key-value metadata dictionary.</param>
+    /// <returns>A new validated <see cref="Error"/> instance constructed from the builder state.</returns>
     /// <remarks>
     /// This is intentionally <see langword="internal"/> — it is only safe to call from
     /// <see cref="ErrorBuilder.Build()"/> where all invariants have already been enforced.
@@ -278,7 +292,7 @@ public sealed class Error : IEquatable<Error>
     /// Gets the immutable list of inner errors composing this error.
     /// </summary>
     /// <remarks>
-    /// Returns <see cref="ImmutableArray{T}.Empty"/> when there are no inner errors — never null.
+    /// Returns <see cref="ImmutableArray{T}.Empty"/> when there are no inner errors — never <see langword="null"/>.
     /// <para>
     /// Common patterns:
     /// <list type="bullet">
@@ -332,13 +346,14 @@ public sealed class Error : IEquatable<Error>
     /// Attempts to retrieve a metadata value by key and cast it to the specified type.
     /// </summary>
     /// <typeparam name="T">The expected type of the metadata value.</typeparam>
-    /// <param name="key">The metadata key to look up. Must not be null or whitespace.</param>
+    /// <param name="key">The metadata key to look up. Must not be <see langword="null"/> or whitespace.</param>
     /// <param name="value">
     /// When this method returns, contains the metadata value cast to <typeparamref name="T"/> if found and valid;
     /// otherwise, the default value for the type.
     /// </param>
     /// <returns>
-    /// <see langword="true"/> if the key exists; otherwise, <see langword="false"/>.
+    /// <see langword="true"/> if the key exists and its value can be cast to <typeparamref name="T"/>;
+    /// otherwise, <see langword="false"/> if the key is not found or its value is <see langword="null"/>.
     /// </returns>
     /// <exception cref="ArgumentException"><paramref name="key"/> is <see langword="null"/>, empty, or consists only of white-space characters</exception>
     /// <exception cref="InvalidCastException">The metadata key exists but the stored value cannot be cast to <typeparamref name="T"/></exception>
@@ -393,7 +408,7 @@ public sealed class Error : IEquatable<Error>
     /// Retrieves a metadata value by key and casts it to the specified type.
     /// </summary>
     /// <typeparam name="T">The expected type of the metadata value.</typeparam>
-    /// <param name="key">The metadata key to look up. Must not be null or whitespace.</param>
+    /// <param name="key">The metadata key to look up. Must not be <see langword="null"/> or whitespace.</param>
     /// <returns>The metadata value cast to <typeparamref name="T"/>.</returns>
     /// <exception cref="ArgumentException"><paramref name="key"/> is <see langword="null"/>, empty, or consists only of white-space characters</exception>
     /// <exception cref="KeyNotFoundException">The metadata key does not exist in this error</exception>
@@ -422,9 +437,15 @@ public sealed class Error : IEquatable<Error>
 
     /// <summary>
     /// Creates a sentinel Error for use in static readonly fields (e.g., <see cref="WellKnownErrors"/>)
-    /// where the trace ID must be explicitly null and must NOT capture <see cref="Activity.Current"/>
+    /// where the trace ID must be explicitly <see langword="null"/> and must NOT capture <see cref="Activity.Current"/>
     /// at static initialization time.
     /// </summary>
+    /// <param name="code">The unique machine-readable error code.</param>
+    /// <param name="description">The human-readable description.</param>
+    /// <param name="type">The error category type.</param>
+    /// <param name="severity">The error severity level.</param>
+    /// <param name="retryability">The retry classification.</param>
+    /// <returns>A sentinel <see cref="Error"/> instance.</returns>
     internal static Error CreateSentinel(
         string code,
         string description,
@@ -439,13 +460,19 @@ public sealed class Error : IEquatable<Error>
                innerErrors: ImmutableArray<Error>.Empty,
                metadata: null);
 
+    /// <summary>Represents a sentinel non-error or empty error instance.</summary>
+    public static readonly Error None = CreateSentinel("Error.None", "No error.", ErrorType.Failure, ErrorSeverity.Info, ErrorRetryability.NotApplicable);
+
+    /// <summary>Represents a <see langword="null"/> value error instance.</summary>
+    public static readonly Error NullValue = Failure("Error.NullValue", "A null value was provided.");
+
     // ─── Factory Methods ──────────────────────────────────────────────────────
 
     /// <summary>
     /// Creates an <see cref="ErrorBuilder"/> initialized with the specified error code and description.
     /// </summary>
-    /// <param name="code">The unique machine-readable error code. Must not be null or whitespace.</param>
-    /// <param name="description">The human-readable technical description. Must not be null or whitespace.</param>
+    /// <param name="code">The unique machine-readable error code. Must not be <see langword="null"/> or whitespace.</param>
+    /// <param name="description">The human-readable technical description. Must not be <see langword="null"/> or whitespace.</param>
     /// <returns>An <see cref="ErrorBuilder"/> pre-seeded with the specified code and description.</returns>
     /// <example>
     /// <code>
@@ -550,6 +577,15 @@ public sealed class Error : IEquatable<Error>
     public static Error Validation(string code, string description, params Error[] innerErrors)
         => new(code, description, ErrorType.Validation, ErrorSeverity.Warning, innerErrors: innerErrors);
 
+    /// <summary>Creates a new <see cref="Error"/> representing an input validation failure with metadata.</summary>
+    /// <param name="code">The unique machine-readable error code.</param>
+    /// <param name="description">The human-readable technical description.</param>
+    /// <param name="metadata">Structured key-value metadata associated with the error.</param>
+    /// <returns>A new <see cref="Error"/> instance with <see cref="ErrorType.Validation"/> type.</returns>
+    [Pure]
+    public static Error Validation(string code, string description, IReadOnlyDictionary<string, object> metadata)
+        => new(code, description, ErrorType.Validation, ErrorSeverity.Warning, metadata: metadata);
+
     /// <summary>Creates a new <see cref="Error"/> representing a missing or nonexistent resource.</summary>
     /// <param name="code">The unique machine-readable error code.</param>
     /// <param name="description">The human-readable technical description.</param>
@@ -558,6 +594,15 @@ public sealed class Error : IEquatable<Error>
     public static Error NotFound(string code, string description)
         => new(code, description, ErrorType.NotFound, ErrorSeverity.Warning);
 
+    /// <summary>Creates a new <see cref="Error"/> representing an entity not found with a strongly-typed ID.</summary>
+    /// <typeparam name="TId">The strongly-typed identifier type.</typeparam>
+    /// <param name="entity">The entity name.</param>
+    /// <param name="id">The strongly-typed identifier value.</param>
+    /// <returns>A new <see cref="Error"/> instance with <see cref="ErrorType.NotFound"/> type.</returns>
+    [Pure]
+    public static Error NotFound<TId>(string entity, TId id) where TId : struct
+        => NotFound($"{entity}.NotFound", $"{entity} with Id '{id}' was not found.");
+
     /// <summary>Creates a new <see cref="Error"/> representing a state conflict with existing resources.</summary>
     /// <param name="code">The unique machine-readable error code.</param>
     /// <param name="description">The human-readable technical description.</param>
@@ -565,6 +610,15 @@ public sealed class Error : IEquatable<Error>
     [Pure]
     public static Error Conflict(string code, string description)
         => new(code, description, ErrorType.Conflict, ErrorSeverity.Warning);
+
+    /// <summary>Creates a new <see cref="Error"/> representing a conflict with metadata.</summary>
+    /// <param name="code">The unique machine-readable error code.</param>
+    /// <param name="description">The human-readable technical description.</param>
+    /// <param name="metadata">Structured key-value metadata associated with the error.</param>
+    /// <returns>A new <see cref="Error"/> instance with <see cref="ErrorType.Conflict"/> type.</returns>
+    [Pure]
+    public static Error Conflict(string code, string description, IReadOnlyDictionary<string, object> metadata)
+        => new(code, description, ErrorType.Conflict, ErrorSeverity.Warning, metadata: metadata);
 
     /// <summary>Creates a new <see cref="Error"/> representing an unauthenticated request requiring authentication.</summary>
     /// <param name="code">The unique machine-readable error code.</param>
@@ -606,6 +660,14 @@ public sealed class Error : IEquatable<Error>
     public static Error Domain(string code, string description)
         => new(code, description, ErrorType.Domain, ErrorSeverity.Error);
 
+    /// <summary>Creates a new <see cref="Error"/> representing a business rule or domain invariant violation (alias for <see cref="Domain"/>).</summary>
+    /// <param name="code">The unique machine-readable error code.</param>
+    /// <param name="description">The human-readable technical description.</param>
+    /// <returns>A new <see cref="Error"/> instance with <see cref="ErrorType.Domain"/> type and <see cref="ErrorSeverity.Error"/> severity.</returns>
+    [Pure]
+    public static Error Business(string code, string description)
+        => Domain(code, description);
+
     /// <summary>Creates a new <see cref="Error"/> representing an infrastructure, network, or database connectivity failure.</summary>
     /// <param name="code">The unique machine-readable error code.</param>
     /// <param name="description">The human-readable technical description.</param>
@@ -617,7 +679,7 @@ public sealed class Error : IEquatable<Error>
     // ─── Fluent Builders ──────────────────────────────────────────────────────
 
     /// <summary>Creates a new <see cref="Error"/> copy containing the specified metadata entry.</summary>
-    /// <param name="key">The metadata key to add or update. Must not be null or whitespace.</param>
+    /// <param name="key">The metadata key to add or update. Must not be <see langword="null"/> or whitespace.</param>
     /// <param name="value">The metadata value to associate with the key.</param>
     /// <returns>A new <see cref="Error"/> instance with the added or updated metadata entry.</returns>
     /// <exception cref="ArgumentException"><paramref name="key"/> is <see langword="null"/>, empty, or consists only of white-space characters</exception>
@@ -650,7 +712,7 @@ public sealed class Error : IEquatable<Error>
     }
 
     /// <summary>Creates a new <see cref="Error"/> copy containing the specified metadata entries.</summary>
-    /// <param name="metadata">The dictionary of metadata entries to add. Cannot be null.</param>
+    /// <param name="metadata">The dictionary of metadata entries to add. Cannot be <see langword="null"/>.</param>
     /// <returns>A new <see cref="Error"/> instance containing the merged metadata entries.</returns>
     /// <exception cref="ArgumentNullException"><paramref name="metadata"/> is <see langword="null"/></exception>
     /// <remarks>
@@ -675,7 +737,7 @@ public sealed class Error : IEquatable<Error>
     }
 
     /// <summary>Creates a new <see cref="Error"/> copy containing the specified metadata entries from an enumerable source.</summary>
-    /// <param name="metadata">The sequence of metadata entries to add. Cannot be null.</param>
+    /// <param name="metadata">The sequence of metadata entries to add. Cannot be <see langword="null"/>.</param>
     /// <returns>A new <see cref="Error"/> instance containing the merged metadata entries.</returns>
     /// <exception cref="ArgumentNullException"><paramref name="metadata"/> is <see langword="null"/></exception>
     /// <remarks>

@@ -16,7 +16,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 namespace EricksonLopez.Result.Analyzers;
 
 /// <summary>
-/// CodeFixProvider for <c>RESULT004</c> — Closure capture in Result pipeline methods.
+/// Provides a code fix provider for <c>RESULT004</c> — Closure capture in Result pipeline methods.
 /// </summary>
 [ExportCodeFixProvider(LanguageNames.CSharp, Name = nameof(ClosureCaptureCodeFix)), Shared]
 public sealed class ClosureCaptureCodeFix : CodeFixProvider

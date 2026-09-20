@@ -9,14 +9,12 @@
     <PackageId>EricksonLopez.Result.Generic</PackageId>
     <Authors>Erickson Lopez</Authors>
     <Company>Erickson Lopez</Company>
-    <Copyright>Copyright © 2026 Erickson Lopez</Copyright>
     <Description>Strongly-typed Result&lt;TValue, TError&gt; with compile-time error types for strict domain model pipelines in modern .NET.</Description>
     <PackageProjectUrl>https://ericksonlopez.dev/result</PackageProjectUrl>
     <RepositoryUrl>https://github.com/ericksonlopezf/dotnet-result</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
-    <PackageTags>$(CommonPackageTags);generic;strongly-typed;typed-error;domain-errors;domain-driven-design;ddd;monad;struct;zero-allocation;native-aot</PackageTags>
-    <ImplicitUsings>disable</ImplicitUsings>
+    <PackageTags>$(CommonPackageTags);result;strongly-typed;typed-error;domain-errors;ddd;monad;zero-allocation;native-aot</PackageTags>
     <Nullable>enable</Nullable>
     <IsAotCompatible>true</IsAotCompatible>
     <EnableTrimAnalyzer>true</EnableTrimAnalyzer>

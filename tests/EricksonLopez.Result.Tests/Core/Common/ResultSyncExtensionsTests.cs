@@ -7,9 +7,7 @@ using Xunit;
 namespace EricksonLopez.Result.Tests.Core;
 
 /// <summary>
-/// Tests for the ResultSyncExtensions class (R-02 ARB audit correction).
-/// These extension methods accept Result&lt;TValue&gt; by reference (in) to avoid struct copies
-/// for large value types like decimal and Guid.
+/// Verifies behavioral correctness of the <see cref="ResultSyncExtensions"/> methods.
 /// </summary>
 public class ResultSyncExtensionsTests
 {

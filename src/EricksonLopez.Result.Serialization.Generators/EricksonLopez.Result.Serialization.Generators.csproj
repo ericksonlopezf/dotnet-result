@@ -9,13 +9,12 @@
     <PackageId>EricksonLopez.Result.Serialization.Generators</PackageId>
     <Authors>Erickson Lopez</Authors>
     <Company>Erickson Lopez</Company>
-    <Copyright>Copyright © 2026 Erickson Lopez</Copyright>
     <Description>Roslyn source generator for AOT-compatible Result&lt;T&gt; JSON serialization. Eliminates reflection-based MakeGenericType/Activator.CreateInstance usage.</Description>
     <PackageProjectUrl>https://ericksonlopez.dev/result</PackageProjectUrl>
     <RepositoryUrl>https://github.com/ericksonlopezf/dotnet-result</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
-    <PackageTags>$(CommonPackageTags);source-generator;source-generators;roslyn;code-generation;serialization;json;system-text-json;native-aot;trimming</PackageTags>
+    <PackageTags>$(CommonPackageTags);result;source-generator;roslyn;serialization;json;system-text-json;native-aot</PackageTags>
     <EnforceExtendedAnalyzerRules>true</EnforceExtendedAnalyzerRules>
     <IsRoslynComponent>true</IsRoslynComponent>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>

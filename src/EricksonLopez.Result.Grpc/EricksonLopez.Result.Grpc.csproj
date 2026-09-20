@@ -1,0 +1,27 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <!-- Copyright © Erickson Lopez. MIT License. -->
+  <PropertyGroup>
+    <TargetFrameworks>net8.0;net9.0;net10.0</TargetFrameworks>
+    <LangVersion>latest</LangVersion>
+    <AssemblyName>EricksonLopez.Result.Grpc</AssemblyName>
+    <RootNamespace>EricksonLopez.Result.Grpc</RootNamespace>
+    <IsPackable>true</IsPackable>
+    <PackageId>EricksonLopez.Result.Grpc</PackageId>
+    <Description>gRPC integration for EricksonLopez.Result. Bridges gRPC unary calls with Result envelopes, provides automatic StatusCode mapping from ErrorType, and propagates rich error metadata trailers.</Description>
+    <PackageProjectUrl>https://ericksonlopez.dev/result</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/ericksonlopezf/dotnet-result</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageTags>$(CommonPackageTags);result;grpc;microservices;status-code;interceptor;trailers;native-aot</PackageTags>
+    <Nullable>enable</Nullable>
+    <IsAotCompatible>true</IsAotCompatible>
+    <EnableTrimAnalyzer>true</EnableTrimAnalyzer>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\EricksonLopez.Result\EricksonLopez.Result.csproj" />
+    <PackageReference Include="Grpc.Core.Api" />
+    <PackageReference Include="Grpc.AspNetCore.Server" />
+  </ItemGroup>
+</Project>

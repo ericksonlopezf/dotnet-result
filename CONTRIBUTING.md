@@ -14,7 +14,7 @@ All contributors are expected to adhere to our [Code of Conduct](CODE_OF_CONDUCT
 
 ### Prerequisites
 
-- **.NET 8.0 SDK**, **.NET 9.0 SDK**, or **.NET 10.0 SDK** (recommended: latest)
+- **.NET 10.0 SDK** (pinned via `global.json` as `10.0.100`, `rollForward: latestFeature`), or compatible .NET 8.0 / 9.0 SDKs for cross-target testing.
 - Git
 - An IDE such as JetBrains Rider, Visual Studio 2022+, or VS Code with C# Dev Kit.
 
@@ -28,8 +28,14 @@ dotnet-result/
 │   ├── EricksonLopez.Result.Maybe/                   # Struct-based Maybe<T> option type
 │   ├── EricksonLopez.Result.AspNetCore/              # HTTP ProblemDetails & Minimal API filter
 │   ├── EricksonLopez.Result.OpenApi/                 # Minimal API OpenAPI metadata extensions
+│   ├── EricksonLopez.Result.DomainErrors.Generators/ # Incremental source generator for domain errors
 │   ├── EricksonLopez.Result.FluentValidation/        # FluentValidation → Result conversion
 │   ├── EricksonLopez.Result.MediatR/                 # MediatR pipeline exception behavior
+│   ├── EricksonLopez.Result.EntityFrameworkCore/     # EF Core resilient operations & query extensions
+│   ├── EricksonLopez.Result.Polly/                   # Polly v8 resilience pipelines with Result retry
+│   ├── EricksonLopez.Result.MassTransit/             # MassTransit ResultFault contract & consume filter
+│   ├── EricksonLopez.Result.Dapr/                    # Dapr state store & pub/sub bindings
+│   ├── EricksonLopez.Result.Grpc/                    # gRPC server interceptor & status code mapping
 │   ├── EricksonLopez.Result.OpenTelemetry/           # Activity tracing & BCL Metrics
 │   ├── EricksonLopez.Result.Serialization/           # System.Text.Json converters
 │   ├── EricksonLopez.Result.Serialization.Generators/# Source generator for AOT-safe converters
@@ -43,8 +49,14 @@ dotnet-result/
 │   ├── EricksonLopez.Result.Maybe.Tests/             # Maybe<T> unit tests
 │   ├── EricksonLopez.Result.AspNetCore.Tests/        # ASP.NET Core integration tests
 │   ├── EricksonLopez.Result.OpenApi.Tests/           # OpenAPI integration tests
+│   ├── EricksonLopez.Result.DomainErrors.Generators.Tests/ # Domain error generator unit tests
 │   ├── EricksonLopez.Result.FluentValidation.Tests/  # FluentValidation tests
 │   ├── EricksonLopez.Result.MediatR.Tests/           # MediatR behavior tests
+│   ├── EricksonLopez.Result.EntityFrameworkCore.Tests/ # EF Core adapter tests
+│   ├── EricksonLopez.Result.Polly.Tests/             # Polly resilience tests
+│   ├── EricksonLopez.Result.MassTransit.Tests/       # MassTransit consumer tests
+│   ├── EricksonLopez.Result.Dapr.Tests/              # Dapr integration tests
+│   ├── EricksonLopez.Result.Grpc.Tests/              # gRPC interceptor tests
 │   ├── EricksonLopez.Result.OpenTelemetry.Tests/     # Activity & Metrics tests
 │   ├── EricksonLopez.Result.Serialization.Tests/     # JSON converter tests
 │   ├── EricksonLopez.Result.Serialization.Generators.Tests/ # Source generator tests
@@ -54,7 +66,7 @@ dotnet-result/
 │   ├── EricksonLopez.Result.Testing.NUnit.Tests/     # NUnit assertion tests
 │   └── EricksonLopez.Result.AotSmokeTest/            # NativeAOT publish smoke test app
 ├── samples/
-│   ├── EricksonLopez.Result.Sample/                  # Comprehensive usage samples
+│   ├── EricksonLopez.Result.Sample/                  # Comprehensive usage samples (34 runnable modules)
 │   ├── EricksonLopez.Result.AspNetCore.Sample/       # Minimal API sample
 │   ├── EricksonLopez.Result.FluentValidation.Sample/ # Validation pipeline sample
 │   ├── EricksonLopez.Result.MediatR.Sample/          # MediatR CQRS sample
@@ -63,9 +75,10 @@ dotnet-result/
 ├── benchmarks/
 │   └── EricksonLopez.Result.Benchmarks/              # BenchmarkDotNet performance benchmarks
 ├── docs/                                             # Technical architecture & guides
-│   ├── adr/                                          # Architectural Decision Records (ADR-001–021)
+│   ├── adr/                                          # Architectural Decision Records (ADR-001–027)
 │   ├── analysis/                                     # Allocation & memory analysis
-│   └── community/                                    # Community discussion templates
+│   ├── community/                                    # Community discussion templates
+│   └── showcase/                                     # Step-by-step interactive showcase (Levels 00–10)
 └── .github/
     └── workflows/                                    # CI, build, publish, AOT, mutation, benchmarks
 ```
@@ -99,9 +112,14 @@ dotnet stryker \
   --project EricksonLopez.Result.csproj \
   --test-project tests/EricksonLopez.Result.Tests/EricksonLopez.Result.Tests.csproj \
   --config-file stryker-config.json
+
+# Run Stryker against a specific subsystem using its dedicated root configuration profile:
+dotnet stryker --config-file stryker-aspnetcore-config.json
+dotnet stryker --config-file stryker-mediatr-config.json
+dotnet stryker --config-file stryker-efcore-config.json
 ```
 
-> **Note:** Full mutation runs can take 60–90 minutes. Stryker exits with code 1 if the mutation score drops below `break: 95`.
+> **Note:** All 20 production packages have dedicated `stryker-*-config.json` configuration profiles at the repository root. Stryker exits with code 1 if the mutation score drops below `break: 95` (see [`docs/mutation-score.md`](docs/mutation-score.md)).
 
 ### Running NativeAOT Smoke Tests
 

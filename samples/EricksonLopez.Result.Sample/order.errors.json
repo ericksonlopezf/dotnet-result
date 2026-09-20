@@ -1,0 +1,35 @@
+{
+  "namespace": "EricksonLopez.Result.Sample.GeneratedErrors",
+  "className": "OrderErrors",
+  "errors": [
+    {
+      "name": "NotFound",
+      "code": "Order.NotFound",
+      "description": "Order '{0}' was not found.",
+      "type": "NotFound",
+      "severity": "Warning",
+      "retryability": "Permanent",
+      "descriptionKey": "order.not_found",
+      "parameters": [
+        {
+          "name": "orderId",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "name": "PaymentFailed",
+      "code": "Order.PaymentFailed",
+      "description": "Payment failed for order '{0}' due to provider error.",
+      "type": "Failure",
+      "severity": "Error",
+      "retryability": "Transient",
+      "parameters": [
+        {
+          "name": "orderId",
+          "type": "string"
+        }
+      ]
+    }
+  ]
+}

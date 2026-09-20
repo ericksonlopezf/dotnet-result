@@ -10,7 +10,6 @@
     <PackageId>EricksonLopez.Result.Testing.NUnit</PackageId>
     <Authors>Erickson Lopez</Authors>
     <Company>Erickson Lopez</Company>
-    <Copyright>Copyright © 2026 Erickson Lopez</Copyright>
     <Description>
       NUnit-specific testing helpers for EricksonLopez.Result.
       Provides ResultAssertionNUnitException which inherits from NUnit's AssertionException
@@ -20,11 +19,10 @@
     <RepositoryUrl>https://github.com/ericksonlopezf/dotnet-result</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
-    <ImplicitUsings>disable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <IsAotCompatible>false</IsAotCompatible>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
-    <PackageTags>$(CommonPackageTags);nunit;nunit3;nunit4;testing;unit-testing;assertions;test-adapter</PackageTags>
+    <PackageTags>$(CommonPackageTags);result;nunit;unit-testing;assertions;test-adapter</PackageTags>
   </PropertyGroup>
 
   <ItemGroup>

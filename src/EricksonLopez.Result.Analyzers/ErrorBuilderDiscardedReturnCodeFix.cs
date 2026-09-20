@@ -15,7 +15,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 namespace EricksonLopez.Result.Analyzers;
 
 /// <summary>
-/// CodeFixProvider for <c>RESULT003</c> — ErrorBuilder discarded return value.
+/// Provides a code fix provider for <c>RESULT003</c> — ErrorBuilder discarded return value.
 /// </summary>
 /// <remarks>
 /// <para>
@@ -158,13 +158,15 @@ public sealed class ErrorBuilderDiscardedReturnCodeFix : CodeFixProvider
 
     /// <summary>
     /// Returns the simple identifier name of the receiver of the invocation, or <see langword="null"/>
-    /// if the receiver is not a simple identifier (e.g., it's a method call, property access, or null).
+    /// if the receiver is not a simple identifier (e.g., it's a method call, property access, or <see langword="null"/>).
     /// </summary>
+    /// <param name="invocation">The invocation expression syntax to inspect.</param>
+    /// <returns>The identifier name of the receiver, or <see langword="null"/> if not a simple identifier.</returns>
     /// <remarks>
     /// Handles:
     ///   • <c>builder.WithType(...)</c>   → returns "builder"
-    ///   • <c>this.builder.WithType(...)</c> → returns null (not a simple identifier)
-    ///   • <c>GetBuilder().WithType(...)</c> → returns null
+    ///   • <c>this.builder.WithType(...)</c> → returns <see langword="null"/> (not a simple identifier)
+    ///   • <c>GetBuilder().WithType(...)</c> → returns <see langword="null"/>.
     /// </remarks>
     private static string? TryGetReceiverIdentifierName(InvocationExpressionSyntax invocation)
     {

@@ -13,13 +13,7 @@
     <IsPackable>false</IsPackable>
     <IsTestProject>true</IsTestProject>
     <SonarQubeTestProject>true</SonarQubeTestProject>
-    <!-- 
-      Test Project Suppressions:
-      - xUnit1051: CancellationToken.None is used intentionally in deterministic tests.
-      - IDE1006, CA1707: Underscores permitted in test method names (ADR-017).
-      - CA1852: Internal test helper classes do not require explicit sealed modifier.
-    -->
-    <NoWarn>$(NoWarn);xUnit1051;IDE1006;CA1707;CA1852</NoWarn>
+    <!-- Test project analyzer severities are centrally governed via .editorconfig under [tests/**.cs] (ADR-017) -->
     <GenerateDocumentationFile>false</GenerateDocumentationFile>
     <EnableTrimAnalyzer>false</EnableTrimAnalyzer>
   </PropertyGroup>

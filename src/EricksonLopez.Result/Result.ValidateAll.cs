@@ -8,6 +8,9 @@ using System.Threading.Tasks;
 
 namespace EricksonLopez.Result;
 
+/// <summary>
+/// Partial declaration of <see cref="Result"/> providing cumulative validation operations.
+/// </summary>
 public readonly partial struct Result
 {
     // ─── ValidateAll (Cumulative Validation with ReadOnlySpan and ArrayPool) ───
@@ -19,6 +22,7 @@ public readonly partial struct Result
     /// </summary>
     /// <param name="validators">The validation functions to execute.</param>
     /// <returns>A successful Result if all validations pass; otherwise, a Failure containing all accumulated validation errors.</returns>
+    /// <exception cref="InvalidOperationException">One or more validated results are uninitialized</exception>
     [Pure]
     public static Result ValidateAll(params ReadOnlySpan<Func<Result>> validators)
     {
@@ -84,6 +88,7 @@ public readonly partial struct Result
     /// <param name="value">The target value to validate.</param>
     /// <param name="validators">The validation functions to execute.</param>
     /// <returns>A successful <see cref="Result{T}"/> containing <paramref name="value"/> if all pass; otherwise, a failure.</returns>
+    /// <exception cref="InvalidOperationException">One or more validated results are uninitialized</exception>
     [Pure]
     public static Result<T> ValidateAll<T>(T value, params ReadOnlySpan<Func<T, Result>> validators)
     {
@@ -141,13 +146,17 @@ public readonly partial struct Result
     }
 
     /// <summary>
-    /// Asynchronously executes all validation functions and accumulates any errors.
+    /// Asynchronously executes all validation functions sequentially and accumulates any errors.
     /// </summary>
-    /// <param name="validators">The collection of asynchronous validation functions to execute.</param>
+    /// <remarks>
+    /// Validators run sequentially in the order provided. For concurrent/parallel validation of multiple I/O-bound tasks, use <see cref="ValidateAllParallelAsync(IReadOnlyList{Func{CancellationToken, Task{Result}}}, CancellationToken)"/>.
+    /// </remarks>
+    /// <param name="validators">The collection of asynchronous validation functions to execute sequentially.</param>
     /// <param name="cancellationToken">A token that can be used to cancel the validation operations.</param>
     /// <returns>A task representing the asynchronous operation. The task result contains a successful <see cref="Result"/> if all validations pass, or a compound failure if one or more fail.</returns>
     /// <exception cref="ArgumentNullException"><paramref name="validators"/> is <see langword="null"/></exception>
     /// <exception cref="OperationCanceledException">The operation was canceled</exception>
+    /// <exception cref="InvalidOperationException">One or more validated results are uninitialized</exception>
     public static async Task<Result> ValidateAllAsync(
         IReadOnlyList<Func<CancellationToken, Task<Result>>> validators,
         CancellationToken cancellationToken = default)
@@ -186,6 +195,7 @@ public readonly partial struct Result
     /// <returns>A task representing the asynchronous operation. The task result contains a successful <see cref="Result{T}"/> containing <paramref name="value"/> if all pass, or a compound failure if one or more fail.</returns>
     /// <exception cref="ArgumentNullException"><paramref name="validators"/> is <see langword="null"/></exception>
     /// <exception cref="OperationCanceledException">The operation was canceled</exception>
+    /// <exception cref="InvalidOperationException">One or more validated results are uninitialized</exception>
     public static async Task<Result<T>> ValidateAllAsync<T>(
         T value,
         IReadOnlyList<Func<T, CancellationToken, Task<Result>>> validators,
@@ -223,6 +233,7 @@ public readonly partial struct Result
     /// <returns>A value task representing the asynchronous operation. The task result contains a successful <see cref="Result"/> if all validations pass, or a compound failure if one or more fail.</returns>
     /// <exception cref="ArgumentNullException"><paramref name="validators"/> is <see langword="null"/></exception>
     /// <exception cref="OperationCanceledException">The operation was canceled</exception>
+    /// <exception cref="InvalidOperationException">One or more validated results are uninitialized</exception>
     public static async ValueTask<Result> ValidateAllAsync(
         IReadOnlyList<Func<CancellationToken, ValueTask<Result>>> validators,
         CancellationToken cancellationToken = default)
@@ -261,6 +272,7 @@ public readonly partial struct Result
     /// <returns>A value task representing the asynchronous operation. The task result contains a successful <see cref="Result{T}"/> containing <paramref name="value"/> if all pass, or a compound failure if one or more fail.</returns>
     /// <exception cref="ArgumentNullException"><paramref name="validators"/> is <see langword="null"/></exception>
     /// <exception cref="OperationCanceledException">The operation was canceled</exception>
+    /// <exception cref="InvalidOperationException">One or more validated results are uninitialized</exception>
     public static async ValueTask<Result<T>> ValidateAllAsync<T>(
         T value,
         IReadOnlyList<Func<T, CancellationToken, ValueTask<Result>>> validators,
@@ -274,6 +286,105 @@ public readonly partial struct Result
         {
             cancellationToken.ThrowIfCancellationRequested();
             var result = await validators[i](value, cancellationToken).ConfigureAwait(false);
+            if (result.IsUninitialized) ResultThrowHelper.ThrowUninitialized();
+            if (result.IsFailure)
+            {
+                failedErrors.Add(result.Error);
+            }
+        }
+
+        if (failedErrors.Count == 0) return Success(value);
+        if (failedErrors.Count == 1) return Failure<T>(failedErrors[0]);
+
+        return Failure<T>(Error.Validation(
+            WellKnownErrors.CombinedFailuresCode,
+            $"{failedErrors.Count} validation errors occurred",
+            failedErrors.ToArray()));
+    }
+
+    // ─── ValidateAllParallelAsync (Concurrent Validation via Task.WhenAll) ───
+
+    /// <summary>
+    /// Concurrently executes all validation functions in parallel and accumulates any errors.
+    /// Returns <see cref="Success()"/> if all validators succeed, or a compound failure
+    /// containing all encountered errors if one or more validators fail.
+    /// </summary>
+    /// <param name="validators">The collection of asynchronous validation functions to execute concurrently.</param>
+    /// <param name="cancellationToken">A token that can be used to cancel the validation operations.</param>
+    /// <returns>A task representing the asynchronous operation with accumulated validation results.</returns>
+    /// <exception cref="ArgumentNullException"><paramref name="validators"/> is <see langword="null"/></exception>
+    /// <exception cref="OperationCanceledException">The operation was canceled</exception>
+    /// <exception cref="InvalidOperationException">One or more validated results are uninitialized</exception>
+    public static async Task<Result> ValidateAllParallelAsync(
+        IReadOnlyList<Func<CancellationToken, Task<Result>>> validators,
+        CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(validators);
+        cancellationToken.ThrowIfCancellationRequested();
+
+        if (validators.Count == 0) return Success();
+
+        var tasks = new Task<Result>[validators.Count];
+        for (int i = 0; i < validators.Count; i++)
+        {
+            tasks[i] = validators[i](cancellationToken);
+        }
+
+        var results = await Task.WhenAll(tasks).ConfigureAwait(false);
+        var failedErrors = new List<Error>();
+
+        for (int i = 0; i < results.Length; i++)
+        {
+            var result = results[i];
+            if (result.IsUninitialized) ResultThrowHelper.ThrowUninitialized();
+            if (result.IsFailure)
+            {
+                failedErrors.Add(result.Error);
+            }
+        }
+
+        if (failedErrors.Count == 0) return Success();
+        if (failedErrors.Count == 1) return Failure(failedErrors[0]);
+
+        return Failure(Error.Validation(
+            WellKnownErrors.CombinedFailuresCode,
+            $"{failedErrors.Count} validation errors occurred",
+            failedErrors.ToArray()));
+    }
+
+    /// <summary>
+    /// Concurrently executes all validation functions in parallel against the specified value and accumulates any errors.
+    /// </summary>
+    /// <typeparam name="T">The type of the validated value.</typeparam>
+    /// <param name="value">The target value to validate.</param>
+    /// <param name="validators">The collection of asynchronous validation functions to execute concurrently.</param>
+    /// <param name="cancellationToken">A token that can be used to cancel the validation operations.</param>
+    /// <returns>A task representing the asynchronous operation with accumulated validation results.</returns>
+    /// <exception cref="ArgumentNullException"><paramref name="validators"/> is <see langword="null"/></exception>
+    /// <exception cref="OperationCanceledException">The operation was canceled</exception>
+    /// <exception cref="InvalidOperationException">One or more validated results are uninitialized</exception>
+    public static async Task<Result<T>> ValidateAllParallelAsync<T>(
+        T value,
+        IReadOnlyList<Func<T, CancellationToken, Task<Result>>> validators,
+        CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(validators);
+        cancellationToken.ThrowIfCancellationRequested();
+
+        if (validators.Count == 0) return Success(value);
+
+        var tasks = new Task<Result>[validators.Count];
+        for (int i = 0; i < validators.Count; i++)
+        {
+            tasks[i] = validators[i](value, cancellationToken);
+        }
+
+        var results = await Task.WhenAll(tasks).ConfigureAwait(false);
+        var failedErrors = new List<Error>();
+
+        for (int i = 0; i < results.Length; i++)
+        {
+            var result = results[i];
             if (result.IsUninitialized) ResultThrowHelper.ThrowUninitialized();
             if (result.IsFailure)
             {

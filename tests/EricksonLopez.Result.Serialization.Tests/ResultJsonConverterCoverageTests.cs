@@ -8,8 +8,6 @@ using EricksonLopez.Result.Serialization;
 using EricksonLopez.Result.Testing;
 using Xunit;
 
-#pragma warning disable CS0619 // Intentionally testing the reflection-based constructor (Obsolete error:true)
-#pragma warning disable CS0618
 namespace EricksonLopez.Result.Serialization.Tests;
 
 public class ResultJsonConverterCoverageTests
@@ -257,6 +255,15 @@ public class ResultJsonConverterCoverageTests
         res1.IsSuccess.Should().BeTrue();
         res1.Value.Should().Be(10);
         reader.TokenType.Should().Be(JsonTokenType.EndObject);
+    }
+
+    [Fact]
+    public void ResultOfT_WhenNestedUnknownObjectAndProperties_ParsesCorrectly()
+    {
+        var json = "{ \"unknownNested\": { \"a\": [1, 2, 3], \"b\": { \"c\": \"d\" } }, \"isSuccess\": true, \"value\": 42, \"trailingUnknown\": \"test\" }";
+        var result = JsonSerializer.Deserialize<Result<int>>(json, Options);
+        result.IsSuccess.Should().BeTrue();
+        result.Value.Should().Be(42);
     }
 }
 

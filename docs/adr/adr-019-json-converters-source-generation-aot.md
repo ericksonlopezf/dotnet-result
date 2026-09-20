@@ -1,5 +1,11 @@
 # ADR-019: System.Text.Json Converters and Source Generator Architecture for Native AOT
 
+## Status
+Accepted
+
+## Date
+2026-08-23
+
 - **Status**: Accepted
 - **Date**: 2026-08-23
 - **Authors**: Erickson Lopez

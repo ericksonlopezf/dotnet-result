@@ -119,17 +119,65 @@ var result = from user in GetUser(id)
   - `RESULT004`: Closure allocation in monadic pipeline (with CodeFix).
   - `RESULT005`: `Error.WithMetadata()` chained 3+ times without batching.
   - `RESULT006`: `ErrorBuilder.WithInnerError()` chained 2+ times consecutively.
-  - `RESULT007`: Missing `ErrorEqualityComparer.Strict` in collection/LINQ deduplication.
+  - `RESULT007`: Missing `ErrorEqualityComparer.Strict` in collection/LINQ deduplication (with CodeFix).
   - `RESULT008`: Endpoint filter used without `.Produces<T>()`.
   - `RESULT009`: `IncludeDescription = true` set without environment guard.
   - `RESULT010`: `Exception.Message` used in `ResultExceptionBehavior`.
-  - `RESULT012`: Method returns `default(Result)` or `default(Result<T>)`.
+  - `RESULT012`: Method returns `default(Result)` or `default(Result<T>)` (with CodeFix).
+  - `RESULT013`: Avoid implicit boolean conversion of `Result` or `Result<T>` in condition contexts (with CodeFix).
   - `RESULT_OTEL_001`: `TraceOutcome` called without `ResultMetrics` registered.
   - `RESULT_GEN_001`: `[JsonSerializable(typeof(Result))]` on serializer context has no effect.
 
 ---
 
-## 8. Fluent Testing Framework (`EricksonLopez.Result.Testing`)
+## 8. Validation Integration (`EricksonLopez.Result.FluentValidation`)
+
+- Bridges FluentValidation with the Result Pattern:
+  - `.ToValidationResult()` converts FluentValidation `ValidationResult` to `Result.Failure(Error.Validation(...))` or `Result.Success()`.
+  - Maps validation failures to typed `Error` instances containing failing property names, error messages, and attempted values in metadata (with automatic redaction of sensitive property names).
+
+---
+
+## 9. MediatR Pipeline Behavior (`EricksonLopez.Result.MediatR`)
+
+- `ResultExceptionBehavior<TRequest, TResponse>` captures unhandled exceptions thrown during MediatR request execution.
+- Converts exceptions into domain `Result.Failure(Error.Unexpected(...))` without propagating raw stack traces to calling clients.
+
+---
+
+## 10. Compile-Time Domain Error Catalog (`EricksonLopez.Result.DomainErrors.Generators`)
+
+- Incremental Roslyn Source Generator monitoring `*.errors.json` additional files declared in the project.
+- Automatically synthesizes compile-time static error catalogs with type-safe factory methods, standardized codes, localized keys, and cached `Error` instances (100% Native AOT compatible).
+
+---
+
+## 11. Entity Framework Core Integration (`EricksonLopez.Result.EntityFrameworkCore`)
+
+- Resilient database operations and EF Core extensions:
+  - `SaveChangesAsyncToResult()`: Asynchronously saves changes and maps `DbUpdateConcurrencyException`, `DbUpdateException`, and timeouts to domain `Result<int>` values.
+  - Query extensions: `FirstOrDefaultToResultAsync`, `SingleOrDefaultToResultAsync`, `ToListToResultAsync` returning clean `Result<T>` envelopes without throwing exceptions on missing data.
+
+---
+
+## 12. Polly Resilience Pipelines (`EricksonLopez.Result.Polly`)
+
+- Integrates with Polly v8 `ResiliencePipeline`:
+  - `ExecuteResult` and `ExecuteResultAsync` execute delegates returning `Result` or `Result<T>`, with `TState` overloads to eliminate closure allocations.
+  - Result-aware retry strategies (`AddResultRetry`) inspecting `Error.Retryability == ErrorRetryability.Transient` without exception allocations.
+
+---
+
+## 13. MassTransit Messaging Middleware (`EricksonLopez.Result.MassTransit`)
+
+- MassTransit consumer filter (`ResultConsumeFilter<TMessage>`):
+  - Intercepts consumer execution pipelines returning `Result` or `Result<T>`.
+  - Converts domain failure results into typed fault contracts or redirects to error queues.
+  - Propagates distributed trace IDs and correlation IDs across message bus boundaries.
+
+---
+
+## 14. Fluent Testing Framework (`EricksonLopez.Result.Testing`)
 
 - Fluent assertion extensions:
 ```csharp
@@ -137,3 +185,30 @@ User user = result.ShouldBeSuccess();
 Error error = result.ShouldBeFailure().ShouldHaveErrorCode("User.NotFound");
 ```
 - Dedicated test adapter packages: `EricksonLopez.Result.Testing.XUnit` and `EricksonLopez.Result.Testing.NUnit`.
+
+---
+
+## 15. Dapr Distributed State & Pub/Sub (`EricksonLopez.Result.Dapr`)
+
+- **State Store Integration**:
+  - `GetStateWithResultAsync`, `SaveStateWithResultAsync`, `DeleteStateWithResultAsync`, and `ExecuteStateTransactionWithResultAsync`.
+  - Maps ETag concurrency conflicts directly to `Error.Conflict`, missing state keys to `Error.NotFound`, and network/sidecar issues to `Error.Unavailable(Transient)`.
+- **Pub/Sub Integration**:
+  - `ToDaprTopicResult()` translates domain `Result` outcomes into canonical Dapr `TopicEventResponse` (`Success`, `Drop`, `Retry`), preventing poison-message loops on permanent failures while automatically retrying transient errors.
+
+---
+
+## 16. gRPC Server Interceptor & Status Mapping (`EricksonLopez.Result.Grpc`)
+
+- **Server Interceptor**:
+  - `ResultServerInterceptor` intercepts unary RPC service methods, automatically translating domain `ErrorType` failures into canonical gRPC `StatusCode` values:
+    - `Validation` $\rightarrow$ `InvalidArgument`
+    - `NotFound` $\rightarrow$ `NotFound`
+    - `Conflict` $\rightarrow$ `AlreadyExists` / `Aborted`
+    - `Unauthorized` $\rightarrow$ `Unauthenticated`
+    - `Forbidden` $\rightarrow$ `PermissionDenied`
+    - `Unavailable` $\rightarrow$ `Unavailable`
+    - `Failure` / `Unexpected` $\rightarrow$ `Internal`
+  - Injects rich diagnostic trailer metadata (`x-error-code`, `x-error-type`, `x-error-severity`, `x-trace-id`, `x-correlation-id`).
+- **Client Extensions**:
+  - `ToResult()` and `ToResultAsync()` unpack client-side `RpcException` responses into strongly-typed `Result<T>` envelopes with reconstructed domain errors.

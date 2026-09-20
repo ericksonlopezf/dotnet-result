@@ -70,6 +70,11 @@ function main() {
     }
   }
 
+  if (!foundReport) {
+    console.error(`❌ [${pkgName}] No Stryker mutation report found in ${targetDir}. Stryker may have failed to execute or crashed!`);
+    process.exit(1);
+  }
+
   const passedGate = score >= thresholds.break && foundReport;
   let statusLabel = '❌ FAILED';
   if (score >= thresholds.high) statusLabel = '✅ HIGH';

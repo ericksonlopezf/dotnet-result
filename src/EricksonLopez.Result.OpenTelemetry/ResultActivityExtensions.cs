@@ -7,7 +7,7 @@ using EricksonLopez.Result;
 namespace EricksonLopez.Result.OpenTelemetry;
 
 /// <summary>
-/// Extension methods for recording <see cref="Result"/> and <see cref="Result{T}"/> outcomes as OpenTelemetry activities.
+/// Provides extension methods for recording <see cref="Result"/> and <see cref="Result{T}"/> outcomes as OpenTelemetry activities.
 /// </summary>
 /// <remarks>
 /// Tag names follow the OpenTelemetry Semantic Conventions.
@@ -44,14 +44,16 @@ namespace EricksonLopez.Result.OpenTelemetry;
 public static class ResultActivityExtensions
 {
     /// <summary>
-    /// The name of the ActivitySource used for tracing Result outcomes.
+    /// Specifies the name of the ActivitySource identifying Result tracing operations.
+    /// </summary>
+    /// <remarks>
     /// Register this source with your OpenTelemetry TracerProvider:
     /// <code>tracerProviderBuilder.AddSource(ResultActivityExtensions.ActivitySourceName);</code>
-    /// </summary>
+    /// </remarks>
     public const string ActivitySourceName = "EricksonLopez.Result";
 
     /// <summary>
-    /// The <see cref="ActivitySource"/> for creating Result-related spans.
+    /// Gets the <see cref="ActivitySource"/> for creating Result-related spans.
     /// Primarily used to allow OpenTelemetry to subscribe to this source via
     /// <c>tracerProviderBuilder.AddSource(<see cref="ActivitySourceName"/>)</c>.
     /// Application code annotates the existing <see cref="Activity.Current"/> via the
@@ -84,12 +86,12 @@ public static class ResultActivityExtensions
     /// </remarks>
     private const string AttrErrorCode = "ericksonlopez.result.error.code";
     private const string AttrErrorSeverity = "ericksonlopez.result.error.severity";
-    /// <summary>Standard OTel semantic convention attribute for the operation name.</summary>
+    /// <summary>Specifies the standard OpenTelemetry attribute name for the operation name.</summary>
     /// <remarks>
     /// Prefixed with <c>ericksonlopez.result.*</c> to avoid conflicts with future OTel semconv additions.
     /// The generic <c>operation.name</c> attribute is not a registered OTel semantic convention for
     /// general application operations; library-specific attributes must use a namespace prefix.
-    /// See https://opentelemetry.io/docs/specs/semconv/general/attribute-naming/
+    /// See https://opentelemetry.io/docs/specs/semconv/general/attribute-naming/.
     /// </remarks>
     private const string AttrOperationName = "ericksonlopez.result.operation.name";
     private const string AttrOutcome = "ericksonlopez.result.outcome";
@@ -103,17 +105,25 @@ public static class ResultActivityExtensions
     /// </summary>
     /// <param name="result">The result to trace.</param>
     /// <param name="operationName">The name of the operation being traced.</param>
-    /// <param name="targetActivity">The activity to record on. Defaults to <see cref="Activity.Current"/> if null.</param>
+    /// <param name="targetActivity">The activity to record on. Defaults to <see cref="Activity.Current"/> if <see langword="null"/>.</param>
     /// <param name="metrics">
     /// Optional <see cref="ResultMetrics"/> instance for recording metrics. When provided, records
     /// success or failure using the instance meter. When <see langword="null"/>, no metrics are recorded.
     /// To use the static (non-DI) meter, call <see cref="ResultMetrics.StaticTrackSuccess"/> /
-    /// <see cref="ResultMetrics.StaticTrackFailure"/> explicitly after this method.
+    /// <see cref="ResultMetrics.StaticTrackFailure"/> explicitly after tracing.
     /// </param>
     /// <returns>The original <paramref name="result"/> instance unchanged.</returns>
     public static Result TraceOutcome(this in Result result, string operationName, Activity? targetActivity = null, ResultMetrics? metrics = null)
     {
         var activity = targetActivity ?? Activity.Current;
+
+        if (result.IsUninitialized)
+        {
+            activity?.SetStatus(ActivityStatusCode.Error, "Result is uninitialized");
+            activity?.SetTag(AttrOperationName, operationName);
+            activity?.SetTag(AttrOutcome, "uninitialized");
+            return result;
+        }
 
         if (result.IsFailure)
         {
@@ -145,7 +155,7 @@ public static class ResultActivityExtensions
     /// </summary>
     /// <param name="result">The result to trace.</param>
     /// <param name="operationName">The name of the operation being traced.</param>
-    /// <param name="targetActivity">The activity to record on. Defaults to <see cref="Activity.Current"/> if null.</param>
+    /// <param name="targetActivity">The activity to record on. Defaults to <see cref="Activity.Current"/> if <see langword="null"/>.</param>
     /// <param name="metrics">
     /// Optional <see cref="ResultMetrics"/> instance for recording metrics. When provided, records
     /// failure using the instance meter. When <see langword="null"/>, <b>no metrics are recorded</b>
@@ -188,7 +198,7 @@ public static class ResultActivityExtensions
     /// </summary>
     /// <param name="result">The result to trace.</param>
     /// <param name="operationName">The name of the operation being traced.</param>
-    /// <param name="targetActivity">The activity to record on. Defaults to <see cref="Activity.Current"/> if null.</param>
+    /// <param name="targetActivity">The activity to record on. Defaults to <see cref="Activity.Current"/> if <see langword="null"/>.</param>
     /// <param name="metrics">
     /// Optional <see cref="ResultMetrics"/> instance for recording metrics. When provided, records
     /// success using the instance meter. When <see langword="null"/>, <b>no metrics are recorded</b>
@@ -234,7 +244,7 @@ public static class ResultActivityExtensions
     /// <typeparam name="T">The value type of the result.</typeparam>
     /// <param name="result">The result to trace.</param>
     /// <param name="operationName">The name of the operation being traced.</param>
-    /// <param name="targetActivity">The activity to record on. Defaults to <see cref="Activity.Current"/> if null.</param>
+    /// <param name="targetActivity">The activity to record on. Defaults to <see cref="Activity.Current"/> if <see langword="null"/>.</param>
     /// <param name="metrics">
     /// Optional <see cref="ResultMetrics"/> instance for recording metrics. When provided, records
     /// success or failure using the instance meter. When <see langword="null"/>, <b>no metrics are recorded</b>
@@ -255,6 +265,14 @@ public static class ResultActivityExtensions
     public static Result<T> TraceOutcome<T>(this in Result<T> result, string operationName, Activity? targetActivity = null, ResultMetrics? metrics = null)
     {
         var activity = targetActivity ?? Activity.Current;
+
+        if (result.IsUninitialized)
+        {
+            activity?.SetStatus(ActivityStatusCode.Error, "Result is uninitialized");
+            activity?.SetTag(AttrOperationName, operationName);
+            activity?.SetTag(AttrOutcome, "uninitialized");
+            return result;
+        }
 
         if (result.IsFailure)
         {
@@ -287,7 +305,7 @@ public static class ResultActivityExtensions
     /// <typeparam name="T">The value type of the result.</typeparam>
     /// <param name="result">The result to trace.</param>
     /// <param name="operationName">The name of the operation being traced.</param>
-    /// <param name="targetActivity">The activity to record on. Defaults to <see cref="Activity.Current"/> if null.</param>
+    /// <param name="targetActivity">The activity to record on. Defaults to <see cref="Activity.Current"/> if <see langword="null"/>.</param>
     /// <param name="metrics">
     /// Optional <see cref="ResultMetrics"/> instance for recording metrics. When provided, records
     /// failure using the instance meter. When <see langword="null"/>, no metrics are recorded.
@@ -318,7 +336,7 @@ public static class ResultActivityExtensions
     /// <typeparam name="T">The value type of the result.</typeparam>
     /// <param name="result">The result to trace.</param>
     /// <param name="operationName">The name of the operation being traced.</param>
-    /// <param name="targetActivity">The activity to record on. Defaults to <see cref="Activity.Current"/> if null.</param>
+    /// <param name="targetActivity">The activity to record on. Defaults to <see cref="Activity.Current"/> if <see langword="null"/>.</param>
     /// <param name="metrics">
     /// Optional <see cref="ResultMetrics"/> instance for recording metrics. When provided, records
     /// success using the instance meter. When <see langword="null"/>, no metrics are recorded.
@@ -344,6 +362,8 @@ public static class ResultActivityExtensions
     /// Returns the OTel <c>error.type</c>-compatible string for an <see cref="ErrorType"/>.
     /// Follows the naming convention where error types are lowercase dot-separated strings.
     /// </summary>
+    /// <param name="type">The error type value to convert.</param>
+    /// <returns>The OpenTelemetry semantic convention string representation of <paramref name="type"/>.</returns>
     internal static string ErrorTypeToOTelString(ErrorType type)
         => ErrorEnumStrings.ErrorTypeToOTelString(type);
 

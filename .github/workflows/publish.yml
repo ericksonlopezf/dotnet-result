@@ -65,12 +65,13 @@ jobs:
     needs: mutation-gate-check
     if: needs.mutation-gate-check.outputs.needs_stryker == 'true'
     permissions:
-      contents: read
+      contents: write
       statuses: write
       actions: read
     uses: ./.github/workflows/mutation-testing.yml
     with:
       mutation-level: "Standard"
+      run-all: true
 
   # ─── Job 3: Publish to NuGet (Strict Quality Gate Required) ────────────────
   publish:
@@ -160,7 +161,7 @@ jobs:
             -- DataCollectionRunSettings.DataCollectors.DataCollector.Configuration.Format=opencover
 
       - name: Upload coverage to Codecov (publish gate)
-        uses: codecov/codecov-action@v5
+        uses: codecov/codecov-action@0fb7174895f61a3b6b78fc075e0cd60383518dac # v5.5.5
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
           files: "**/coverage.opencover.xml"
@@ -187,6 +188,12 @@ jobs:
           dotnet pack src/EricksonLopez.Result.Testing.XUnit/EricksonLopez.Result.Testing.XUnit.csproj $PACK_ARGS
           dotnet pack src/EricksonLopez.Result.Testing.NUnit/EricksonLopez.Result.Testing.NUnit.csproj $PACK_ARGS
           dotnet pack src/EricksonLopez.Result.Analyzers/EricksonLopez.Result.Analyzers.csproj $PACK_ARGS
+          dotnet pack src/EricksonLopez.Result.DomainErrors.Generators/EricksonLopez.Result.DomainErrors.Generators.csproj $PACK_ARGS
+          dotnet pack src/EricksonLopez.Result.EntityFrameworkCore/EricksonLopez.Result.EntityFrameworkCore.csproj $PACK_ARGS
+          dotnet pack src/EricksonLopez.Result.Polly/EricksonLopez.Result.Polly.csproj $PACK_ARGS
+          dotnet pack src/EricksonLopez.Result.MassTransit/EricksonLopez.Result.MassTransit.csproj $PACK_ARGS
+          dotnet pack src/EricksonLopez.Result.Dapr/EricksonLopez.Result.Dapr.csproj $PACK_ARGS
+          dotnet pack src/EricksonLopez.Result.Grpc/EricksonLopez.Result.Grpc.csproj $PACK_ARGS
           echo "Packed packages:"
           ls -la ./nupkgs/
 
@@ -195,7 +202,7 @@ jobs:
       # using Sigstore's keyless signing via GitHub's OIDC token. The attestation
       # proves that the packages were built from THIS repository's workflow and not
       # tampered with after the build. Consumers can verify via:
-      #   gh attestation verify <package.nupkg> --repo ericksonlopez/dotnet-result
+      #   gh attestation verify <package.nupkg> --repo ericksonlopezf/dotnet-result
       #
       # Why v2: attest-build-provenance@v2 uses the SLSA v1.0 predicate format
       # (vs v0.2 in v1), which is the current standard for SLSA Build L2/L3
@@ -210,7 +217,7 @@ jobs:
       # The NuGet/login action exchanges GitHub's OIDC token for a short-lived
       # NuGet API token scoped to this specific repository and workflow.
       - name: NuGet login (OIDC)
-        uses: NuGet/login@v1
+        uses: NuGet/login@8d196754b4036150537f80ac539e15c2f1028841 # v1.2.0
         id: login
         with:
           user: ericksonlopezf
@@ -228,7 +235,7 @@ jobs:
       # created by release-please-action — this step is skipped.
       - name: Create GitHub Release (tag-triggered only)
         if: startsWith(github.ref, 'refs/tags/')
-        uses: softprops/action-gh-release@v2
+        uses: softprops/action-gh-release@3bb12739c298aeb8a4eeaf626c5b8d85266b0e65 # v2.6.2
         with:
           tag_name: v${{ steps.version.outputs.VERSION }}
           name: Release ${{ steps.version.outputs.VERSION }}
@@ -252,6 +259,12 @@ jobs:
             | `EricksonLopez.Result.Testing.XUnit` | `${{ steps.version.outputs.VERSION }}` |
             | `EricksonLopez.Result.Testing.NUnit` | `${{ steps.version.outputs.VERSION }}` |
             | `EricksonLopez.Result.Analyzers` | `${{ steps.version.outputs.VERSION }}` |
+            | `EricksonLopez.Result.DomainErrors.Generators` | `${{ steps.version.outputs.VERSION }}` |
+            | `EricksonLopez.Result.EntityFrameworkCore` | `${{ steps.version.outputs.VERSION }}` |
+            | `EricksonLopez.Result.Polly` | `${{ steps.version.outputs.VERSION }}` |
+            | `EricksonLopez.Result.MassTransit` | `${{ steps.version.outputs.VERSION }}` |
+            | `EricksonLopez.Result.Dapr` | `${{ steps.version.outputs.VERSION }}` |
+            | `EricksonLopez.Result.Grpc` | `${{ steps.version.outputs.VERSION }}` |
 
             ---
 
@@ -267,12 +280,19 @@ jobs:
             dotnet add package EricksonLopez.Result.AspNetCore --version ${{ steps.version.outputs.VERSION }}
             dotnet add package EricksonLopez.Result.OpenTelemetry --version ${{ steps.version.outputs.VERSION }}
             dotnet add package EricksonLopez.Result.Serialization --version ${{ steps.version.outputs.VERSION }}
+            dotnet add package EricksonLopez.Result.Serialization.Generators --version ${{ steps.version.outputs.VERSION }}
             dotnet add package EricksonLopez.Result.FluentValidation --version ${{ steps.version.outputs.VERSION }}
             dotnet add package EricksonLopez.Result.MediatR --version ${{ steps.version.outputs.VERSION }}
+            dotnet add package EricksonLopez.Result.EntityFrameworkCore --version ${{ steps.version.outputs.VERSION }}
+            dotnet add package EricksonLopez.Result.Polly --version ${{ steps.version.outputs.VERSION }}
+            dotnet add package EricksonLopez.Result.MassTransit --version ${{ steps.version.outputs.VERSION }}
+            dotnet add package EricksonLopez.Result.Dapr --version ${{ steps.version.outputs.VERSION }}
+            dotnet add package EricksonLopez.Result.Grpc --version ${{ steps.version.outputs.VERSION }}
             dotnet add package EricksonLopez.Result.Testing --version ${{ steps.version.outputs.VERSION }}
             dotnet add package EricksonLopez.Result.Testing.XUnit --version ${{ steps.version.outputs.VERSION }}
             dotnet add package EricksonLopez.Result.Testing.NUnit --version ${{ steps.version.outputs.VERSION }}
             dotnet add package EricksonLopez.Result.Analyzers --version ${{ steps.version.outputs.VERSION }}
+            dotnet add package EricksonLopez.Result.DomainErrors.Generators --version ${{ steps.version.outputs.VERSION }}
             ```
           files: ./nupkgs/*.nupkg
           draft: false

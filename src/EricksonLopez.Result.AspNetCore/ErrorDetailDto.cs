@@ -5,7 +5,7 @@ using EricksonLopez.Result;
 namespace EricksonLopez.Result.AspNetCore;
 
 /// <summary>
-/// DTO representing an error detail for ProblemDetails payload (NativeAOT compliant).
+/// Represents an error detail for ProblemDetails payload (NativeAOT compliant).
 /// Enum values are serialized as stable string constants to avoid naming instability across versions.
 /// </summary>
 /// <param name="Code">The application-specific error code.</param>
@@ -17,7 +17,7 @@ namespace EricksonLopez.Result.AspNetCore;
 /// <param name="TraceId">The optional OpenTelemetry trace identifier, or <see langword="null"/> if not set.</param>
 /// <remarks>
 /// <para>
-/// This struct is registered in <see cref="AspNetCoreJsonSerializerContext"/> for AOT-safe serialization.
+/// Registered in <see cref="AspNetCoreJsonSerializerContext"/> for AOT-safe serialization.
 /// It is used internally to populate the <c>errors</c> array in RFC 9457 ProblemDetails extensions.
 /// </para>
 /// <para>

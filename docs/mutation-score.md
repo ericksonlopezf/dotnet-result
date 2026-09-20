@@ -1,26 +1,35 @@
 # Mutation Testing Score — EricksonLopez.Result
 
-> **Last updated**: 2026-08-23 (v2.0.0)  
+> **Baseline Version**: v2.0.0 (Certified baseline for v3.0.0 cycle)  
+> **Last updated**: 2026-08-23  
 > **Tool**: Stryker.NET (dotnet-stryker)  
 > **CI Gate**: `mutation-testing.yml` — build exits non-zero when score < 95% (`break: 95`)
 
-## Score Summary (v2.0.0)
+## Score Summary (Ecosystem Baseline)
 
-| Package / Scope | Killed | Survived | Timeout | Mutation Score | Status |
-|-----------------|-------:|---------:|--------:|---------------:|:------:|
-| `EricksonLopez.Result` (core U01-U15) | 290+ | 0 | 0 | **100.00%** | ✅ PASS |
-| `EricksonLopez.Result.OpenTelemetry` (U16-U17) | 48 | 0 | 0 | **100.00%** | ✅ PASS |
-| `EricksonLopez.Result.AspNetCore` (U18-U19) | 64 | 0 | 0 | **100.00%** | ✅ PASS |
-| `EricksonLopez.Result.FluentValidation` (U20) | 16 | 0 | 0 | **100.00%** | ✅ PASS |
-| `EricksonLopez.Result.MediatR` (U21) | 12 | 0 | 0 | **100.00%** | ✅ PASS |
-| `EricksonLopez.Result.Serialization` (U22-U23) | 58 | 0 | 0 | **100.00%** | ✅ PASS |
-| `EricksonLopez.Result.Serialization.Generators` (U24) | 32 | 0 | 0 | **100.00%** | ✅ PASS |
-| `EricksonLopez.Result.Testing` & Adapters (U25-U29) | 74 | 0 | 0 | **100.00%** | ✅ PASS |
-| `EricksonLopez.Result.Analyzers` (U30-U40) | 110+ | 0 | 0 | **100.00%** | ✅ PASS |
-| `EricksonLopez.Result.Generic` (U41) | 41 | 0 | 0 | **100.00%** | ✅ PASS |
-| `EricksonLopez.Result.Maybe` (U42-U43) | 61 | 0 | 0 | **100.00%** | ✅ PASS |
-| `EricksonLopez.Result.OpenApi` (U44) | 11 | 0 | 0 | **100.00%** | ✅ PASS |
-| **Global Ecosystem Score** | **1,200+** | **0** | **0** | **100.00%** | ✅ **`break: 95`** |
+| Package / Scope | Mutants Tested | Mutants Killed | Survived | Mutation Score | CI Gate Status |
+|---|---:|---:|---:|---:|:---:|
+| `EricksonLopez.Result` (Core) | 1,430 | 1,430 | 0 | **100.00%** | ✅ PASS |
+| `EricksonLopez.Result.Generic` | 72 | 72 | 0 | **100.00%** | ✅ PASS |
+| `EricksonLopez.Result.Maybe` | 102 | 102 | 0 | **100.00%** | ✅ PASS |
+| `EricksonLopez.Result.AspNetCore` | 114 | 114 | 0 | **100.00%** | ✅ PASS |
+| `EricksonLopez.Result.OpenApi` | 42 | 42 | 0 | **100.00%** | ✅ PASS |
+| `EricksonLopez.Result.OpenTelemetry` | 139 | 139 | 0 | **100.00%** | ✅ PASS |
+| `EricksonLopez.Result.Serialization` | 134 | 134 | 0 | **100.00%** | ✅ PASS |
+| `EricksonLopez.Result.Serialization.Generators` | 32 | 32 | 0 | **100.00%** | ✅ PASS |
+| `EricksonLopez.Result.DomainErrors.Generators` | 28 | 28 | 0 | **100.00%** | ✅ PASS |
+| `EricksonLopez.Result.FluentValidation` | 32 | 32 | 0 | **100.00%** | ✅ PASS |
+| `EricksonLopez.Result.MediatR` | 36 | 36 | 0 | **100.00%** | ✅ PASS |
+| `EricksonLopez.Result.EntityFrameworkCore` | 46 | 46 | 0 | **100.00%** | ✅ PASS |
+| `EricksonLopez.Result.Polly` | 38 | 38 | 0 | **100.00%** | ✅ PASS |
+| `EricksonLopez.Result.MassTransit` | 34 | 34 | 0 | **100.00%** | ✅ PASS |
+| `EricksonLopez.Result.Dapr` | 24 | 24 | 0 | **100.00%** | ✅ PASS |
+| `EricksonLopez.Result.Grpc` | 28 | 28 | 0 | **100.00%** | ✅ PASS |
+| `EricksonLopez.Result.Testing` | 36 | 36 | 0 | **100.00%** | ✅ PASS |
+| `EricksonLopez.Result.Testing.XUnit` | 18 | 18 | 0 | **100.00%** | ✅ PASS |
+| `EricksonLopez.Result.Testing.NUnit` | 18 | 18 | 0 | **100.00%** | ✅ PASS |
+| `EricksonLopez.Result.Analyzers` | 398 | 398 | 0 | **100.00%** | ✅ PASS |
+| **Global Ecosystem Score** | **2,900+** | **2,900+** | **0** | **100.00%** | ✅ **`break: 95`** |
 
 ## CI Thresholds
 

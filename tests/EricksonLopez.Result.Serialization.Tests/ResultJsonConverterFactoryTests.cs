@@ -1,6 +1,4 @@
 // Copyright © Erickson Lopez. MIT License.
-#pragma warning disable CS0619 // Intentionally testing the reflection-based constructor (Obsolete error:true)
-#pragma warning disable CS0618
 using System;
 using System.Text.Json;
 using AwesomeAssertions;

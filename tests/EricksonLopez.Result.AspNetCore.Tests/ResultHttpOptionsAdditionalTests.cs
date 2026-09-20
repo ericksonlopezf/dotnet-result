@@ -93,12 +93,16 @@ public class ResultHttpOptionsAdditionalTests
         foreach (ErrorType type in Enum.GetValues<ErrorType>())
         {
             var result = Result.Failure(Error.Create("C", "D").WithType(type).Build());
-            result.ToProblemDetails(options);
+            var pd = result.ToProblemDetails(options);
+            pd.Should().NotBeNull();
+            ((Microsoft.AspNetCore.Http.HttpResults.ProblemHttpResult)pd).ProblemDetails.Title.Should().NotBeNullOrWhiteSpace();
         }
 
         var options2 = new ResultHttpOptions { TypeUriBase = "https://example.com/" };
         options2.ConfigureStatusCode(ErrorType.Failure, 500);
-        Result.Failure(Error.Failure("C", "D")).ToProblemDetails(options2);
+        var pd2 = Result.Failure(Error.Failure("C", "D")).ToProblemDetails(options2);
+        pd2.Should().NotBeNull();
+        ((Microsoft.AspNetCore.Http.HttpResults.ProblemHttpResult)pd2).StatusCode.Should().Be(500);
     }
 
     [Fact]

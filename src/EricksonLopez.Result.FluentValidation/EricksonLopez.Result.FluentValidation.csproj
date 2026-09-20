@@ -9,14 +9,12 @@
     <PackageId>EricksonLopez.Result.FluentValidation</PackageId>
     <Authors>Erickson Lopez</Authors>
     <Company>Erickson Lopez</Company>
-    <Copyright>Copyright © 2026 Erickson Lopez</Copyright>
     <Description>FluentValidation integration for EricksonLopez.Result. Converts FluentValidation.ValidationResult to Result failures with structured error metadata.</Description>
     <PackageProjectUrl>https://ericksonlopez.dev/result</PackageProjectUrl>
     <RepositoryUrl>https://github.com/ericksonlopezf/dotnet-result</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
-    <PackageTags>$(CommonPackageTags);fluentvalidation;fluent-validation;validation;input-validation;domain-validation;native-aot</PackageTags>
-    <ImplicitUsings>disable</ImplicitUsings>
+    <PackageTags>$(CommonPackageTags);result;fluentvalidation;validation;native-aot</PackageTags>
     <Nullable>enable</Nullable>
     <IsAotCompatible>true</IsAotCompatible>
     <EnableTrimAnalyzer>true</EnableTrimAnalyzer>

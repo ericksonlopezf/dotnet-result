@@ -10,7 +10,7 @@ using Microsoft.CodeAnalysis.Operations;
 namespace EricksonLopez.Result.Analyzers;
 
 /// <summary>
-/// Roslyn diagnostic analyzer that warns when <c>Result&lt;T&gt;</c> is used with a struct type
+/// Represents a Roslyn diagnostic analyzer that warns when <c>Result&lt;T&gt;</c> is used with a struct type
 /// whose estimated size exceeds 64 bytes. Large structs cause excessive copying on every
 /// pipeline operation (Map, Bind, Tap, etc.) because <c>Result&lt;T&gt;</c> is a readonly struct
 /// that copies by value.
@@ -22,7 +22,7 @@ namespace EricksonLopez.Result.Analyzers;
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
 public sealed class LargeResultValueAnalyzer : DiagnosticAnalyzer
 {
-    /// <summary>The diagnostic identifier for this analyzer rule.</summary>
+    /// <summary>Gets the diagnostic identifier for this analyzer rule.</summary>
     public const string DiagnosticId = "RESULT001";
 
     // The .NET Runtime Team recommends pass-by-value structs be at most ~16 bytes for optimal
@@ -113,6 +113,8 @@ public sealed class LargeResultValueAnalyzer : DiagnosticAnalyzer
     /// Accounts for padding between fields based on natural alignment rules.
     /// This is a conservative heuristic that approximates the CLR's actual layout.
     /// </summary>
+    /// <param name="namedType">The struct type symbol whose memory layout size to estimate.</param>
+    /// <returns>The estimated size in bytes of the struct.</returns>
     private static int EstimateStructSize(INamedTypeSymbol namedType)
     {
         int currentOffset = 0;

@@ -1,5 +1,11 @@
 # ADR-011: Roslyn Diagnostic Analyzers Package
 
+## Status
+Accepted
+
+## Date
+2026-07-28
+
 - **Status**: Accepted
 - **Date**: 2026-07-28
 - **Authors**: Erickson Lopez

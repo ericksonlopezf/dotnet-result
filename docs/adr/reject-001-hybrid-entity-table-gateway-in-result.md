@@ -1,4 +1,11 @@
 # Architectural Decision Record: REJECT-001
+
+## Status
+Rejected
+
+## Date
+2026-09-04
+
 ## Rejection of Hybrid Entity / Data Gateway Mutations in Result Types
 
 ### Status

@@ -6,7 +6,7 @@ using Xunit.Sdk;
 namespace EricksonLopez.Result.Testing.XUnit;
 
 /// <summary>
-/// Exception thrown when a Result assertion fails, using xUnit's <see cref="XunitException"/>
+/// Represents an exception thrown when a Result assertion fails, using xUnit's <see cref="XunitException"/>
 /// as the base class so that failures appear as <b>Failure</b> (not <b>Error</b>) in xUnit's
 /// test output — producing clean assertion messages without unnecessary stack trace noise.
 /// </summary>
@@ -29,7 +29,7 @@ namespace EricksonLopez.Result.Testing.XUnit;
 /// exception in custom assertion helpers.
 /// </para>
 /// <para>
-/// <b>Framework independence</b>: This class is in a separate package so that
+/// <b>Framework independence</b>: Kept in a separate package so that
 /// <c>EricksonLopez.Result.Testing</c> remains framework-agnostic (no xUnit dependency).
 /// NUnit and MSTest users should use <c>EricksonLopez.Result.Testing</c> directly.
 /// </para>
@@ -37,7 +37,7 @@ namespace EricksonLopez.Result.Testing.XUnit;
 public sealed class ResultAssertionXUnitException : XunitException
 {
     /// <summary>
-    /// Initializes a new instance of <see cref="ResultAssertionXUnitException"/> with no message.
+    /// Initializes a new instance of the <see cref="ResultAssertionXUnitException"/> class with a default message.
     /// </summary>
     public ResultAssertionXUnitException()
         : base("A Result assertion failed.")
@@ -45,7 +45,7 @@ public sealed class ResultAssertionXUnitException : XunitException
     }
 
     /// <summary>
-    /// Initializes a new instance of <see cref="ResultAssertionXUnitException"/> with a message.
+    /// Initializes a new instance of the <see cref="ResultAssertionXUnitException"/> class with a specified error message.
     /// </summary>
     /// <param name="message">The error message that explains the assertion failure.</param>
     public ResultAssertionXUnitException(string message)
@@ -54,7 +54,7 @@ public sealed class ResultAssertionXUnitException : XunitException
     }
 
     /// <summary>
-    /// Initializes a new instance of <see cref="ResultAssertionXUnitException"/> from an existing
+    /// Initializes a new instance of the <see cref="ResultAssertionXUnitException"/> class from an existing
     /// <see cref="ResultAssertionException"/>, preserving the original message.
     /// </summary>
     /// <param name="inner">The framework-agnostic assertion exception to wrap.</param>

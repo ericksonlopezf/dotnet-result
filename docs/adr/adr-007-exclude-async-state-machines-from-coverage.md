@@ -3,6 +3,9 @@
 ## Status
 Accepted
 
+## Date
+2026-09-04
+
 ## Context
 During the process of standardizing and auditing the quality of the `EricksonLopez.Result` package, a non-negotiable goal of 100% code coverage (lines and branches) was established.
 The package provides a rich interface of asynchronous extensions for `Task` and `ValueTask`. Many of these extensions use `static async` local functions (e.g., `BindCore`, `MapCore`) to encapsulate the asynchronous state machines (the "slow path").

@@ -10,7 +10,7 @@ using Microsoft.CodeAnalysis.Operations;
 namespace EricksonLopez.Result.Analyzers;
 
 /// <summary>
-/// Roslyn diagnostic analyzer that warns when the return value of
+/// Represents a Roslyn diagnostic analyzer that warns when the return value of
 /// <c>ErrorBuilder.With*()</c> methods is discarded.
 /// </summary>
 /// <remarks>
@@ -33,7 +33,7 @@ namespace EricksonLopez.Result.Analyzers;
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
 public sealed class ErrorBuilderDiscardedReturnAnalyzer : DiagnosticAnalyzer
 {
-    /// <summary>The diagnostic identifier for this analyzer rule.</summary>
+    /// <summary>Gets the diagnostic identifier for this analyzer rule.</summary>
     public const string DiagnosticId = "RESULT003";
 
     private const string ErrorBuilderFullName = "EricksonLopez.Result.ErrorBuilder";

@@ -9,13 +9,13 @@ using Microsoft.CodeAnalysis.Operations;
 namespace EricksonLopez.Result.Analyzers;
 
 /// <summary>
-/// Roslyn diagnostic analyzer that warns when <c>AddResultEndpointFilter()</c> is called
+/// Represents a Roslyn diagnostic analyzer that warns when <c>AddResultEndpointFilter()</c> is called
 /// without a corresponding <c>.Produces&lt;T&gt;()</c> call in the fluent chain.
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
 public sealed class EndpointFilterOpenApiAnalyzer : DiagnosticAnalyzer
 {
-    /// <summary>The diagnostic identifier for this analyzer rule.</summary>
+    /// <summary>Gets the diagnostic identifier for this analyzer rule.</summary>
     public const string DiagnosticId = "RESULT008";
 
     private static readonly DiagnosticDescriptor Rule = new(

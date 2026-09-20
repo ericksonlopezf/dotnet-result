@@ -1,5 +1,11 @@
 # ADR-021: Roslyn Diagnostic Analyzer Documentation and HelpLinkUri Strategy
 
+## Status
+Accepted
+
+## Date
+2026-08-23
+
 - **Status**: Accepted
 - **Date**: 2026-08-23
 - **Authors**: Erickson Lopez

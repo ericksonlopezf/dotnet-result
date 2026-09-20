@@ -37,11 +37,13 @@ env:
 
 jobs:
   aot-smoke-test:
-    name: NativeAOT Smoke Test
-    # linux-latest is the fastest and cheapest runner for NativeAOT cross-compilation.
-    # NativeAOT on Linux requires the native linker (lld is pre-installed on ubuntu-latest).
+    name: NativeAOT Smoke Test (${{ matrix.tfm }})
     runs-on: ubuntu-latest
     timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        tfm: [ net8.0, net10.0 ]
 
     steps:
       - name: Checkout
@@ -50,9 +52,9 @@ jobs:
       - name: Setup .NET
         uses: actions/setup-dotnet@v4
         with:
-          # Use .NET 8 SDK (LTS) to match the smoke test's net8.0 TargetFramework.
-          # net8.0 has full NativeAOT support and the longest support window.
-          dotnet-version: "8.0.x"
+          dotnet-version: |
+            8.0.x
+            10.0.x
 
       - name: Restore Strong Name key
         env:
@@ -63,7 +65,7 @@ jobs:
           fi
 
       - name: Install NativeAOT prerequisites (clang, lld, zlib)
-        # Required by the .NET 8 ILC toolchain for NativeAOT on Linux.
+        # Required by the .NET ILC toolchain for NativeAOT on Linux.
         # ubuntu-latest already ships clang; install lld and zlib-dev for AOT linking.
         run: |
           sudo apt-get update -qq
@@ -79,10 +81,11 @@ jobs:
       # TreatWarningsAsErrors=true ensures that any IL2026 / IL3050 warning
       # from the ILC trimmer is treated as a hard build error — not just a hint.
       # This is the primary validation gate for NativeAOT compatibility.
-      - name: Publish AotSmokeTest (NativeAOT)
+      - name: Publish AotSmokeTest (NativeAOT - ${{ matrix.tfm }})
         run: >
           dotnet publish
           tests/EricksonLopez.Result.AotSmokeTest/EricksonLopez.Result.AotSmokeTest.csproj
+          --framework ${{ matrix.tfm }}
           --configuration Release
           --runtime linux-x64
           --self-contained
@@ -90,10 +93,6 @@ jobs:
           -p:TreatWarningsAsErrors=true
           -p:WarningLevel=5
           --output ./aot-output
-        env:
-          # Tell the ILC linker to fail on any trimming / AOT warning.
-          # IL2026 = RequiresUnreferencedCode, IL3050 = RequiresDynamicCode
-          DOTNET_EnableAotCompilationWarningsAsErrors: true
 
       # ─── Run the native binary ───────────────────────────────────────────
       # Verifies the published binary executes correctly with the expected
@@ -110,6 +109,6 @@ jobs:
         if: failure()
         uses: actions/upload-artifact@v4
         with:
-          name: aot-output-${{ github.run_id }}
+          name: aot-output-${{ matrix.tfm }}-${{ github.run_id }}
           path: ./aot-output/
           retention-days: 7

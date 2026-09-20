@@ -7,7 +7,7 @@ using EricksonLopez.Result.Testing;
 namespace EricksonLopez.Result.Testing.XUnit;
 
 /// <summary>
-/// Configuration entry point for integrating <see cref="ResultAssertions"/> with xUnit v2 and v3.
+/// Provides configuration entry points for integrating <see cref="ResultAssertions"/> with xUnit v2 and v3.
 /// </summary>
 /// <remarks>
 /// <para>
@@ -58,7 +58,7 @@ public static class ResultXUnitAssertionConfig
     /// instead of the default <see cref="ResultAssertionException"/>. Safe to call multiple times.
     /// </summary>
     /// <remarks>
-    /// This method is called automatically via <see cref="AutoConfigure"/> when the assembly loads.
+    /// Called automatically via <see cref="AutoConfigure"/> when the assembly loads.
     /// You only need to call this explicitly if you have called <see cref="Reset"/> and want to
     /// re-enable xUnit exception mode.
     /// <para>

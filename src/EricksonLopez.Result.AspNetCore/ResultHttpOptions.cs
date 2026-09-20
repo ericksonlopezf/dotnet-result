@@ -11,7 +11,7 @@ using Microsoft.AspNetCore.Http;
 namespace EricksonLopez.Result.AspNetCore;
 
 /// <summary>
-/// Configurable options for HTTP mapping of Result error types to HTTP Status Codes and ProblemDetails parameters.
+/// Represents configurable options for HTTP mapping of Result error types to HTTP Status Codes and ProblemDetails parameters.
 /// </summary>
 /// <remarks>
 /// <para>
@@ -98,11 +98,9 @@ public sealed class ResultHttpOptions
     /// <param name="type">The error type to configure.</param>
     /// <param name="statusCode">The HTTP status code to map to.</param>
     /// <returns>This instance for method chaining.</returns>
-    /// <exception cref="InvalidOperationException">
-    /// Thrown when called after the first request has been processed (options are frozen).
-    /// </exception>
+    /// <exception cref="InvalidOperationException">The method is called after the first request has been processed (options are frozen)</exception>
     /// <remarks>
-    /// Thread safety: this method acquires the internal freeze lock to be mutually exclusive with
+    /// <b>Thread safety:</b> Acquires the internal freeze lock to be mutually exclusive with
     /// <see cref="GetFrozenStatusCodeMap"/>. This prevents a TOCTOU race where a frozen snapshot
     /// could be captured between the guard check and the dictionary write.
     /// Configure all options before the first request; concurrent configuration is not supported.
@@ -143,10 +141,10 @@ public sealed class ResultHttpOptions
     private string _defaultFallbackDescription = "An error occurred.";
 
     /// <summary>
-    /// Default HTTP status code returned for successful non-generic Result instances.
+    /// Gets or sets the default HTTP status code returned for successful non-generic Result instances.
     /// Defaults to <see cref="StatusCodes.Status204NoContent"/> for command-style operations.
-    /// Must be configured before the first request — throws <see cref="InvalidOperationException"/> if set after freeze.
     /// </summary>
+    /// <exception cref="InvalidOperationException">The property is set after the first request has been processed (options are frozen)</exception>
     public int DefaultSuccessStatusCode
     {
         get => _defaultSuccessStatusCode;
@@ -158,12 +156,12 @@ public sealed class ResultHttpOptions
     }
 
     /// <summary>
-    /// Gets or sets whether to include <c>traceId</c> in ProblemDetails error extensions.
+    /// Gets or sets a value indicating whether to include <c>traceId</c> in ProblemDetails error extensions.
     /// Defaults to <see langword="false"/> to avoid exposing distributed trace identifiers
     /// to external clients, which can aid in correlating attacks or revealing infrastructure details.
     /// Set to <see langword="true"/> when building internal APIs where trace correlation is valuable.
-    /// Must be configured before the first request — throws <see cref="InvalidOperationException"/> if set after freeze.
     /// </summary>
+    /// <exception cref="InvalidOperationException">The property is set after the first request has been processed (options are frozen)</exception>
     /// <remarks>
     /// When <see langword="false"/>, the <c>traceId</c> field is omitted from <c>ErrorDetailDto</c>
     /// in the ProblemDetails extensions. The trace ID is still captured and available via
@@ -180,10 +178,10 @@ public sealed class ResultHttpOptions
     }
 
     /// <summary>
-    /// Gets or sets whether to include the full <c>description</c> in ProblemDetails error extensions.
+    /// Gets or sets a value indicating whether to include the full <c>description</c> in ProblemDetails error extensions.
     /// Defaults to <see langword="false"/> for secure-by-default behavior.
-    /// Must be configured before the first request — throws <see cref="InvalidOperationException"/> if set after freeze.
     /// </summary>
+    /// <exception cref="InvalidOperationException">The property is set after the first request has been processed (options are frozen)</exception>
     /// <remarks>
     /// <para>
     /// <b>⚠ Security warning:</b> Error descriptions may contain sensitive infrastructure details
@@ -221,8 +219,8 @@ public sealed class ResultHttpOptions
     /// <summary>
     /// Gets or sets the generic description used in ProblemDetails when <see cref="IncludeDescription"/>
     /// is <see langword="false"/> (the secure default). Defaults to <c>"An error occurred."</c>.
-    /// Must be configured before the first request — throws <see cref="InvalidOperationException"/> if set after freeze.
     /// </summary>
+    /// <exception cref="InvalidOperationException">The property is set after the first request has been processed (options are frozen)</exception>
     /// <remarks>
     /// Override this to customise the fallback message for branding, internationalisation,
     /// or security policy requirements. For example:
@@ -243,10 +241,12 @@ public sealed class ResultHttpOptions
 
     /// <summary>
     /// Enables <see cref="IncludeDescription"/> when the application is running in the development
-    /// environment, and leaves it disabled (the default) in all other environments.
+    /// environment, and leaves it disabled in all other environments.
     /// </summary>
     /// <param name="environment">The current <see cref="Microsoft.Extensions.Hosting.IHostEnvironment"/>.</param>
     /// <returns>This <see cref="ResultHttpOptions"/> instance for fluent chaining.</returns>
+    /// <exception cref="ArgumentNullException"><paramref name="environment"/> is <see langword="null"/></exception>
+    /// <exception cref="InvalidOperationException">The method is called after the first request has been processed (options are frozen)</exception>
     /// <remarks>
     /// This is a convenience method to apply the recommended pattern for description exposure:
     /// show descriptions in development for faster debugging, hide them in staging/production
@@ -297,9 +297,7 @@ public sealed class ResultHttpOptions
     /// <param name="type">The error type to override the title for.</param>
     /// <param name="title">The custom title to use in ProblemDetails.</param>
     /// <returns>This instance for fluent chaining.</returns>
-    /// <exception cref="InvalidOperationException">
-    /// Thrown when called after the first request has been processed (options are frozen).
-    /// </exception>
+    /// <exception cref="InvalidOperationException">The method is called after the first request has been processed (options are frozen)</exception>
     /// <remarks>
     /// <code>
     /// options.ConfigureTitleOverride(ErrorType.Custom, "Payment Error")
@@ -333,9 +331,9 @@ public sealed class ResultHttpOptions
     private string _typeUriBase = "about:blank";
 
     /// <summary>
-    /// Default base URI format for RFC 9457 problem details types.
-    /// Must be configured before the first request — throws <see cref="InvalidOperationException"/> if set after freeze.
+    /// Gets or sets the default base URI format for RFC 9457 problem details types.
     /// </summary>
+    /// <exception cref="InvalidOperationException">The property is set after the first request has been processed (options are frozen)</exception>
     /// <remarks>
     /// <para>
     /// RFC 9457 §4.2.1 recommends <c>"about:blank"</c> as the <c>type</c> URI when there is no
@@ -378,6 +376,7 @@ public sealed class ResultHttpOptions
     /// snapshot is taken so that any concurrent <see cref="ConfigureStatusCode"/> call that passes the
     /// guard will throw rather than mutate the underlying dictionary after the snapshot has been captured.
     /// </remarks>
+    /// <returns>A frozen dictionary mapping each error type to its configured HTTP status code.</returns>
     [System.Diagnostics.CodeAnalysis.SuppressMessage("Major Bug", "S2583:Change this condition so that it does not always evaluate to 'False'", Justification = "Double-checked locking pattern requires re-checking volatile field inside lock")]
     internal FrozenDictionary<ErrorType, int> GetFrozenStatusCodeMap()
     {
@@ -419,12 +418,15 @@ public sealed class ResultHttpOptions
     /// Gets the frozen (lock-free) snapshot of <see cref="TitleOverrides"/> for use on the hot path.
     /// Returns <see langword="null"/> before the first request (before freeze).
     /// </summary>
+    /// <returns>A frozen dictionary of configured title overrides, or <see langword="null"/> if not yet frozen.</returns>
     internal FrozenDictionary<ErrorType, string>? GetFrozenTitleOverrides() => _frozenTitleOverrides;
 
     /// <summary>
     /// Returns the title override for the specified <see cref="ErrorType"/>, or <see langword="null"/>
     /// if no override is configured for that type. Thread-safe in both pre-freeze and post-freeze states.
     /// </summary>
+    /// <param name="type">The error type to retrieve the override for.</param>
+    /// <returns>The configured title override, or <see langword="null"/> if none exists.</returns>
     /// <remarks>
     /// Post-freeze: uses the lock-free <see cref="_frozenTitleOverrides"/> snapshot.
     /// Pre-freeze: acquires <see cref="_freezeLock"/> to safely read from the mutable
@@ -457,10 +459,11 @@ public sealed class ResultHttpOptions
     /// For internal test observation of the race condition logic, internal callers can check
     /// whether the snapshot is currently initialized.
     /// </summary>
+    /// <returns>The current internal frozen map instance, or <see langword="null"/> if not yet initialized.</returns>
     internal FrozenDictionary<ErrorType, int>? GetInternalFrozenStatusCodeMap() => _frozenStatusCodeMap;
 
     /// <summary>
-    /// Returns whether the options have already been frozen (i.e., first request was processed).
+    /// Gets a value indicating whether the options have already been frozen (i.e., first request was processed).
     /// </summary>
     /// <remarks>
     /// This property reflects internal lifecycle state. It is <c>internal</c> to avoid

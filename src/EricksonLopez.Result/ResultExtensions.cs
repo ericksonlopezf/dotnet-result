@@ -19,11 +19,20 @@ public static partial class ResultExtensions
     /// <summary>
     /// Transforms the value of the asynchronous result using the specified mapping function on success.
     /// </summary>
+    /// <typeparam name="T">The type of the source result value.</typeparam>
+    /// <typeparam name="TNext">The type of the transformed value.</typeparam>
+    /// <param name="resultTask">The task containing the source result.</param>
+    /// <param name="mapper">The mapping function applied to the success value.</param>
+    /// <param name="cancellationToken">A token that can be used to cancel the asynchronous operation.</param>
+    /// <returns>A task representing the asynchronous operation. The task result contains a <see cref="Result{TNext}"/> with the mapped value on success, or the original failure.</returns>
     public static Task<Result<TNext>> Map<T, TNext>(
         this Task<Result<T>> resultTask, Func<T, TNext> mapper, CancellationToken cancellationToken = default)
     {
         if (resultTask.IsCompletedSuccessfully)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
             return Task.FromResult(resultTask.Result.Map(mapper));
+        }
         return MapCore(resultTask, mapper, cancellationToken);
         static async Task<Result<TNext>> MapCore(Task<Result<T>> t, Func<T, TNext> m, CancellationToken ct)
         {
@@ -35,11 +44,22 @@ public static partial class ResultExtensions
     /// <summary>
     /// Transforms the value of the asynchronous result using the specified mapping function on success.
     /// </summary>
+    /// <typeparam name="TState">The type of the state data forwarded to the delegate.</typeparam>
+    /// <typeparam name="T">The type of the source result value.</typeparam>
+    /// <typeparam name="TNext">The type of the transformed value.</typeparam>
+    /// <param name="resultTask">The task containing the source result.</param>
+    /// <param name="state">The state data forwarded to the delegate to avoid closure allocations.</param>
+    /// <param name="mapper">The mapping function applied to the state and success value.</param>
+    /// <param name="cancellationToken">A token that can be used to cancel the asynchronous operation.</param>
+    /// <returns>A task representing the asynchronous operation. The task result contains a <see cref="Result{TNext}"/> with the mapped value on success, or the original failure.</returns>
     public static Task<Result<TNext>> Map<TState, T, TNext>(
         this Task<Result<T>> resultTask, TState state, Func<TState, T, TNext> mapper, CancellationToken cancellationToken = default)
     {
         if (resultTask.IsCompletedSuccessfully)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
             return Task.FromResult(resultTask.Result.Map(state, mapper));
+        }
         return MapStateCore(resultTask, state, mapper, cancellationToken);
         static async Task<Result<TNext>> MapStateCore(Task<Result<T>> t, TState s, Func<TState, T, TNext> m, CancellationToken ct)
         {
@@ -51,6 +71,12 @@ public static partial class ResultExtensions
     /// <summary>
     /// Transforms the value of the asynchronous result using the specified mapping function on success.
     /// </summary>
+    /// <typeparam name="T">The type of the source result value.</typeparam>
+    /// <typeparam name="TNext">The type of the transformed value.</typeparam>
+    /// <param name="resultTask">The task containing the source result.</param>
+    /// <param name="mapper">The mapping function applied to the success value.</param>
+    /// <param name="cancellationToken">A token that can be used to cancel the asynchronous operation.</param>
+    /// <returns>A task representing the asynchronous operation. The task result contains a <see cref="Result{TNext}"/> with the mapped value on success, or the original failure.</returns>
     public static Task<Result<TNext>> Map<T, TNext>(
         this Task<Result<T>> resultTask, Func<T, Task<TNext>> mapper, CancellationToken cancellationToken = default)
     {
@@ -78,9 +104,16 @@ public static partial class ResultExtensions
     }
 
     /// <summary>
-    /// Maps the success value of a <see cref="Task{TResult}"/> wrapping a <see cref="Result{T}"/> using
-    /// an async mapper with captured <typeparamref name="TState"/> to avoid closure allocations.
+    /// Maps the success value of a <see cref="Task{TResult}"/> wrapping a <see cref="Result{T}"/> using an async mapper with captured <typeparamref name="TState"/> to avoid closure allocations.
     /// </summary>
+    /// <typeparam name="TState">The type of the state data forwarded to the delegate.</typeparam>
+    /// <typeparam name="T">The type of the source result value.</typeparam>
+    /// <typeparam name="TNext">The type of the transformed value.</typeparam>
+    /// <param name="resultTask">The task containing the source result.</param>
+    /// <param name="state">The state data forwarded to the delegate to avoid closure allocations.</param>
+    /// <param name="mapper">The mapping function applied to the state and success value.</param>
+    /// <param name="cancellationToken">A token that can be used to cancel the asynchronous operation.</param>
+    /// <returns>A task representing the asynchronous operation. The task result contains a <see cref="Result{TNext}"/> with the mapped value on success, or the original failure.</returns>
     public static Task<Result<TNext>> Map<TState, T, TNext>(
         this Task<Result<T>> resultTask, TState state, Func<TState, T, Task<TNext>> mapper, CancellationToken cancellationToken = default)
     {
@@ -106,9 +139,13 @@ public static partial class ResultExtensions
         }
     }
 
-    /// <summary>
-    /// Chains an operation returning a new result on success, short-circuiting on failure.
-    /// </summary>
+    /// <summary>Chains an operation returning a new result on success, short-circuiting on failure.</summary>
+    /// <typeparam name="T">The type of the source result value.</typeparam>
+    /// <typeparam name="TNext">The type of the transformed value.</typeparam>
+    /// <param name="resultTask">The task containing the source result.</param>
+    /// <param name="bind">The binding function applied to produce the next result.</param>
+    /// <param name="cancellationToken">A token that can be used to cancel the asynchronous operation.</param>
+    /// <returns>A task representing the asynchronous operation. The task result contains the bound <see cref="Result{TNext}"/> on success, or the original failure.</returns>
     public static Task<Result<TNext>> Bind<T, TNext>(
         this Task<Result<T>> resultTask, Func<T, Result<TNext>> bind, CancellationToken cancellationToken = default)
     {
@@ -122,9 +159,15 @@ public static partial class ResultExtensions
         }
     }
 
-    /// <summary>
-    /// Chains an operation returning a new result on success, short-circuiting on failure.
-    /// </summary>
+    /// <summary>Chains an operation returning a new result on success, short-circuiting on failure.</summary>
+    /// <typeparam name="TState">The type of the state data forwarded to the delegate.</typeparam>
+    /// <typeparam name="T">The type of the source result value.</typeparam>
+    /// <typeparam name="TNext">The type of the transformed value.</typeparam>
+    /// <param name="resultTask">The task containing the source result.</param>
+    /// <param name="state">The state data forwarded to the delegate to avoid closure allocations.</param>
+    /// <param name="bind">The binding function applied to the state and result to produce the next result.</param>
+    /// <param name="cancellationToken">A token that can be used to cancel the asynchronous operation.</param>
+    /// <returns>A task representing the asynchronous operation. The task result contains the bound <see cref="Result{TNext}"/> on success, or the original failure.</returns>
     public static Task<Result<TNext>> Bind<TState, T, TNext>(
         this Task<Result<T>> resultTask, TState state, Func<TState, T, Result<TNext>> bind, CancellationToken cancellationToken = default)
     {
@@ -138,9 +181,13 @@ public static partial class ResultExtensions
         }
     }
 
-    /// <summary>
-    /// Chains an operation returning a new result on success, short-circuiting on failure.
-    /// </summary>
+    /// <summary>Chains an operation returning a new result on success, short-circuiting on failure.</summary>
+    /// <typeparam name="T">The type of the source result value.</typeparam>
+    /// <typeparam name="TNext">The type of the transformed value.</typeparam>
+    /// <param name="resultTask">The task containing the source result.</param>
+    /// <param name="bind">The binding function applied to produce the next result.</param>
+    /// <param name="cancellationToken">A token that can be used to cancel the asynchronous operation.</param>
+    /// <returns>A task representing the asynchronous operation. The task result contains the bound <see cref="Result{TNext}"/> on success, or the original failure.</returns>
     public static Task<Result<TNext>> Bind<T, TNext>(
         this Task<Result<T>> resultTask, Func<T, Task<Result<TNext>>> bind, CancellationToken cancellationToken = default)
     {
@@ -161,9 +208,12 @@ public static partial class ResultExtensions
         }
     }
 
-    /// <summary>
-    /// Chains an operation returning a new result on success, short-circuiting on failure.
-    /// </summary>
+    /// <summary>Chains an operation returning a new result on success, short-circuiting on failure.</summary>
+    /// <typeparam name="T">The type of the source result value.</typeparam>
+    /// <param name="resultTask">The task containing the source result.</param>
+    /// <param name="bind">The binding function applied to produce the next result.</param>
+    /// <param name="cancellationToken">A token that can be used to cancel the asynchronous operation.</param>
+    /// <returns>A task representing the asynchronous operation. The task result contains the result of the binding operation.</returns>
     public static Task<Result> Bind<T>(
         this Task<Result<T>> resultTask, Func<T, Task<Result>> bind, CancellationToken cancellationToken = default)
     {
@@ -184,9 +234,12 @@ public static partial class ResultExtensions
         }
     }
 
-    /// <summary>
-    /// Chains an operation returning a new result on success, short-circuiting on failure.
-    /// </summary>
+    /// <summary>Chains an operation returning a new result on success, short-circuiting on failure.</summary>
+    /// <typeparam name="T">The type of the source result value.</typeparam>
+    /// <param name="resultTask">The task containing the source result.</param>
+    /// <param name="bind">The binding function applied to produce the next result.</param>
+    /// <param name="cancellationToken">A token that can be used to cancel the asynchronous operation.</param>
+    /// <returns>A task representing the asynchronous operation. The task result contains the result of the binding operation.</returns>
     public static Task<Result> Bind<T>(
         this Task<Result<T>> resultTask, Func<T, Result> bind, CancellationToken cancellationToken = default)
     {
@@ -199,9 +252,14 @@ public static partial class ResultExtensions
         }
     }
 
-    /// <summary>
-    /// Chains an operation returning a new result on success, short-circuiting on failure.
-    /// </summary>
+    /// <summary>Chains an operation returning a new result on success, short-circuiting on failure.</summary>
+    /// <typeparam name="TState">The type of the state data forwarded to the delegate.</typeparam>
+    /// <typeparam name="T">The type of the source result value.</typeparam>
+    /// <param name="resultTask">The task containing the source result.</param>
+    /// <param name="state">The state data forwarded to the delegate to avoid closure allocations.</param>
+    /// <param name="bind">The binding function applied to the state and result to produce the next result.</param>
+    /// <param name="cancellationToken">A token that can be used to cancel the asynchronous operation.</param>
+    /// <returns>A task representing the asynchronous operation. The task result contains the result of the binding operation.</returns>
     public static Task<Result> Bind<TState, T>(
         this Task<Result<T>> resultTask, TState state, Func<TState, T, Result> bind, CancellationToken cancellationToken = default)
     {
@@ -217,6 +275,12 @@ public static partial class ResultExtensions
     /// <summary>
     /// Matches the asynchronous result, executing the appropriate projection function based on the outcome.
     /// </summary>
+    /// <typeparam name="T">The type of the source result value.</typeparam>
+    /// <typeparam name="TOut">The type of the value produced by the projection.</typeparam>
+    /// <param name="resultTask">The task containing the source result.</param>
+    /// <param name="onSuccess">The function invoked when the result is successful.</param>
+    /// <param name="onFailure">The function invoked when the result is a failure.</param>
+    /// <returns>A task representing the asynchronous operation. The task result contains the value produced by the invoked branch.</returns>
     public static Task<TOut> Match<T, TOut>(
         this Task<Result<T>> resultTask,
         Func<T, TOut> onSuccess, Func<Error, TOut> onFailure)
@@ -230,6 +294,14 @@ public static partial class ResultExtensions
     /// <summary>
     /// Matches the asynchronous result, executing the appropriate projection function based on the outcome.
     /// </summary>
+    /// <typeparam name="TState">The type of the state data forwarded to the delegate.</typeparam>
+    /// <typeparam name="T">The type of the source result value.</typeparam>
+    /// <typeparam name="TOut">The type of the value produced by the projection.</typeparam>
+    /// <param name="resultTask">The task containing the source result.</param>
+    /// <param name="state">The state data forwarded to the delegate to avoid closure allocations.</param>
+    /// <param name="onSuccess">The function invoked with the state and success value when the result is successful.</param>
+    /// <param name="onFailure">The function invoked with the state and error when the result is a failure.</param>
+    /// <returns>A task representing the asynchronous operation. The task result contains the value produced by the invoked branch.</returns>
     public static Task<TOut> Match<TState, T, TOut>(
         this Task<Result<T>> resultTask, TState state,
         Func<TState, T, TOut> onSuccess, Func<TState, Error, TOut> onFailure)
@@ -240,9 +312,13 @@ public static partial class ResultExtensions
             => (await t.ConfigureAwait(false)).Match(st, s, f);
     }
 
-    /// <summary>
-    /// Executes an action based on whether the asynchronous result succeeded or failed.
-    /// </summary>
+    /// <summary>Executes an action based on whether the asynchronous result succeeded or failed.</summary>
+    /// <typeparam name="T">The type of the source result value.</typeparam>
+    /// <param name="resultTask">The task containing the source result.</param>
+    /// <param name="onSuccess">The action executed when the result is successful.</param>
+    /// <param name="onFailure">The action executed when the result is a failure.</param>
+    /// <param name="cancellationToken">A token that can be used to cancel the asynchronous operation.</param>
+    /// <returns>A task representing the asynchronous operation.</returns>
     public static Task Execute<T>(
         this Task<Result<T>> resultTask,
         Action<T> onSuccess, Action<Error> onFailure, CancellationToken cancellationToken = default)
@@ -261,9 +337,15 @@ public static partial class ResultExtensions
         }
     }
 
-    /// <summary>
-    /// Executes an action based on whether the asynchronous result succeeded or failed.
-    /// </summary>
+    /// <summary>Executes an action based on whether the asynchronous result succeeded or failed.</summary>
+    /// <typeparam name="TState">The type of the state data forwarded to the delegate.</typeparam>
+    /// <typeparam name="T">The type of the source result value.</typeparam>
+    /// <param name="resultTask">The task containing the source result.</param>
+    /// <param name="state">The state data forwarded to the delegate to avoid closure allocations.</param>
+    /// <param name="onSuccess">The action executed with the state and success value when the result is successful.</param>
+    /// <param name="onFailure">The action executed with the state and error when the result is a failure.</param>
+    /// <param name="cancellationToken">A token that can be used to cancel the asynchronous operation.</param>
+    /// <returns>A task representing the asynchronous operation.</returns>
     public static Task Execute<TState, T>(
         this Task<Result<T>> resultTask, TState state,
         Action<TState, T> onSuccess, Action<TState, Error> onFailure, CancellationToken cancellationToken = default)
@@ -282,9 +364,12 @@ public static partial class ResultExtensions
         }
     }
 
-    /// <summary>
-    /// Executes a side-effect action if the asynchronous result is in a success state.
-    /// </summary>
+    /// <summary>Executes a side-effect action if the asynchronous result is in a success state.</summary>
+    /// <typeparam name="T">The type of the source result value.</typeparam>
+    /// <param name="resultTask">The task containing the source result.</param>
+    /// <param name="action">The side-effect action to execute if the result is successful.</param>
+    /// <param name="cancellationToken">A token that can be used to cancel the asynchronous operation.</param>
+    /// <returns>A task representing the asynchronous operation. The task result contains the original result.</returns>
     public static Task<Result<T>> TapOnSuccess<T>(
         this Task<Result<T>> resultTask, Action<T> action, CancellationToken cancellationToken = default)
     {
@@ -297,9 +382,14 @@ public static partial class ResultExtensions
         }
     }
 
-    /// <summary>
-    /// Executes a side-effect action if the asynchronous result is in a success state.
-    /// </summary>
+    /// <summary>Executes a side-effect action if the asynchronous result is in a success state.</summary>
+    /// <typeparam name="TState">The type of the state data forwarded to the delegate.</typeparam>
+    /// <typeparam name="T">The type of the source result value.</typeparam>
+    /// <param name="resultTask">The task containing the source result.</param>
+    /// <param name="state">The state data forwarded to the delegate to avoid closure allocations.</param>
+    /// <param name="action">The side-effect action to execute if the result is successful.</param>
+    /// <param name="cancellationToken">A token that can be used to cancel the asynchronous operation.</param>
+    /// <returns>A task representing the asynchronous operation. The task result contains the original result.</returns>
     public static Task<Result<T>> TapOnSuccess<TState, T>(
         this Task<Result<T>> resultTask, TState state, Action<TState, T> action, CancellationToken cancellationToken = default)
     {
@@ -312,9 +402,12 @@ public static partial class ResultExtensions
         }
     }
 
-    /// <summary>
-    /// Executes a side-effect action if the asynchronous result is in a success state.
-    /// </summary>
+    /// <summary>Executes a side-effect action if the asynchronous result is in a success state.</summary>
+    /// <typeparam name="T">The type of the source result value.</typeparam>
+    /// <param name="resultTask">The task containing the source result.</param>
+    /// <param name="action">The side-effect action to execute if the result is successful.</param>
+    /// <param name="cancellationToken">A token that can be used to cancel the asynchronous operation.</param>
+    /// <returns>A task representing the asynchronous operation. The task result contains the original result.</returns>
     public static Task<Result<T>> TapOnSuccess<T>(
         this Task<Result<T>> resultTask, Func<T, Task> action, CancellationToken cancellationToken = default)
     {
@@ -341,9 +434,12 @@ public static partial class ResultExtensions
         }
     }
 
-    /// <summary>
-    /// Executes a side-effect action if the asynchronous result is in a failure state.
-    /// </summary>
+    /// <summary>Executes a side-effect action if the asynchronous result is in a failure state.</summary>
+    /// <typeparam name="T">The type of the source result value.</typeparam>
+    /// <param name="resultTask">The task containing the source result.</param>
+    /// <param name="action">The side-effect action to execute if the result is a failure.</param>
+    /// <param name="cancellationToken">A token that can be used to cancel the asynchronous operation.</param>
+    /// <returns>A task representing the asynchronous operation. The task result contains the original result.</returns>
     public static Task<Result<T>> TapOnFailure<T>(
         this Task<Result<T>> resultTask, Action<Error> action, CancellationToken cancellationToken = default)
     {
@@ -356,9 +452,14 @@ public static partial class ResultExtensions
         }
     }
 
-    /// <summary>
-    /// Executes a side-effect action if the asynchronous result is in a failure state.
-    /// </summary>
+    /// <summary>Executes a side-effect action if the asynchronous result is in a failure state.</summary>
+    /// <typeparam name="TState">The type of the state data forwarded to the delegate.</typeparam>
+    /// <typeparam name="T">The type of the source result value.</typeparam>
+    /// <param name="resultTask">The task containing the source result.</param>
+    /// <param name="state">The state data forwarded to the delegate to avoid closure allocations.</param>
+    /// <param name="action">The side-effect action to execute if the result is a failure.</param>
+    /// <param name="cancellationToken">A token that can be used to cancel the asynchronous operation.</param>
+    /// <returns>A task representing the asynchronous operation. The task result contains the original result.</returns>
     public static Task<Result<T>> TapOnFailure<TState, T>(
         this Task<Result<T>> resultTask, TState state, Action<TState, Error> action, CancellationToken cancellationToken = default)
     {
@@ -371,9 +472,12 @@ public static partial class ResultExtensions
         }
     }
 
-    /// <summary>
-    /// Executes a side-effect action if the asynchronous result is in a failure state.
-    /// </summary>
+    /// <summary>Executes a side-effect action if the asynchronous result is in a failure state.</summary>
+    /// <typeparam name="T">The type of the source result value.</typeparam>
+    /// <param name="resultTask">The task containing the source result.</param>
+    /// <param name="action">The side-effect action to execute if the result is a failure.</param>
+    /// <param name="cancellationToken">A token that can be used to cancel the asynchronous operation.</param>
+    /// <returns>A task representing the asynchronous operation. The task result contains the original result.</returns>
     public static Task<Result<T>> TapOnFailure<T>(
         this Task<Result<T>> resultTask, Func<Error, Task> action, CancellationToken cancellationToken = default)
     {
@@ -397,8 +501,14 @@ public static partial class ResultExtensions
     }
 
     /// <summary>
-    /// Asserts a predicate against the asynchronous result, converting to a failure if the predicate returns false.
+    /// Asserts a predicate against the asynchronous result, converting to a failure if the predicate evaluates to <see langword="false"/>.
     /// </summary>
+    /// <typeparam name="T">The type of the source result value.</typeparam>
+    /// <param name="resultTask">The task containing the source result.</param>
+    /// <param name="predicate">The condition to assert against the success value.</param>
+    /// <param name="error">The error to return if the predicate evaluates to <see langword="false"/>.</param>
+    /// <param name="cancellationToken">A token that can be used to cancel the asynchronous operation.</param>
+    /// <returns>A task representing the asynchronous operation. The task result contains the original result if the predicate is satisfied, or a failure.</returns>
     public static Task<Result<T>> Ensure<T>(
         this Task<Result<T>> resultTask, Func<T, bool> predicate, Error error, CancellationToken cancellationToken = default)
     {
@@ -412,8 +522,16 @@ public static partial class ResultExtensions
     }
 
     /// <summary>
-    /// Asserts a predicate against the asynchronous result, converting to a failure if the predicate returns false.
+    /// Asserts a predicate against the asynchronous result, converting to a failure if the predicate evaluates to <see langword="false"/>.
     /// </summary>
+    /// <typeparam name="TState">The type of the state data forwarded to the delegate.</typeparam>
+    /// <typeparam name="T">The type of the source result value.</typeparam>
+    /// <param name="resultTask">The task containing the source result.</param>
+    /// <param name="state">The state data forwarded to the delegate to avoid closure allocations.</param>
+    /// <param name="predicate">The condition to assert against the state and success value.</param>
+    /// <param name="error">The error to return if the predicate evaluates to <see langword="false"/>.</param>
+    /// <param name="cancellationToken">A token that can be used to cancel the asynchronous operation.</param>
+    /// <returns>A task representing the asynchronous operation. The task result contains the original result if the predicate is satisfied, or a failure.</returns>
     public static Task<Result<T>> Ensure<TState, T>(
         this Task<Result<T>> resultTask, TState state, Func<TState, T, bool> predicate, Error error, CancellationToken cancellationToken = default)
     {
@@ -427,8 +545,14 @@ public static partial class ResultExtensions
     }
 
     /// <summary>
-    /// Asserts a predicate against the asynchronous result, converting to a failure if the predicate returns false.
+    /// Asserts a predicate against the asynchronous result, converting to a failure if the predicate evaluates to <see langword="false"/>.
     /// </summary>
+    /// <typeparam name="T">The type of the source result value.</typeparam>
+    /// <param name="resultTask">The task containing the source result.</param>
+    /// <param name="predicate">The condition to assert against the success value.</param>
+    /// <param name="error">The error to return if the predicate evaluates to <see langword="false"/>.</param>
+    /// <param name="cancellationToken">A token that can be used to cancel the asynchronous operation.</param>
+    /// <returns>A task representing the asynchronous operation. The task result contains the original result if the predicate is satisfied, or a failure.</returns>
     public static Task<Result<T>> Ensure<T>(
         this Task<Result<T>> resultTask, Func<T, Task<bool>> predicate, Error error, CancellationToken cancellationToken = default)
     {
@@ -457,9 +581,16 @@ public static partial class ResultExtensions
     }
 
     /// <summary>
-    /// Applies an async predicate with captured <typeparamref name="TState"/> to the success value
-    /// of a <see cref="Task{TResult}"/> wrapping a <see cref="Result{T}"/>, avoiding closure allocations.
+    /// Applies an async predicate with captured <typeparamref name="TState"/> to the success value of a <see cref="Task{TResult}"/> wrapping a <see cref="Result{T}"/>, avoiding closure allocations.
     /// </summary>
+    /// <typeparam name="TState">The type of the state data forwarded to the delegate.</typeparam>
+    /// <typeparam name="T">The type of the source result value.</typeparam>
+    /// <param name="resultTask">The task containing the source result.</param>
+    /// <param name="state">The state data forwarded to the delegate to avoid closure allocations.</param>
+    /// <param name="predicate">The condition to assert against the state and success value.</param>
+    /// <param name="error">The error to return if the predicate evaluates to <see langword="false"/>.</param>
+    /// <param name="cancellationToken">A token that can be used to cancel the asynchronous operation.</param>
+    /// <returns>A task representing the asynchronous operation. The task result contains the original result if the predicate is satisfied, or a failure.</returns>
     public static Task<Result<T>> Ensure<TState, T>(
         this Task<Result<T>> resultTask, TState state, Func<TState, T, Task<bool>> predicate, Error error, CancellationToken cancellationToken = default)
     {
@@ -490,6 +621,11 @@ public static partial class ResultExtensions
     /// <summary>
     /// Intercepts a failure in the asynchronous result and returns an alternative fallback value or computation.
     /// </summary>
+    /// <typeparam name="T">The type of the source result value.</typeparam>
+    /// <param name="resultTask">The task containing the source result.</param>
+    /// <param name="recovery">The recovery function producing a fallback from the error.</param>
+    /// <param name="cancellationToken">A token that can be used to cancel the asynchronous operation.</param>
+    /// <returns>A task representing the asynchronous operation. The task result contains the original result on success, or the recovered result on failure.</returns>
     public static Task<Result<T>> Recover<T>(
         this Task<Result<T>> resultTask, Func<Error, Result<T>> recovery, CancellationToken cancellationToken = default)
     {
@@ -505,6 +641,13 @@ public static partial class ResultExtensions
     /// <summary>
     /// Intercepts a failure in the asynchronous result and returns an alternative fallback value or computation.
     /// </summary>
+    /// <typeparam name="TState">The type of the state data forwarded to the delegate.</typeparam>
+    /// <typeparam name="T">The type of the source result value.</typeparam>
+    /// <param name="resultTask">The task containing the source result.</param>
+    /// <param name="state">The state data forwarded to the delegate to avoid closure allocations.</param>
+    /// <param name="recovery">The recovery function producing a fallback from the state and error.</param>
+    /// <param name="cancellationToken">A token that can be used to cancel the asynchronous operation.</param>
+    /// <returns>A task representing the asynchronous operation. The task result contains the original result on success, or the recovered result on failure.</returns>
     public static Task<Result<T>> Recover<TState, T>(
         this Task<Result<T>> resultTask, TState state, Func<TState, Error, Result<T>> recovery, CancellationToken cancellationToken = default)
     {
@@ -520,6 +663,11 @@ public static partial class ResultExtensions
     /// <summary>
     /// Intercepts a failure in the asynchronous result and returns an alternative fallback value or computation.
     /// </summary>
+    /// <typeparam name="T">The type of the source result value.</typeparam>
+    /// <param name="resultTask">The task containing the source result.</param>
+    /// <param name="recovery">The recovery function producing a fallback from the error.</param>
+    /// <param name="cancellationToken">A token that can be used to cancel the asynchronous operation.</param>
+    /// <returns>A task representing the asynchronous operation. The task result contains the original result on success, or the recovered result on failure.</returns>
     public static Task<Result<T>> Recover<T>(
         this Task<Result<T>> resultTask, Func<Error, Task<Result<T>>> recovery, CancellationToken cancellationToken = default)
     {
@@ -541,9 +689,15 @@ public static partial class ResultExtensions
     }
 
     /// <summary>
-    /// Attempts to recover from a failure using an async recovery function with captured
-    /// <typeparamref name="TState"/>, avoiding closure allocations.
+    /// Attempts to recover from a failure using an async recovery function with captured <typeparamref name="TState"/>, avoiding closure allocations.
     /// </summary>
+    /// <typeparam name="TState">The type of the state data forwarded to the delegate.</typeparam>
+    /// <typeparam name="T">The type of the source result value.</typeparam>
+    /// <param name="resultTask">The task containing the source result.</param>
+    /// <param name="state">The state data forwarded to the delegate to avoid closure allocations.</param>
+    /// <param name="recovery">The recovery function producing a fallback from the state and error.</param>
+    /// <param name="cancellationToken">A token that can be used to cancel the asynchronous operation.</param>
+    /// <returns>A task representing the asynchronous operation. The task result contains the original result on success, or the recovered result on failure.</returns>
     public static Task<Result<T>> Recover<TState, T>(
         this Task<Result<T>> resultTask, TState state, Func<TState, Error, Task<Result<T>>> recovery, CancellationToken cancellationToken = default)
     {
@@ -561,9 +715,12 @@ public static partial class ResultExtensions
         }
     }
 
-    /// <summary>
-    /// Transforms the inner error of the asynchronous result if in a failure state.
-    /// </summary>
+    /// <summary>Transforms the inner error of the asynchronous result if in a failure state.</summary>
+    /// <typeparam name="T">The type of the success value.</typeparam>
+    /// <param name="resultTask">The task containing the source result.</param>
+    /// <param name="mapper">The mapping function applied to the error on failure.</param>
+    /// <param name="cancellationToken">A token that can be used to cancel the asynchronous operation.</param>
+    /// <returns>A task representing the asynchronous operation. The task result contains the original result on success, or a failure with the transformed error.</returns>
     public static Task<Result<T>> MapError<T>(
         this Task<Result<T>> resultTask, Func<Error, Error> mapper, CancellationToken cancellationToken = default)
     {
@@ -576,9 +733,14 @@ public static partial class ResultExtensions
         }
     }
 
-    /// <summary>
-    /// Transforms the inner error of the asynchronous result if in a failure state.
-    /// </summary>
+    /// <summary>Transforms the inner error of the asynchronous result if in a failure state.</summary>
+    /// <typeparam name="TState">The type of the state data forwarded to the delegate.</typeparam>
+    /// <typeparam name="T">The type of the success value.</typeparam>
+    /// <param name="resultTask">The task containing the source result.</param>
+    /// <param name="state">The state data forwarded to the delegate to avoid closure allocations.</param>
+    /// <param name="mapper">The mapping function applied to the state and error on failure.</param>
+    /// <param name="cancellationToken">A token that can be used to cancel the asynchronous operation.</param>
+    /// <returns>A task representing the asynchronous operation. The task result contains the original result on success, or a failure with the transformed error.</returns>
     public static Task<Result<T>> MapError<TState, T>(
         this Task<Result<T>> resultTask, TState state, Func<TState, Error, Error> mapper, CancellationToken cancellationToken = default)
     {
@@ -594,6 +756,11 @@ public static partial class ResultExtensions
     /// <summary>
     /// Executes an inspection action on the asynchronous result regardless of its success or failure state.
     /// </summary>
+    /// <typeparam name="T">The type of the source result value.</typeparam>
+    /// <param name="resultTask">The task containing the source result.</param>
+    /// <param name="action">The side-effect action to execute with the evaluated result.</param>
+    /// <param name="cancellationToken">A token that can be used to cancel the asynchronous operation.</param>
+    /// <returns>A task representing the asynchronous operation. The task result contains the original result.</returns>
     public static Task<Result<T>> Inspect<T>(
         this Task<Result<T>> resultTask, Action<Result<T>> action, CancellationToken cancellationToken = default)
     {
@@ -609,6 +776,13 @@ public static partial class ResultExtensions
     /// <summary>
     /// Executes an inspection action on the asynchronous result regardless of its success or failure state.
     /// </summary>
+    /// <typeparam name="TState">The type of the state data forwarded to the delegate.</typeparam>
+    /// <typeparam name="T">The type of the source result value.</typeparam>
+    /// <param name="resultTask">The task containing the source result.</param>
+    /// <param name="state">The state data forwarded to the delegate to avoid closure allocations.</param>
+    /// <param name="action">The side-effect action to execute with the evaluated result.</param>
+    /// <param name="cancellationToken">A token that can be used to cancel the asynchronous operation.</param>
+    /// <returns>A task representing the asynchronous operation. The task result contains the original result.</returns>
     public static Task<Result<T>> Inspect<TState, T>(
         this Task<Result<T>> resultTask, TState state, Action<TState, Result<T>> action, CancellationToken cancellationToken = default)
     {
@@ -626,9 +800,11 @@ public static partial class ResultExtensions
     //  Task<Result> (non-generic) extensions
     // --------------------------------------------------------------------------
 
-    /// <summary>
-    /// Chains an operation returning a new result on success, short-circuiting on failure.
-    /// </summary>
+    /// <summary>Chains an operation returning a new result on success, short-circuiting on failure.</summary>
+    /// <param name="resultTask">The task containing the source result.</param>
+    /// <param name="bind">The binding function applied to produce the next result.</param>
+    /// <param name="cancellationToken">A token that can be used to cancel the asynchronous operation.</param>
+    /// <returns>A task representing the asynchronous operation. The task result contains the result of the binding operation.</returns>
     public static Task<Result> Bind(
         this Task<Result> resultTask, Func<Result> bind, CancellationToken cancellationToken = default)
     {
@@ -641,9 +817,13 @@ public static partial class ResultExtensions
         }
     }
 
-    /// <summary>
-    /// Chains an operation returning a new result on success, short-circuiting on failure.
-    /// </summary>
+    /// <summary>Chains an operation returning a new result on success, short-circuiting on failure.</summary>
+    /// <typeparam name="TState">The type of the state data forwarded to the delegate.</typeparam>
+    /// <param name="resultTask">The task containing the source result.</param>
+    /// <param name="state">The state data forwarded to the delegate to avoid closure allocations.</param>
+    /// <param name="bind">The binding function applied to the state and result to produce the next result.</param>
+    /// <param name="cancellationToken">A token that can be used to cancel the asynchronous operation.</param>
+    /// <returns>A task representing the asynchronous operation. The task result contains the result of the binding operation.</returns>
     public static Task<Result> Bind<TState>(
         this Task<Result> resultTask, TState state, Func<TState, Result> bind, CancellationToken cancellationToken = default)
     {
@@ -656,9 +836,11 @@ public static partial class ResultExtensions
         }
     }
 
-    /// <summary>
-    /// Chains an operation returning a new result on success, short-circuiting on failure.
-    /// </summary>
+    /// <summary>Chains an operation returning a new result on success, short-circuiting on failure.</summary>
+    /// <param name="resultTask">The task containing the source result.</param>
+    /// <param name="bind">The binding function applied to produce the next result.</param>
+    /// <param name="cancellationToken">A token that can be used to cancel the asynchronous operation.</param>
+    /// <returns>A task representing the asynchronous operation. The task result contains the result of the binding operation.</returns>
     public static Task<Result> Bind(
         this Task<Result> resultTask, Func<Task<Result>> bind, CancellationToken cancellationToken = default)
     {
@@ -679,9 +861,12 @@ public static partial class ResultExtensions
         }
     }
 
-    /// <summary>
-    /// Chains an operation returning a new result on success, short-circuiting on failure.
-    /// </summary>
+    /// <summary>Chains an operation returning a new result on success, short-circuiting on failure.</summary>
+    /// <typeparam name="TNext">The type of the transformed value.</typeparam>
+    /// <param name="resultTask">The task containing the source result.</param>
+    /// <param name="bind">The binding function applied to produce the next result.</param>
+    /// <param name="cancellationToken">A token that can be used to cancel the asynchronous operation.</param>
+    /// <returns>A task representing the asynchronous operation. The task result contains the bound <see cref="Result{TNext}"/> on success, or the original failure.</returns>
     public static Task<Result<TNext>> Bind<TNext>(
         this Task<Result> resultTask, Func<Result<TNext>> bind, CancellationToken cancellationToken = default)
     {
@@ -694,9 +879,14 @@ public static partial class ResultExtensions
         }
     }
 
-    /// <summary>
-    /// Chains an operation returning a new result on success, short-circuiting on failure.
-    /// </summary>
+    /// <summary>Chains an operation returning a new result on success, short-circuiting on failure.</summary>
+    /// <typeparam name="TState">The type of the state data forwarded to the delegate.</typeparam>
+    /// <typeparam name="TNext">The type of the transformed value.</typeparam>
+    /// <param name="resultTask">The task containing the source result.</param>
+    /// <param name="state">The state data forwarded to the delegate to avoid closure allocations.</param>
+    /// <param name="bind">The binding function applied to the state and result to produce the next result.</param>
+    /// <param name="cancellationToken">A token that can be used to cancel the asynchronous operation.</param>
+    /// <returns>A task representing the asynchronous operation. The task result contains the bound <see cref="Result{TNext}"/> on success, or the original failure.</returns>
     public static Task<Result<TNext>> Bind<TState, TNext>(
         this Task<Result> resultTask, TState state, Func<TState, Result<TNext>> bind, CancellationToken cancellationToken = default)
     {
@@ -709,9 +899,12 @@ public static partial class ResultExtensions
         }
     }
 
-    /// <summary>
-    /// Chains an operation returning a new result on success, short-circuiting on failure.
-    /// </summary>
+    /// <summary>Chains an operation returning a new result on success, short-circuiting on failure.</summary>
+    /// <typeparam name="TNext">The type of the transformed value.</typeparam>
+    /// <param name="resultTask">The task containing the source result.</param>
+    /// <param name="bind">The binding function applied to produce the next result.</param>
+    /// <param name="cancellationToken">A token that can be used to cancel the asynchronous operation.</param>
+    /// <returns>A task representing the asynchronous operation. The task result contains the bound <see cref="Result{TNext}"/> on success, or the original failure.</returns>
     public static Task<Result<TNext>> Bind<TNext>(
         this Task<Result> resultTask, Func<Task<Result<TNext>>> bind, CancellationToken cancellationToken = default)
     {
@@ -733,10 +926,12 @@ public static partial class ResultExtensions
     }
 
     /// <summary>
-    /// If the <see cref="Result"/> is a success, invokes the async <paramref name="bind"/> delegate
-    /// with a <see cref="CancellationToken"/>, returning its result. If the Result is a failure, returns
-    /// the failure without invoking <paramref name="bind"/>.
+    /// If the <see cref="Result"/> is a success, invokes the async <paramref name="bind"/> delegate with a <see cref="CancellationToken"/>, returning its result. If the Result is a failure, returns the failure without invoking <paramref name="bind"/>.
     /// </summary>
+    /// <param name="resultTask">The task containing the source result.</param>
+    /// <param name="bind">The binding function applied to produce the next result.</param>
+    /// <param name="cancellationToken">A token that can be used to cancel the asynchronous operation.</param>
+    /// <returns>A task representing the asynchronous operation. The task result contains the result of the binding operation.</returns>
     public static Task<Result> Bind(
         this Task<Result> resultTask, Func<CancellationToken, Task<Result>> bind, CancellationToken cancellationToken = default)
     {
@@ -758,10 +953,13 @@ public static partial class ResultExtensions
     }
 
     /// <summary>
-    /// If the <see cref="Result"/> is a success, invokes the async <paramref name="bind"/> delegate
-    /// with a <see cref="CancellationToken"/>, returning a typed Result. If the Result is a failure,
-    /// returns the failure without invoking <paramref name="bind"/>.
+    /// If the <see cref="Result"/> is a success, invokes the async <paramref name="bind"/> delegate with a <see cref="CancellationToken"/>, returning a typed Result. If the Result is a failure, returns the failure without invoking <paramref name="bind"/>.
     /// </summary>
+    /// <typeparam name="TNext">The type of the transformed value.</typeparam>
+    /// <param name="resultTask">The task containing the source result.</param>
+    /// <param name="bind">The binding function applied to produce the next result.</param>
+    /// <param name="cancellationToken">A token that can be used to cancel the asynchronous operation.</param>
+    /// <returns>A task representing the asynchronous operation. The task result contains the bound <see cref="Result{TNext}"/> on success, or the original failure.</returns>
     public static Task<Result<TNext>> Bind<TNext>(
         this Task<Result> resultTask, Func<CancellationToken, Task<Result<TNext>>> bind, CancellationToken cancellationToken = default)
     {
@@ -783,10 +981,13 @@ public static partial class ResultExtensions
     }
 
     /// <summary>
-    /// Projects a successful <see cref="Result"/> into a <see cref="Result{TNext}"/> by executing
-    /// an async <paramref name="mapper"/> that receives a <see cref="CancellationToken"/>.
-    /// If the Result is a failure, returns a failure without invoking <paramref name="mapper"/>.
+    /// Projects a successful <see cref="Result"/> into a <see cref="Result{TNext}"/> by executing an async <paramref name="mapper"/> that receives a <see cref="CancellationToken"/>. If the Result is a failure, returns a failure without invoking <paramref name="mapper"/>.
     /// </summary>
+    /// <typeparam name="TNext">The type of the transformed value.</typeparam>
+    /// <param name="resultTask">The task containing the source result.</param>
+    /// <param name="mapper">The mapping function producing a new value on success.</param>
+    /// <param name="cancellationToken">A token that can be used to cancel the asynchronous operation.</param>
+    /// <returns>A task representing the asynchronous operation. The task result contains a <see cref="Result{TNext}"/> with the mapped value on success, or the original failure.</returns>
     public static Task<Result<TNext>> Map<TNext>(
         this Task<Result> resultTask, Func<CancellationToken, Task<TNext>> mapper, CancellationToken cancellationToken = default)
     {
@@ -815,6 +1016,11 @@ public static partial class ResultExtensions
     /// <summary>
     /// Matches the asynchronous result, executing the appropriate projection function based on the outcome.
     /// </summary>
+    /// <typeparam name="TOut">The type of the value produced by the projection.</typeparam>
+    /// <param name="resultTask">The task containing the source result.</param>
+    /// <param name="onSuccess">The function invoked when the result is successful.</param>
+    /// <param name="onFailure">The function invoked when the result is a failure.</param>
+    /// <returns>A task representing the asynchronous operation. The task result contains the value produced by the invoked branch.</returns>
     public static Task<TOut> Match<TOut>(
         this Task<Result> resultTask,
         Func<TOut> onSuccess, Func<Error, TOut> onFailure)
@@ -828,6 +1034,13 @@ public static partial class ResultExtensions
     /// <summary>
     /// Matches the asynchronous result, executing the appropriate projection function based on the outcome.
     /// </summary>
+    /// <typeparam name="TState">The type of the state data forwarded to the delegate.</typeparam>
+    /// <typeparam name="TOut">The type of the value produced by the projection.</typeparam>
+    /// <param name="resultTask">The task containing the source result.</param>
+    /// <param name="state">The state data forwarded to the delegate to avoid closure allocations.</param>
+    /// <param name="onSuccess">The function invoked with the state and success value when the result is successful.</param>
+    /// <param name="onFailure">The function invoked with the state and error when the result is a failure.</param>
+    /// <returns>A task representing the asynchronous operation. The task result contains the value produced by the invoked branch.</returns>
     public static Task<TOut> Match<TState, TOut>(
         this Task<Result> resultTask, TState state,
         Func<TState, TOut> onSuccess, Func<TState, Error, TOut> onFailure)
@@ -838,9 +1051,12 @@ public static partial class ResultExtensions
             => (await t.ConfigureAwait(false)).Match(st, s, f);
     }
 
-    /// <summary>
-    /// Executes an action based on whether the asynchronous result succeeded or failed.
-    /// </summary>
+    /// <summary>Executes an action based on whether the asynchronous result succeeded or failed.</summary>
+    /// <param name="resultTask">The task containing the source result.</param>
+    /// <param name="onSuccess">The action executed when the result is successful.</param>
+    /// <param name="onFailure">The action executed when the result is a failure.</param>
+    /// <param name="cancellationToken">A token that can be used to cancel the asynchronous operation.</param>
+    /// <returns>A task representing the asynchronous operation.</returns>
     public static Task Execute(
         this Task<Result> resultTask,
         Action onSuccess, Action<Error> onFailure, CancellationToken cancellationToken = default)
@@ -859,9 +1075,14 @@ public static partial class ResultExtensions
         }
     }
 
-    /// <summary>
-    /// Executes an action based on whether the asynchronous result succeeded or failed.
-    /// </summary>
+    /// <summary>Executes an action based on whether the asynchronous result succeeded or failed.</summary>
+    /// <typeparam name="TState">The type of the state data forwarded to the delegate.</typeparam>
+    /// <param name="resultTask">The task containing the source result.</param>
+    /// <param name="state">The state data forwarded to the delegate to avoid closure allocations.</param>
+    /// <param name="onSuccess">The action executed with the state and success value when the result is successful.</param>
+    /// <param name="onFailure">The action executed with the state and error when the result is a failure.</param>
+    /// <param name="cancellationToken">A token that can be used to cancel the asynchronous operation.</param>
+    /// <returns>A task representing the asynchronous operation.</returns>
     public static Task Execute<TState>(
         this Task<Result> resultTask, TState state,
         Action<TState> onSuccess, Action<TState, Error> onFailure, CancellationToken cancellationToken = default)
@@ -880,9 +1101,11 @@ public static partial class ResultExtensions
         }
     }
 
-    /// <summary>
-    /// Executes a side-effect action if the asynchronous result is in a success state.
-    /// </summary>
+    /// <summary>Executes a side-effect action if the asynchronous result is in a success state.</summary>
+    /// <param name="resultTask">The task containing the source result.</param>
+    /// <param name="onSuccess">The action executed when the result is successful.</param>
+    /// <param name="cancellationToken">A token that can be used to cancel the asynchronous operation.</param>
+    /// <returns>A task representing the asynchronous operation. The task result contains the original result.</returns>
     public static Task<Result> TapOnSuccess(
         this Task<Result> resultTask, Action onSuccess, CancellationToken cancellationToken = default)
     {
@@ -895,9 +1118,13 @@ public static partial class ResultExtensions
         }
     }
 
-    /// <summary>
-    /// Executes a side-effect action if the asynchronous result is in a success state.
-    /// </summary>
+    /// <summary>Executes a side-effect action if the asynchronous result is in a success state.</summary>
+    /// <typeparam name="TState">The type of the state data forwarded to the delegate.</typeparam>
+    /// <param name="resultTask">The task containing the source result.</param>
+    /// <param name="state">The state data forwarded to the delegate to avoid closure allocations.</param>
+    /// <param name="onSuccess">The action executed with the state when the result is successful.</param>
+    /// <param name="cancellationToken">A token that can be used to cancel the asynchronous operation.</param>
+    /// <returns>A task representing the asynchronous operation. The task result contains the original result.</returns>
     public static Task<Result> TapOnSuccess<TState>(
         this Task<Result> resultTask, TState state, Action<TState> onSuccess, CancellationToken cancellationToken = default)
     {
@@ -910,9 +1137,11 @@ public static partial class ResultExtensions
         }
     }
 
-    /// <summary>
-    /// Executes a side-effect action if the asynchronous result is in a success state.
-    /// </summary>
+    /// <summary>Executes a side-effect action if the asynchronous result is in a success state.</summary>
+    /// <param name="resultTask">The task containing the source result.</param>
+    /// <param name="onSuccess">The action executed when the result is successful.</param>
+    /// <param name="cancellationToken">A token that can be used to cancel the asynchronous operation.</param>
+    /// <returns>A task representing the asynchronous operation. The task result contains the original result.</returns>
     public static Task<Result> TapOnSuccess(
         this Task<Result> resultTask, Func<Task> onSuccess, CancellationToken cancellationToken = default)
     {
@@ -935,9 +1164,11 @@ public static partial class ResultExtensions
         }
     }
 
-    /// <summary>
-    /// Executes a side-effect action if the asynchronous result is in a failure state.
-    /// </summary>
+    /// <summary>Executes a side-effect action if the asynchronous result is in a failure state.</summary>
+    /// <param name="resultTask">The task containing the source result.</param>
+    /// <param name="onFailure">The action executed when the result is a failure.</param>
+    /// <param name="cancellationToken">A token that can be used to cancel the asynchronous operation.</param>
+    /// <returns>A task representing the asynchronous operation. The task result contains the original result.</returns>
     public static Task<Result> TapOnFailure(
         this Task<Result> resultTask, Action<Error> onFailure, CancellationToken cancellationToken = default)
     {
@@ -951,9 +1182,13 @@ public static partial class ResultExtensions
     }
 
 
-    /// <summary>
-    /// Executes a side-effect action if the asynchronous result is in a failure state.
-    /// </summary>
+    /// <summary>Executes a side-effect action if the asynchronous result is in a failure state.</summary>
+    /// <typeparam name="TState">The type of the state data forwarded to the delegate.</typeparam>
+    /// <param name="resultTask">The task containing the source result.</param>
+    /// <param name="state">The state data forwarded to the delegate to avoid closure allocations.</param>
+    /// <param name="onFailure">The action executed with the state and error when the result is a failure.</param>
+    /// <param name="cancellationToken">A token that can be used to cancel the asynchronous operation.</param>
+    /// <returns>A task representing the asynchronous operation. The task result contains the original result.</returns>
     public static Task<Result> TapOnFailure<TState>(
         this Task<Result> resultTask, TState state, Action<TState, Error> onFailure, CancellationToken cancellationToken = default)
     {
@@ -967,9 +1202,11 @@ public static partial class ResultExtensions
     }
 
 
-    /// <summary>
-    /// Executes a side-effect action if the asynchronous result is in a failure state.
-    /// </summary>
+    /// <summary>Executes a side-effect action if the asynchronous result is in a failure state.</summary>
+    /// <param name="resultTask">The task containing the source result.</param>
+    /// <param name="onFailure">The action executed when the result is a failure.</param>
+    /// <param name="cancellationToken">A token that can be used to cancel the asynchronous operation.</param>
+    /// <returns>A task representing the asynchronous operation. The task result contains the original result.</returns>
     public static Task<Result> TapOnFailure(
         this Task<Result> resultTask, Func<Error, Task> onFailure, CancellationToken cancellationToken = default)
     {
@@ -995,8 +1232,13 @@ public static partial class ResultExtensions
 
 
     /// <summary>
-    /// Asserts a predicate against the asynchronous result, converting to a failure if the predicate returns false.
+    /// Asserts a predicate against the asynchronous result, converting to a failure if the predicate evaluates to <see langword="false"/>.
     /// </summary>
+    /// <param name="resultTask">The task containing the source result.</param>
+    /// <param name="predicate">The condition to assert against the successful result.</param>
+    /// <param name="error">The error to return if the predicate evaluates to <see langword="false"/>.</param>
+    /// <param name="cancellationToken">A token that can be used to cancel the asynchronous operation.</param>
+    /// <returns>A task representing the asynchronous operation. The task result contains the original result if the predicate is satisfied, or a failure.</returns>
     public static Task<Result> Ensure(
         this Task<Result> resultTask, Func<bool> predicate, Error error, CancellationToken cancellationToken = default)
     {
@@ -1010,8 +1252,15 @@ public static partial class ResultExtensions
     }
 
     /// <summary>
-    /// Asserts a predicate against the asynchronous result, converting to a failure if the predicate returns false.
+    /// Asserts a predicate against the asynchronous result, converting to a failure if the predicate evaluates to <see langword="false"/>.
     /// </summary>
+    /// <typeparam name="TState">The type of the state data forwarded to the delegate.</typeparam>
+    /// <param name="resultTask">The task containing the source result.</param>
+    /// <param name="state">The state data forwarded to the delegate to avoid closure allocations.</param>
+    /// <param name="predicate">The condition to assert against the state and success value.</param>
+    /// <param name="error">The error to return if the predicate evaluates to <see langword="false"/>.</param>
+    /// <param name="cancellationToken">A token that can be used to cancel the asynchronous operation.</param>
+    /// <returns>A task representing the asynchronous operation. The task result contains the original result if the predicate is satisfied, or a failure.</returns>
     public static Task<Result> Ensure<TState>(
         this Task<Result> resultTask, TState state, Func<TState, bool> predicate, Error error, CancellationToken cancellationToken = default)
     {
@@ -1024,9 +1273,11 @@ public static partial class ResultExtensions
         }
     }
 
-    /// <summary>
-    /// Transforms the inner error of the asynchronous result if in a failure state.
-    /// </summary>
+    /// <summary>Transforms the inner error of the asynchronous result if in a failure state.</summary>
+    /// <param name="resultTask">The task containing the source result.</param>
+    /// <param name="mapper">The mapping function applied to the error on failure.</param>
+    /// <param name="cancellationToken">A token that can be used to cancel the asynchronous operation.</param>
+    /// <returns>A task representing the asynchronous operation. The task result contains the original result on success, or a failure with the transformed error.</returns>
     public static Task<Result> MapError(
         this Task<Result> resultTask, Func<Error, Error> mapper, CancellationToken cancellationToken = default)
     {
@@ -1039,9 +1290,13 @@ public static partial class ResultExtensions
         }
     }
 
-    /// <summary>
-    /// Transforms the inner error of the asynchronous result if in a failure state.
-    /// </summary>
+    /// <summary>Transforms the inner error of the asynchronous result if in a failure state.</summary>
+    /// <typeparam name="TState">The type of the state data forwarded to the delegate.</typeparam>
+    /// <param name="resultTask">The task containing the source result.</param>
+    /// <param name="state">The state data forwarded to the delegate to avoid closure allocations.</param>
+    /// <param name="mapper">The mapping function applied to the state and error on failure.</param>
+    /// <param name="cancellationToken">A token that can be used to cancel the asynchronous operation.</param>
+    /// <returns>A task representing the asynchronous operation. The task result contains the original result on success, or a failure with the transformed error.</returns>
     public static Task<Result> MapError<TState>(
         this Task<Result> resultTask, TState state, Func<TState, Error, Error> mapper, CancellationToken cancellationToken = default)
     {
@@ -1057,6 +1312,10 @@ public static partial class ResultExtensions
     /// <summary>
     /// Executes an inspection action on the asynchronous result regardless of its success or failure state.
     /// </summary>
+    /// <param name="resultTask">The task containing the source result.</param>
+    /// <param name="action">The side-effect action to execute with the evaluated result.</param>
+    /// <param name="cancellationToken">A token that can be used to cancel the asynchronous operation.</param>
+    /// <returns>A task representing the asynchronous operation. The task result contains the original result.</returns>
     public static Task<Result> Inspect(
         this Task<Result> resultTask, Action<Result> action, CancellationToken cancellationToken = default)
     {
@@ -1072,6 +1331,12 @@ public static partial class ResultExtensions
     /// <summary>
     /// Executes an inspection action on the asynchronous result regardless of its success or failure state.
     /// </summary>
+    /// <typeparam name="TState">The type of the state data forwarded to the delegate.</typeparam>
+    /// <param name="resultTask">The task containing the source result.</param>
+    /// <param name="state">The state data forwarded to the delegate to avoid closure allocations.</param>
+    /// <param name="action">The side-effect action to execute with the evaluated result.</param>
+    /// <param name="cancellationToken">A token that can be used to cancel the asynchronous operation.</param>
+    /// <returns>A task representing the asynchronous operation. The task result contains the original result.</returns>
     public static Task<Result> Inspect<TState>(
         this Task<Result> resultTask, TState state, Action<TState, Result> action, CancellationToken cancellationToken = default)
     {
@@ -1088,10 +1353,13 @@ public static partial class ResultExtensions
     // --- Map (Task<Result> non-generic) --------------------------------------
 
     /// <summary>
-    /// Projects a successful <see cref="Result"/> into a <see cref="Result{TNext}"/> by executing
-    /// <paramref name="mapper"/> on success. If the Result is a failure, returns a failure without
-    /// invoking <paramref name="mapper"/>.
+    /// Projects a successful <see cref="Result"/> into a <see cref="Result{TNext}"/> by executing <paramref name="mapper"/> on success. If the Result is a failure, returns a failure without invoking <paramref name="mapper"/>.
     /// </summary>
+    /// <typeparam name="TNext">The type of the transformed value.</typeparam>
+    /// <param name="resultTask">The task containing the source result.</param>
+    /// <param name="mapper">The mapping function producing a new value on success.</param>
+    /// <param name="cancellationToken">A token that can be used to cancel the asynchronous operation.</param>
+    /// <returns>A task representing the asynchronous operation. The task result contains a <see cref="Result{TNext}"/> with the mapped value on success, or the original failure.</returns>
     public static Task<Result<TNext>> Map<TNext>(
         this Task<Result> resultTask, Func<TNext> mapper, CancellationToken cancellationToken = default)
     {
@@ -1106,9 +1374,15 @@ public static partial class ResultExtensions
     }
 
     /// <summary>
-    /// Projects a successful <see cref="Result"/> into a <see cref="Result{TNext}"/> using a state argument
-    /// to avoid closure allocations.
+    /// Projects a successful <see cref="Result"/> into a <see cref="Result{TNext}"/> using a state argument to avoid closure allocations.
     /// </summary>
+    /// <typeparam name="TState">The type of the state data forwarded to the delegate.</typeparam>
+    /// <typeparam name="TNext">The type of the transformed value.</typeparam>
+    /// <param name="resultTask">The task containing the source result.</param>
+    /// <param name="state">The state data forwarded to the delegate to avoid closure allocations.</param>
+    /// <param name="mapper">The mapping function applied to the state to produce a new value.</param>
+    /// <param name="cancellationToken">A token that can be used to cancel the asynchronous operation.</param>
+    /// <returns>A task representing the asynchronous operation. The task result contains a <see cref="Result{TNext}"/> with the mapped value on success, or the original failure.</returns>
     public static Task<Result<TNext>> Map<TState, TNext>(
         this Task<Result> resultTask, TState state, Func<TState, TNext> mapper, CancellationToken cancellationToken = default)
     {
@@ -1125,9 +1399,12 @@ public static partial class ResultExtensions
     // --- Recover (Task<Result> non-generic) ----------------------------------
 
     /// <summary>
-    /// If the <see cref="Result"/> is a failure, invokes <paramref name="recovery"/> to attempt
-    /// a corrective result. If the Result is a success, returns it unchanged.
+    /// If the <see cref="Result"/> is a failure, invokes <paramref name="recovery"/> to attempt a corrective result. If the Result is a success, returns it unchanged.
     /// </summary>
+    /// <param name="resultTask">The task containing the source result.</param>
+    /// <param name="recovery">The recovery function producing a fallback from the error.</param>
+    /// <param name="cancellationToken">A token that can be used to cancel the asynchronous operation.</param>
+    /// <returns>A task representing the asynchronous operation. The task result contains a successful result, or the recovered result on failure.</returns>
     public static Task<Result> Recover(
         this Task<Result> resultTask, Func<Error, Result> recovery, CancellationToken cancellationToken = default)
     {
@@ -1142,9 +1419,14 @@ public static partial class ResultExtensions
     }
 
     /// <summary>
-    /// If the <see cref="Result"/> is a failure, invokes <paramref name="recovery"/> with captured
-    /// state to attempt a corrective result.
+    /// If the <see cref="Result"/> is a failure, invokes <paramref name="recovery"/> with captured state to attempt a corrective result.
     /// </summary>
+    /// <typeparam name="TState">The type of the state data forwarded to the delegate.</typeparam>
+    /// <param name="resultTask">The task containing the source result.</param>
+    /// <param name="state">The state data forwarded to the delegate to avoid closure allocations.</param>
+    /// <param name="recovery">The recovery function producing a fallback from the state and error.</param>
+    /// <param name="cancellationToken">A token that can be used to cancel the asynchronous operation.</param>
+    /// <returns>A task representing the asynchronous operation. The task result contains a successful result, or the recovered result on failure.</returns>
     public static Task<Result> Recover<TState>(
         this Task<Result> resultTask, TState state, Func<TState, Error, Result> recovery, CancellationToken cancellationToken = default)
     {
@@ -1159,9 +1441,12 @@ public static partial class ResultExtensions
     }
 
     /// <summary>
-    /// If the <see cref="Result"/> is a failure, invokes the async <paramref name="recovery"/> delegate
-    /// to attempt a corrective result.
+    /// If the <see cref="Result"/> is a failure, invokes the async <paramref name="recovery"/> delegate to attempt a corrective result.
     /// </summary>
+    /// <param name="resultTask">The task containing the source result.</param>
+    /// <param name="recovery">The recovery function producing a fallback from the error.</param>
+    /// <param name="cancellationToken">A token that can be used to cancel the asynchronous operation.</param>
+    /// <returns>A task representing the asynchronous operation. The task result contains a successful result, or the recovered result on failure.</returns>
     public static Task<Result> Recover(
         this Task<Result> resultTask, Func<Error, Task<Result>> recovery, CancellationToken cancellationToken = default)
     {
@@ -1185,10 +1470,14 @@ public static partial class ResultExtensions
     // --- MapFailure (Task<Result> non-generic) --------------------------------
 
     /// <summary>
-    /// Maps a failure error into <typeparamref name="TOut"/> using <paramref name="onFailure"/>,
-    /// or returns <paramref name="successDefault"/> when the result is successful.
-    /// Async overload for <c>Task&lt;Result&gt;</c> pipelines.
+    /// Maps a failure error into <typeparamref name="TOut"/> using <paramref name="onFailure"/>, or returns <paramref name="successDefault"/> when the result is successful. Async overload for <c>Task&lt;Result&gt;</c> pipelines.
     /// </summary>
+    /// <typeparam name="TOut">The type of the value produced by the projection.</typeparam>
+    /// <param name="resultTask">The task containing the source result.</param>
+    /// <param name="onFailure">The function applied to the error to produce a fallback value on failure.</param>
+    /// <param name="successDefault">The default value to return when the result is successful.</param>
+    /// <param name="cancellationToken">A token that can be used to cancel the asynchronous operation.</param>
+    /// <returns>A task representing the asynchronous operation. The task result contains the mapped failure value, or the default value on success.</returns>
     public static Task<TOut> MapFailure<TOut>(
         this Task<Result> resultTask, Func<Error, TOut> onFailure, TOut successDefault, CancellationToken cancellationToken = default)
     {
@@ -1204,9 +1493,16 @@ public static partial class ResultExtensions
 
 
     /// <summary>
-    /// Maps a failure error into <typeparamref name="TOut"/> using captured state to avoid closure allocations.
-    /// Async overload for <c>Task&lt;Result&gt;</c> pipelines.
+    /// Maps a failure error into <typeparamref name="TOut"/> using captured state to avoid closure allocations. Async overload for <c>Task&lt;Result&gt;</c> pipelines.
     /// </summary>
+    /// <typeparam name="TState">The type of the state data forwarded to the delegate.</typeparam>
+    /// <typeparam name="TOut">The type of the value produced by the projection.</typeparam>
+    /// <param name="resultTask">The task containing the source result.</param>
+    /// <param name="state">The state data forwarded to the delegate to avoid closure allocations.</param>
+    /// <param name="onFailure">The function applied to the state and error to produce a fallback value on failure.</param>
+    /// <param name="successDefault">The default value to return when the result is successful.</param>
+    /// <param name="cancellationToken">A token that can be used to cancel the asynchronous operation.</param>
+    /// <returns>A task representing the asynchronous operation. The task result contains the mapped failure value, or the default value on success.</returns>
     public static Task<TOut> MapFailure<TState, TOut>(
         this Task<Result> resultTask, TState state, Func<TState, Error, TOut> onFailure, TOut successDefault, CancellationToken cancellationToken = default)
     {
@@ -1224,10 +1520,15 @@ public static partial class ResultExtensions
     // --- MapFailure (Task<Result<T>>) -----------------------------------------
 
     /// <summary>
-    /// Maps a failure error into <typeparamref name="TOut"/> using <paramref name="onFailure"/>,
-    /// or returns <paramref name="successDefault"/> when the result is successful.
-    /// Async overload for <c>Task&lt;Result&lt;T&gt;&gt;</c> pipelines.
+    /// Maps a failure error into <typeparamref name="TOut"/> using <paramref name="onFailure"/>, or returns <paramref name="successDefault"/> when the result is successful. Async overload for <c>Task&lt;Result&lt;T&gt;&gt;</c> pipelines.
     /// </summary>
+    /// <typeparam name="T">The type of the source result value.</typeparam>
+    /// <typeparam name="TOut">The type of the value produced by the projection.</typeparam>
+    /// <param name="resultTask">The task containing the source result.</param>
+    /// <param name="onFailure">The function applied to the error to produce a fallback value on failure.</param>
+    /// <param name="successDefault">The default value to return when the result is successful.</param>
+    /// <param name="cancellationToken">A token that can be used to cancel the asynchronous operation.</param>
+    /// <returns>A task representing the asynchronous operation. The task result contains the mapped failure value, or the default value on success.</returns>
     public static Task<TOut> MapFailure<T, TOut>(
         this Task<Result<T>> resultTask, Func<Error, TOut> onFailure, TOut successDefault, CancellationToken cancellationToken = default)
     {
@@ -1243,9 +1544,17 @@ public static partial class ResultExtensions
 
 
     /// <summary>
-    /// Maps a failure error into <typeparamref name="TOut"/> using captured state to avoid closure allocations.
-    /// Async overload for <c>Task&lt;Result&lt;T&gt;&gt;</c> pipelines.
+    /// Maps a failure error into <typeparamref name="TOut"/> using captured state to avoid closure allocations. Async overload for <c>Task&lt;Result&lt;T&gt;&gt;</c> pipelines.
     /// </summary>
+    /// <typeparam name="TState">The type of the state data forwarded to the delegate.</typeparam>
+    /// <typeparam name="T">The type of the source result value.</typeparam>
+    /// <typeparam name="TOut">The type of the value produced by the projection.</typeparam>
+    /// <param name="resultTask">The task containing the source result.</param>
+    /// <param name="state">The state data forwarded to the delegate to avoid closure allocations.</param>
+    /// <param name="onFailure">The function applied to the state and error to produce a fallback value on failure.</param>
+    /// <param name="successDefault">The default value to return when the result is successful.</param>
+    /// <param name="cancellationToken">A token that can be used to cancel the asynchronous operation.</param>
+    /// <returns>A task representing the asynchronous operation. The task result contains the mapped failure value, or the default value on success.</returns>
     public static Task<TOut> MapFailure<TState, T, TOut>(
         this Task<Result<T>> resultTask, TState state, Func<TState, Error, TOut> onFailure, TOut successDefault, CancellationToken cancellationToken = default)
     {

@@ -1,4 +1,11 @@
 # Architectural Decision Record: REJECT-012
+
+## Status
+Rejected
+
+## Date
+2026-09-04
+
 ## Rejection of Reflection-Based Fallbacks for Native AOT Trimming
 
 ### Status

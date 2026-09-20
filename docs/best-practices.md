@@ -80,10 +80,10 @@ public Result<Customer> CreateCustomer(CreateCustomerCommand command)
     var builder = ErrorBuilder.Validation("Customer.InvalidPayload", "Customer validation failed.");
 
     if (string.IsNullOrWhiteSpace(command.Name))
-        builder.WithInnerError(Error.Validation("Customer.NameRequired", "Name is required."));
+        builder = builder.WithInnerError(Error.Validation("Customer.NameRequired", "Name is required."));
 
     if (command.Age < 18)
-        builder.WithInnerError(Error.Validation("Customer.Underage", "Customer must be at least 18 years old."));
+        builder = builder.WithInnerError(Error.Validation("Customer.Underage", "Customer must be at least 18 years old."));
 
     if (builder.HasInnerErrors)
         return builder.Build();
