@@ -1,38 +1,39 @@
 ```
 
 BenchmarkDotNet v0.15.8, Linux Ubuntu 24.04.5 LTS (Noble Numbat)
-INTEL XEON PLATINUM 8573C 2.30GHz, 1 CPU, 4 logical and 2 physical cores
+AMD EPYC 9V74 2.60GHz, 1 CPU, 4 logical and 2 physical cores
 .NET SDK 10.0.401
-  [Host]    : .NET 10.0.12 (10.0.12, 10.0.1226.42308), X64 RyuJIT x86-64-v4
-  .NET 10.0 : .NET 10.0.12 (10.0.12, 10.0.1226.42308), X64 RyuJIT x86-64-v4
-  .NET 8.0  : .NET 8.0.31 (8.0.31, 8.0.3126.42015), X64 RyuJIT x86-64-v4
-  .NET 9.0  : .NET 9.0.20 (9.0.20, 9.0.2026.41315), X64 RyuJIT x86-64-v4
+  [Host]    : .NET 10.0.12 (10.0.12, 10.0.1226.42308), X64 RyuJIT x86-64-v3
+  .NET 10.0 : .NET 10.0.12 (10.0.12, 10.0.1226.42308), X64 RyuJIT x86-64-v3
+  .NET 8.0  : .NET 8.0.31 (8.0.31, 8.0.3126.42015), X64 RyuJIT x86-64-v3
+  .NET 9.0  : .NET 9.0.20 (9.0.20, 9.0.2026.41315), X64 RyuJIT x86-64-v3
 
+RatioSD=?  
 
 ```
-| Method                   | Job       | Runtime   | Mean        | Median      | Ratio      | Allocated | Alloc Ratio |
-|------------------------- |---------- |---------- |------------:|------------:|-----------:|----------:|------------:|
-| ImplicitConversion_Value | .NET 10.0 | .NET 10.0 |   0.0000 ns |   0.0000 ns |      0.000 |         - |          NA |
-| Failure_NonGeneric       | .NET 8.0  | .NET 8.0  |   0.0000 ns |   0.0000 ns |      0.000 |         - |          NA |
-| Success_String           | .NET 9.0  | .NET 9.0  |   0.0000 ns |   0.0000 ns |      0.000 |         - |          NA |
-| Success_NonGeneric       | .NET 9.0  | .NET 9.0  |   0.0000 ns |   0.0000 ns |      0.003 |         - |          NA |
-| Failure_NonGeneric       | .NET 10.0 | .NET 10.0 |   0.0008 ns |   0.0000 ns |      0.053 |         - |          NA |
-| Failure_NonGeneric       | .NET 9.0  | .NET 9.0  |   0.0013 ns |   0.0005 ns |      0.087 |         - |          NA |
-| Success_String           | .NET 10.0 | .NET 10.0 |   0.0031 ns |   0.0000 ns |      0.202 |         - |          NA |
-| Success_Int              | .NET 10.0 | .NET 10.0 |   0.0087 ns |   0.0073 ns |      0.563 |         - |          NA |
-| Success_NonGeneric       | .NET 10.0 | .NET 10.0 |   0.0148 ns |   0.0143 ns |      0.962 |         - |          NA |
-| Success_NonGeneric       | .NET 8.0  | .NET 8.0  |   0.0173 ns |   0.0151 ns |      1.127 |         - |          NA |
-| Success_String           | .NET 8.0  | .NET 8.0  |   0.0297 ns |   0.0322 ns |      1.936 |         - |          NA |
-| Failure_Int              | .NET 10.0 | .NET 10.0 |   0.2835 ns |   0.2840 ns |     18.460 |         - |          NA |
-| ImplicitConversion_Error | .NET 10.0 | .NET 10.0 |   0.2848 ns |   0.2852 ns |     18.548 |         - |          NA |
-| ImplicitConversion_Error | .NET 9.0  | .NET 9.0  |   2.8050 ns |   2.8027 ns |    182.652 |         - |          NA |
-| ImplicitConversion_Value | .NET 8.0  | .NET 8.0  |   2.8341 ns |   2.8326 ns |    184.542 |         - |          NA |
-| Success_Int              | .NET 8.0  | .NET 8.0  |   2.8347 ns |   2.8263 ns |    184.581 |         - |          NA |
-| Failure_Int              | .NET 8.0  | .NET 8.0  |   2.8406 ns |   2.8400 ns |    184.966 |         - |          NA |
-| Failure_Int              | .NET 9.0  | .NET 9.0  |   2.8438 ns |   2.8447 ns |    185.174 |         - |          NA |
-| Success_Int              | .NET 9.0  | .NET 9.0  |   2.8450 ns |   2.8427 ns |    185.252 |         - |          NA |
-| ImplicitConversion_Value | .NET 9.0  | .NET 9.0  |   2.8460 ns |   2.8466 ns |    185.319 |         - |          NA |
-| ImplicitConversion_Error | .NET 8.0  | .NET 8.0  |   2.8539 ns |   2.8537 ns |    185.836 |         - |          NA |
-| Success_Guid             | .NET 9.0  | .NET 9.0  | 410.3037 ns | 410.3232 ns | 26,717.125 |         - |          NA |
-| Success_Guid             | .NET 10.0 | .NET 10.0 | 412.3109 ns | 412.5617 ns | 26,847.822 |         - |          NA |
-| Success_Guid             | .NET 8.0  | .NET 8.0  | 425.5370 ns | 425.7255 ns | 27,709.049 |         - |          NA |
+| Method                   | Job       | Runtime   | Mean        | Median      | Ratio | Allocated | Alloc Ratio |
+|------------------------- |---------- |---------- |------------:|------------:|------:|----------:|------------:|
+| Success_Int              | .NET 10.0 | .NET 10.0 |   0.0000 ns |   0.0000 ns |     ? |         - |           ? |
+| ImplicitConversion_Value | .NET 10.0 | .NET 10.0 |   0.0000 ns |   0.0000 ns |     ? |         - |           ? |
+| Success_NonGeneric       | .NET 8.0  | .NET 8.0  |   0.0000 ns |   0.0000 ns |     ? |         - |           ? |
+| Failure_NonGeneric       | .NET 9.0  | .NET 9.0  |   0.0000 ns |   0.0000 ns |     ? |         - |           ? |
+| Success_NonGeneric       | .NET 10.0 | .NET 10.0 |   0.0000 ns |   0.0000 ns |     ? |         - |           ? |
+| Success_NonGeneric       | .NET 9.0  | .NET 9.0  |   0.0002 ns |   0.0002 ns |     ? |         - |           ? |
+| Failure_NonGeneric       | .NET 10.0 | .NET 10.0 |   0.0013 ns |   0.0003 ns |     ? |         - |           ? |
+| Failure_Int              | .NET 10.0 | .NET 10.0 |   0.0227 ns |   0.0223 ns |     ? |         - |           ? |
+| ImplicitConversion_Error | .NET 10.0 | .NET 10.0 |   0.0229 ns |   0.0227 ns |     ? |         - |           ? |
+| Failure_NonGeneric       | .NET 8.0  | .NET 8.0  |   0.0230 ns |   0.0226 ns |     ? |         - |           ? |
+| Success_String           | .NET 8.0  | .NET 8.0  |   0.0230 ns |   0.0226 ns |     ? |         - |           ? |
+| Success_String           | .NET 10.0 | .NET 10.0 |   0.0437 ns |   0.0438 ns |     ? |         - |           ? |
+| Success_String           | .NET 9.0  | .NET 9.0  |   0.3750 ns |   0.3746 ns |     ? |         - |           ? |
+| ImplicitConversion_Value | .NET 9.0  | .NET 9.0  |   5.9078 ns |   5.9075 ns |     ? |         - |           ? |
+| ImplicitConversion_Error | .NET 8.0  | .NET 8.0  |   5.9085 ns |   5.9080 ns |     ? |         - |           ? |
+| Success_Int              | .NET 9.0  | .NET 9.0  |   5.9086 ns |   5.9090 ns |     ? |         - |           ? |
+| ImplicitConversion_Value | .NET 8.0  | .NET 8.0  |   5.9090 ns |   5.9091 ns |     ? |         - |           ? |
+| Success_Int              | .NET 8.0  | .NET 8.0  |   5.9094 ns |   5.9076 ns |     ? |         - |           ? |
+| Failure_Int              | .NET 9.0  | .NET 9.0  |   5.9095 ns |   5.9095 ns |     ? |         - |           ? |
+| Failure_Int              | .NET 8.0  | .NET 8.0  |   5.9100 ns |   5.9100 ns |     ? |         - |           ? |
+| ImplicitConversion_Error | .NET 9.0  | .NET 9.0  |   5.9103 ns |   5.9102 ns |     ? |         - |           ? |
+| Success_Guid             | .NET 10.0 | .NET 10.0 | 882.1096 ns | 882.3513 ns |     ? |         - |           ? |
+| Success_Guid             | .NET 9.0  | .NET 9.0  | 897.5663 ns | 897.5470 ns |     ? |         - |           ? |
+| Success_Guid             | .NET 8.0  | .NET 8.0  | 897.7213 ns | 897.6317 ns |     ? |         - |           ? |
