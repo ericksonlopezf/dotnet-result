@@ -2,7 +2,7 @@
 <html lang='en'>
 <head>
 <meta charset='utf-8' />
-<title>EricksonLopez.Result.Benchmarks.ResultConstructionBenchmarks-20261004-083839</title>
+<title>EricksonLopez.Result.Benchmarks.ResultConstructionBenchmarks-20261011-091608</title>
 
 <style type="text/css">
 	table { border-collapse: collapse; display: block; width: 100%; overflow: auto; }
@@ -14,12 +14,12 @@
 <body>
 <pre><code>
 BenchmarkDotNet v0.15.8, Linux Ubuntu 24.04.5 LTS (Noble Numbat)
-AMD EPYC 9V74 2.60GHz, 1 CPU, 4 logical and 2 physical cores
+AMD EPYC 9V45 4.37GHz, 1 CPU, 4 logical and 2 physical cores
 .NET SDK 10.0.401
-  [Host]    : .NET 10.0.12 (10.0.12, 10.0.1226.42308), X64 RyuJIT x86-64-v3
-  .NET 10.0 : .NET 10.0.12 (10.0.12, 10.0.1226.42308), X64 RyuJIT x86-64-v3
-  .NET 8.0  : .NET 8.0.31 (8.0.31, 8.0.3126.42015), X64 RyuJIT x86-64-v3
-  .NET 9.0  : .NET 9.0.20 (9.0.20, 9.0.2026.41315), X64 RyuJIT x86-64-v3
+  [Host]    : .NET 10.0.12 (10.0.12, 10.0.1226.42308), X64 RyuJIT x86-64-v4
+  .NET 10.0 : .NET 10.0.12 (10.0.12, 10.0.1226.42308), X64 RyuJIT x86-64-v4
+  .NET 9.0  : .NET 9.0.20 (9.0.20, 9.0.2026.41315), X64 RyuJIT x86-64-v4
+  .NET 8.0  : .NET 8.0.31 (8.0.31, 8.0.3126.42015), X64 RyuJIT x86-64-v4
 </code></pre>
 <pre><code>RatioSD=?  
 </code></pre>
@@ -27,30 +27,30 @@ AMD EPYC 9V74 2.60GHz, 1 CPU, 4 logical and 2 physical cores
 <table>
 <thead><tr><th>Method            </th><th>Job</th><th>Runtime</th><th>Mean </th><th>Median</th><th>Ratio</th><th>Allocated</th><th>Alloc Ratio</th>
 </tr>
-</thead><tbody><tr><td>Success_Int</td><td>.NET 10.0</td><td>.NET 10.0</td><td>0.0000 ns</td><td>0.0000 ns</td><td>?</td><td>-</td><td>?</td>
-</tr><tr><td>ImplicitConversion_Value</td><td>.NET 10.0</td><td>.NET 10.0</td><td>0.0000 ns</td><td>0.0000 ns</td><td>?</td><td>-</td><td>?</td>
-</tr><tr><td>Success_NonGeneric</td><td>.NET 8.0</td><td>.NET 8.0</td><td>0.0000 ns</td><td>0.0000 ns</td><td>?</td><td>-</td><td>?</td>
-</tr><tr><td>Failure_NonGeneric</td><td>.NET 9.0</td><td>.NET 9.0</td><td>0.0000 ns</td><td>0.0000 ns</td><td>?</td><td>-</td><td>?</td>
-</tr><tr><td>Success_NonGeneric</td><td>.NET 10.0</td><td>.NET 10.0</td><td>0.0000 ns</td><td>0.0000 ns</td><td>?</td><td>-</td><td>?</td>
-</tr><tr><td>Success_NonGeneric</td><td>.NET 9.0</td><td>.NET 9.0</td><td>0.0002 ns</td><td>0.0002 ns</td><td>?</td><td>-</td><td>?</td>
-</tr><tr><td>Failure_NonGeneric</td><td>.NET 10.0</td><td>.NET 10.0</td><td>0.0013 ns</td><td>0.0003 ns</td><td>?</td><td>-</td><td>?</td>
-</tr><tr><td>Failure_Int</td><td>.NET 10.0</td><td>.NET 10.0</td><td>0.0227 ns</td><td>0.0223 ns</td><td>?</td><td>-</td><td>?</td>
-</tr><tr><td>ImplicitConversion_Error</td><td>.NET 10.0</td><td>.NET 10.0</td><td>0.0229 ns</td><td>0.0227 ns</td><td>?</td><td>-</td><td>?</td>
-</tr><tr><td>Failure_NonGeneric</td><td>.NET 8.0</td><td>.NET 8.0</td><td>0.0230 ns</td><td>0.0226 ns</td><td>?</td><td>-</td><td>?</td>
-</tr><tr><td>Success_String</td><td>.NET 8.0</td><td>.NET 8.0</td><td>0.0230 ns</td><td>0.0226 ns</td><td>?</td><td>-</td><td>?</td>
-</tr><tr><td>Success_String</td><td>.NET 10.0</td><td>.NET 10.0</td><td>0.0437 ns</td><td>0.0438 ns</td><td>?</td><td>-</td><td>?</td>
-</tr><tr><td>Success_String</td><td>.NET 9.0</td><td>.NET 9.0</td><td>0.3750 ns</td><td>0.3746 ns</td><td>?</td><td>-</td><td>?</td>
-</tr><tr><td>ImplicitConversion_Value</td><td>.NET 9.0</td><td>.NET 9.0</td><td>5.9078 ns</td><td>5.9075 ns</td><td>?</td><td>-</td><td>?</td>
-</tr><tr><td>ImplicitConversion_Error</td><td>.NET 8.0</td><td>.NET 8.0</td><td>5.9085 ns</td><td>5.9080 ns</td><td>?</td><td>-</td><td>?</td>
-</tr><tr><td>Success_Int</td><td>.NET 9.0</td><td>.NET 9.0</td><td>5.9086 ns</td><td>5.9090 ns</td><td>?</td><td>-</td><td>?</td>
-</tr><tr><td>ImplicitConversion_Value</td><td>.NET 8.0</td><td>.NET 8.0</td><td>5.9090 ns</td><td>5.9091 ns</td><td>?</td><td>-</td><td>?</td>
-</tr><tr><td>Success_Int</td><td>.NET 8.0</td><td>.NET 8.0</td><td>5.9094 ns</td><td>5.9076 ns</td><td>?</td><td>-</td><td>?</td>
-</tr><tr><td>Failure_Int</td><td>.NET 9.0</td><td>.NET 9.0</td><td>5.9095 ns</td><td>5.9095 ns</td><td>?</td><td>-</td><td>?</td>
-</tr><tr><td>Failure_Int</td><td>.NET 8.0</td><td>.NET 8.0</td><td>5.9100 ns</td><td>5.9100 ns</td><td>?</td><td>-</td><td>?</td>
-</tr><tr><td>ImplicitConversion_Error</td><td>.NET 9.0</td><td>.NET 9.0</td><td>5.9103 ns</td><td>5.9102 ns</td><td>?</td><td>-</td><td>?</td>
-</tr><tr><td>Success_Guid</td><td>.NET 10.0</td><td>.NET 10.0</td><td>882.1096 ns</td><td>882.3513 ns</td><td>?</td><td>-</td><td>?</td>
-</tr><tr><td>Success_Guid</td><td>.NET 9.0</td><td>.NET 9.0</td><td>897.5663 ns</td><td>897.5470 ns</td><td>?</td><td>-</td><td>?</td>
-</tr><tr><td>Success_Guid</td><td>.NET 8.0</td><td>.NET 8.0</td><td>897.7213 ns</td><td>897.6317 ns</td><td>?</td><td>-</td><td>?</td>
+</thead><tbody><tr><td>Success_NonGeneric</td><td>.NET 10.0</td><td>.NET 10.0</td><td>0.0000 ns</td><td>0.0000 ns</td><td>?</td><td>-</td><td>?</td>
+</tr><tr><td>Success_Int</td><td>.NET 10.0</td><td>.NET 10.0</td><td>0.0000 ns</td><td>0.0000 ns</td><td>?</td><td>-</td><td>?</td>
+</tr><tr><td>Success_NonGeneric</td><td>.NET 9.0</td><td>.NET 9.0</td><td>0.0000 ns</td><td>0.0000 ns</td><td>?</td><td>-</td><td>?</td>
+</tr><tr><td>Success_String</td><td>.NET 9.0</td><td>.NET 9.0</td><td>0.0000 ns</td><td>0.0000 ns</td><td>?</td><td>-</td><td>?</td>
+</tr><tr><td>Failure_NonGeneric</td><td>.NET 8.0</td><td>.NET 8.0</td><td>0.0011 ns</td><td>0.0000 ns</td><td>?</td><td>-</td><td>?</td>
+</tr><tr><td>Failure_Int</td><td>.NET 10.0</td><td>.NET 10.0</td><td>0.0014 ns</td><td>0.0000 ns</td><td>?</td><td>-</td><td>?</td>
+</tr><tr><td>Failure_NonGeneric</td><td>.NET 9.0</td><td>.NET 9.0</td><td>0.0036 ns</td><td>0.0014 ns</td><td>?</td><td>-</td><td>?</td>
+</tr><tr><td>Success_NonGeneric</td><td>.NET 8.0</td><td>.NET 8.0</td><td>0.0056 ns</td><td>0.0011 ns</td><td>?</td><td>-</td><td>?</td>
+</tr><tr><td>ImplicitConversion_Error</td><td>.NET 10.0</td><td>.NET 10.0</td><td>0.0060 ns</td><td>0.0010 ns</td><td>?</td><td>-</td><td>?</td>
+</tr><tr><td>ImplicitConversion_Value</td><td>.NET 10.0</td><td>.NET 10.0</td><td>0.0068 ns</td><td>0.0000 ns</td><td>?</td><td>-</td><td>?</td>
+</tr><tr><td>Success_String</td><td>.NET 8.0</td><td>.NET 8.0</td><td>0.0140 ns</td><td>0.0142 ns</td><td>?</td><td>-</td><td>?</td>
+</tr><tr><td>Success_String</td><td>.NET 10.0</td><td>.NET 10.0</td><td>0.0143 ns</td><td>0.0031 ns</td><td>?</td><td>-</td><td>?</td>
+</tr><tr><td>Failure_NonGeneric</td><td>.NET 10.0</td><td>.NET 10.0</td><td>0.0186 ns</td><td>0.0210 ns</td><td>?</td><td>-</td><td>?</td>
+</tr><tr><td>ImplicitConversion_Value</td><td>.NET 8.0</td><td>.NET 8.0</td><td>2.6387 ns</td><td>2.6385 ns</td><td>?</td><td>-</td><td>?</td>
+</tr><tr><td>Success_Int</td><td>.NET 8.0</td><td>.NET 8.0</td><td>2.6667 ns</td><td>2.6652 ns</td><td>?</td><td>-</td><td>?</td>
+</tr><tr><td>Failure_Int</td><td>.NET 8.0</td><td>.NET 8.0</td><td>2.7375 ns</td><td>2.7303 ns</td><td>?</td><td>-</td><td>?</td>
+</tr><tr><td>ImplicitConversion_Error</td><td>.NET 8.0</td><td>.NET 8.0</td><td>2.7629 ns</td><td>2.7861 ns</td><td>?</td><td>-</td><td>?</td>
+</tr><tr><td>Success_Int</td><td>.NET 9.0</td><td>.NET 9.0</td><td>2.7944 ns</td><td>2.7958 ns</td><td>?</td><td>-</td><td>?</td>
+</tr><tr><td>Failure_Int</td><td>.NET 9.0</td><td>.NET 9.0</td><td>2.7982 ns</td><td>2.8045 ns</td><td>?</td><td>-</td><td>?</td>
+</tr><tr><td>ImplicitConversion_Error</td><td>.NET 9.0</td><td>.NET 9.0</td><td>2.8087 ns</td><td>2.8088 ns</td><td>?</td><td>-</td><td>?</td>
+</tr><tr><td>ImplicitConversion_Value</td><td>.NET 9.0</td><td>.NET 9.0</td><td>2.8399 ns</td><td>2.8413 ns</td><td>?</td><td>-</td><td>?</td>
+</tr><tr><td>Success_Guid</td><td>.NET 10.0</td><td>.NET 10.0</td><td>448.2443 ns</td><td>448.9402 ns</td><td>?</td><td>-</td><td>?</td>
+</tr><tr><td>Success_Guid</td><td>.NET 8.0</td><td>.NET 8.0</td><td>472.9151 ns</td><td>473.9795 ns</td><td>?</td><td>-</td><td>?</td>
+</tr><tr><td>Success_Guid</td><td>.NET 9.0</td><td>.NET 9.0</td><td>480.1641 ns</td><td>479.3136 ns</td><td>?</td><td>-</td><td>?</td>
 </tr></tbody></table>
 </body>
 </html>

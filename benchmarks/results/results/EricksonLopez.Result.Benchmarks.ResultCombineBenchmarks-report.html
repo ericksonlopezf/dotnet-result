@@ -2,7 +2,7 @@
 <html lang='en'>
 <head>
 <meta charset='utf-8' />
-<title>EricksonLopez.Result.Benchmarks.ResultCombineBenchmarks-20261004-082638</title>
+<title>EricksonLopez.Result.Benchmarks.ResultCombineBenchmarks-20261011-090251</title>
 
 <style type="text/css">
 	table { border-collapse: collapse; display: block; width: 100%; overflow: auto; }
@@ -14,54 +14,54 @@
 <body>
 <pre><code>
 BenchmarkDotNet v0.15.8, Linux Ubuntu 24.04.5 LTS (Noble Numbat)
-AMD EPYC 9V74 2.60GHz, 1 CPU, 4 logical and 2 physical cores
+AMD EPYC 9V45 4.37GHz, 1 CPU, 4 logical and 2 physical cores
 .NET SDK 10.0.401
-  [Host]    : .NET 10.0.12 (10.0.12, 10.0.1226.42308), X64 RyuJIT x86-64-v3
-  .NET 9.0  : .NET 9.0.20 (9.0.20, 9.0.2026.41315), X64 RyuJIT x86-64-v3
-  .NET 8.0  : .NET 8.0.31 (8.0.31, 8.0.3126.42015), X64 RyuJIT x86-64-v3
-  .NET 10.0 : .NET 10.0.12 (10.0.12, 10.0.1226.42308), X64 RyuJIT x86-64-v3
+  [Host]    : .NET 10.0.12 (10.0.12, 10.0.1226.42308), X64 RyuJIT x86-64-v4
+  .NET 9.0  : .NET 9.0.20 (9.0.20, 9.0.2026.41315), X64 RyuJIT x86-64-v4
+  .NET 8.0  : .NET 8.0.31 (8.0.31, 8.0.3126.42015), X64 RyuJIT x86-64-v4
+  .NET 10.0 : .NET 10.0.12 (10.0.12, 10.0.1226.42308), X64 RyuJIT x86-64-v4
 </code></pre>
 <pre><code></code></pre>
 
 <table>
 <thead><tr><th>Method        </th><th>Job</th><th>Runtime</th><th>Count</th><th>Mean</th><th>Ratio</th><th>Gen0</th><th>Allocated</th><th>Alloc Ratio</th>
 </tr>
-</thead><tbody><tr><td>Combine_AllSuccess</td><td>.NET 9.0</td><td>.NET 9.0</td><td>4</td><td>5.925 ns</td><td>0.80</td><td>-</td><td>-</td><td>NA</td>
-</tr><tr><td>Combine_OneFailure</td><td>.NET 9.0</td><td>.NET 9.0</td><td>4</td><td>6.627 ns</td><td>0.89</td><td>-</td><td>-</td><td>NA</td>
-</tr><tr><td>Combine_AllSuccess</td><td>.NET 8.0</td><td>.NET 8.0</td><td>4</td><td>7.408 ns</td><td>1.00</td><td>-</td><td>-</td><td>NA</td>
-</tr><tr><td>Combine_OneFailure</td><td>.NET 8.0</td><td>.NET 8.0</td><td>4</td><td>8.359 ns</td><td>1.13</td><td>-</td><td>-</td><td>NA</td>
-</tr><tr><td>Combine_OneFailure</td><td>.NET 10.0</td><td>.NET 10.0</td><td>4</td><td>8.392 ns</td><td>1.13</td><td>-</td><td>-</td><td>NA</td>
-</tr><tr><td>Combine_AllSuccess</td><td>.NET 10.0</td><td>.NET 10.0</td><td>4</td><td>11.641 ns</td><td>1.57</td><td>-</td><td>-</td><td>NA</td>
-</tr><tr><td>Combine_HalfFailures</td><td>.NET 10.0</td><td>.NET 10.0</td><td>4</td><td>109.183 ns</td><td>14.74</td><td>0.0143</td><td>240 B</td><td>NA</td>
-</tr><tr><td>Combine_AllFailures</td><td>.NET 10.0</td><td>.NET 10.0</td><td>4</td><td>120.880 ns</td><td>16.32</td><td>0.0162</td><td>272 B</td><td>NA</td>
-</tr><tr><td>Combine_HalfFailures</td><td>.NET 9.0</td><td>.NET 9.0</td><td>4</td><td>145.670 ns</td><td>19.67</td><td>0.0143</td><td>240 B</td><td>NA</td>
-</tr><tr><td>Combine_AllFailures</td><td>.NET 9.0</td><td>.NET 9.0</td><td>4</td><td>146.333 ns</td><td>19.76</td><td>0.0162</td><td>272 B</td><td>NA</td>
-</tr><tr><td>Combine_HalfFailures</td><td>.NET 8.0</td><td>.NET 8.0</td><td>4</td><td>193.731 ns</td><td>26.15</td><td>0.0143</td><td>240 B</td><td>NA</td>
-</tr><tr><td>Combine_AllFailures</td><td>.NET 8.0</td><td>.NET 8.0</td><td>4</td><td>201.251 ns</td><td>27.17</td><td>0.0162</td><td>272 B</td><td>NA</td>
-</tr><tr><td>Combine_AllSuccess</td><td>.NET 9.0</td><td>.NET 9.0</td><td>16</td><td>13.706 ns</td><td>0.94</td><td>-</td><td>-</td><td>NA</td>
-</tr><tr><td>Combine_AllSuccess</td><td>.NET 8.0</td><td>.NET 8.0</td><td>16</td><td>14.558 ns</td><td>1.00</td><td>-</td><td>-</td><td>NA</td>
-</tr><tr><td>Combine_OneFailure</td><td>.NET 9.0</td><td>.NET 9.0</td><td>16</td><td>14.862 ns</td><td>1.02</td><td>-</td><td>-</td><td>NA</td>
-</tr><tr><td>Combine_OneFailure</td><td>.NET 8.0</td><td>.NET 8.0</td><td>16</td><td>15.896 ns</td><td>1.09</td><td>-</td><td>-</td><td>NA</td>
-</tr><tr><td>Combine_OneFailure</td><td>.NET 10.0</td><td>.NET 10.0</td><td>16</td><td>20.742 ns</td><td>1.42</td><td>-</td><td>-</td><td>NA</td>
-</tr><tr><td>Combine_AllSuccess</td><td>.NET 10.0</td><td>.NET 10.0</td><td>16</td><td>30.798 ns</td><td>2.12</td><td>-</td><td>-</td><td>NA</td>
-</tr><tr><td>Combine_HalfFailures</td><td>.NET 10.0</td><td>.NET 10.0</td><td>16</td><td>149.316 ns</td><td>10.26</td><td>0.0200</td><td>336 B</td><td>NA</td>
-</tr><tr><td>Combine_AllFailures</td><td>.NET 10.0</td><td>.NET 10.0</td><td>16</td><td>178.382 ns</td><td>12.25</td><td>0.0281</td><td>472 B</td><td>NA</td>
-</tr><tr><td>Combine_HalfFailures</td><td>.NET 9.0</td><td>.NET 9.0</td><td>16</td><td>182.734 ns</td><td>12.55</td><td>0.0200</td><td>336 B</td><td>NA</td>
-</tr><tr><td>Combine_AllFailures</td><td>.NET 9.0</td><td>.NET 9.0</td><td>16</td><td>214.813 ns</td><td>14.76</td><td>0.0281</td><td>472 B</td><td>NA</td>
-</tr><tr><td>Combine_HalfFailures</td><td>.NET 8.0</td><td>.NET 8.0</td><td>16</td><td>232.516 ns</td><td>15.97</td><td>0.0200</td><td>336 B</td><td>NA</td>
-</tr><tr><td>Combine_AllFailures</td><td>.NET 8.0</td><td>.NET 8.0</td><td>16</td><td>272.043 ns</td><td>18.69</td><td>0.0281</td><td>472 B</td><td>NA</td>
-</tr><tr><td>Combine_OneFailure</td><td>.NET 9.0</td><td>.NET 9.0</td><td>64</td><td>39.645 ns</td><td>0.73</td><td>-</td><td>-</td><td>NA</td>
-</tr><tr><td>Combine_AllSuccess</td><td>.NET 9.0</td><td>.NET 9.0</td><td>64</td><td>49.188 ns</td><td>0.91</td><td>-</td><td>-</td><td>NA</td>
-</tr><tr><td>Combine_OneFailure</td><td>.NET 8.0</td><td>.NET 8.0</td><td>64</td><td>50.974 ns</td><td>0.94</td><td>-</td><td>-</td><td>NA</td>
-</tr><tr><td>Combine_AllSuccess</td><td>.NET 8.0</td><td>.NET 8.0</td><td>64</td><td>54.338 ns</td><td>1.00</td><td>-</td><td>-</td><td>NA</td>
-</tr><tr><td>Combine_AllSuccess</td><td>.NET 10.0</td><td>.NET 10.0</td><td>64</td><td>70.645 ns</td><td>1.30</td><td>-</td><td>-</td><td>NA</td>
-</tr><tr><td>Combine_OneFailure</td><td>.NET 10.0</td><td>.NET 10.0</td><td>64</td><td>71.338 ns</td><td>1.31</td><td>-</td><td>-</td><td>NA</td>
-</tr><tr><td>Combine_HalfFailures</td><td>.NET 10.0</td><td>.NET 10.0</td><td>64</td><td>294.413 ns</td><td>5.42</td><td>0.0434</td><td>728 B</td><td>NA</td>
-</tr><tr><td>Combine_HalfFailures</td><td>.NET 9.0</td><td>.NET 9.0</td><td>64</td><td>347.908 ns</td><td>6.40</td><td>0.0434</td><td>728 B</td><td>NA</td>
-</tr><tr><td>Combine_HalfFailures</td><td>.NET 8.0</td><td>.NET 8.0</td><td>64</td><td>411.147 ns</td><td>7.57</td><td>0.0434</td><td>728 B</td><td>NA</td>
-</tr><tr><td>Combine_AllFailures</td><td>.NET 10.0</td><td>.NET 10.0</td><td>64</td><td>426.046 ns</td><td>7.84</td><td>0.0739</td><td>1240 B</td><td>NA</td>
-</tr><tr><td>Combine_AllFailures</td><td>.NET 9.0</td><td>.NET 9.0</td><td>64</td><td>453.094 ns</td><td>8.34</td><td>0.0739</td><td>1240 B</td><td>NA</td>
-</tr><tr><td>Combine_AllFailures</td><td>.NET 8.0</td><td>.NET 8.0</td><td>64</td><td>564.836 ns</td><td>10.39</td><td>0.0734</td><td>1240 B</td><td>NA</td>
+</thead><tbody><tr><td>Combine_AllSuccess</td><td>.NET 9.0</td><td>.NET 9.0</td><td>4</td><td>2.822 ns</td><td>0.82</td><td>-</td><td>-</td><td>NA</td>
+</tr><tr><td>Combine_OneFailure</td><td>.NET 9.0</td><td>.NET 9.0</td><td>4</td><td>3.066 ns</td><td>0.89</td><td>-</td><td>-</td><td>NA</td>
+</tr><tr><td>Combine_AllSuccess</td><td>.NET 8.0</td><td>.NET 8.0</td><td>4</td><td>3.452 ns</td><td>1.00</td><td>-</td><td>-</td><td>NA</td>
+</tr><tr><td>Combine_OneFailure</td><td>.NET 8.0</td><td>.NET 8.0</td><td>4</td><td>3.530 ns</td><td>1.02</td><td>-</td><td>-</td><td>NA</td>
+</tr><tr><td>Combine_AllSuccess</td><td>.NET 10.0</td><td>.NET 10.0</td><td>4</td><td>3.580 ns</td><td>1.04</td><td>-</td><td>-</td><td>NA</td>
+</tr><tr><td>Combine_OneFailure</td><td>.NET 10.0</td><td>.NET 10.0</td><td>4</td><td>7.775 ns</td><td>2.25</td><td>-</td><td>-</td><td>NA</td>
+</tr><tr><td>Combine_HalfFailures</td><td>.NET 10.0</td><td>.NET 10.0</td><td>4</td><td>56.049 ns</td><td>16.24</td><td>0.0143</td><td>240 B</td><td>NA</td>
+</tr><tr><td>Combine_AllFailures</td><td>.NET 10.0</td><td>.NET 10.0</td><td>4</td><td>58.757 ns</td><td>17.02</td><td>0.0162</td><td>272 B</td><td>NA</td>
+</tr><tr><td>Combine_HalfFailures</td><td>.NET 9.0</td><td>.NET 9.0</td><td>4</td><td>69.299 ns</td><td>20.08</td><td>0.0143</td><td>240 B</td><td>NA</td>
+</tr><tr><td>Combine_HalfFailures</td><td>.NET 8.0</td><td>.NET 8.0</td><td>4</td><td>89.853 ns</td><td>26.03</td><td>0.0143</td><td>240 B</td><td>NA</td>
+</tr><tr><td>Combine_AllFailures</td><td>.NET 9.0</td><td>.NET 9.0</td><td>4</td><td>96.674 ns</td><td>28.01</td><td>0.0162</td><td>272 B</td><td>NA</td>
+</tr><tr><td>Combine_AllFailures</td><td>.NET 8.0</td><td>.NET 8.0</td><td>4</td><td>111.989 ns</td><td>32.45</td><td>0.0162</td><td>272 B</td><td>NA</td>
+</tr><tr><td>Combine_AllSuccess</td><td>.NET 9.0</td><td>.NET 9.0</td><td>16</td><td>7.348 ns</td><td>0.89</td><td>-</td><td>-</td><td>NA</td>
+</tr><tr><td>Combine_OneFailure</td><td>.NET 9.0</td><td>.NET 9.0</td><td>16</td><td>7.620 ns</td><td>0.92</td><td>-</td><td>-</td><td>NA</td>
+</tr><tr><td>Combine_AllSuccess</td><td>.NET 8.0</td><td>.NET 8.0</td><td>16</td><td>8.295 ns</td><td>1.00</td><td>-</td><td>-</td><td>NA</td>
+</tr><tr><td>Combine_OneFailure</td><td>.NET 8.0</td><td>.NET 8.0</td><td>16</td><td>8.819 ns</td><td>1.06</td><td>-</td><td>-</td><td>NA</td>
+</tr><tr><td>Combine_AllSuccess</td><td>.NET 10.0</td><td>.NET 10.0</td><td>16</td><td>9.781 ns</td><td>1.18</td><td>-</td><td>-</td><td>NA</td>
+</tr><tr><td>Combine_OneFailure</td><td>.NET 10.0</td><td>.NET 10.0</td><td>16</td><td>10.044 ns</td><td>1.21</td><td>-</td><td>-</td><td>NA</td>
+</tr><tr><td>Combine_HalfFailures</td><td>.NET 10.0</td><td>.NET 10.0</td><td>16</td><td>75.443 ns</td><td>9.10</td><td>0.0200</td><td>336 B</td><td>NA</td>
+</tr><tr><td>Combine_HalfFailures</td><td>.NET 9.0</td><td>.NET 9.0</td><td>16</td><td>95.865 ns</td><td>11.56</td><td>0.0200</td><td>336 B</td><td>NA</td>
+</tr><tr><td>Combine_AllFailures</td><td>.NET 10.0</td><td>.NET 10.0</td><td>16</td><td>103.526 ns</td><td>12.49</td><td>0.0281</td><td>472 B</td><td>NA</td>
+</tr><tr><td>Combine_HalfFailures</td><td>.NET 8.0</td><td>.NET 8.0</td><td>16</td><td>116.692 ns</td><td>14.07</td><td>0.0200</td><td>336 B</td><td>NA</td>
+</tr><tr><td>Combine_AllFailures</td><td>.NET 9.0</td><td>.NET 9.0</td><td>16</td><td>125.793 ns</td><td>15.17</td><td>0.0281</td><td>472 B</td><td>NA</td>
+</tr><tr><td>Combine_AllFailures</td><td>.NET 8.0</td><td>.NET 8.0</td><td>16</td><td>163.449 ns</td><td>19.71</td><td>0.0281</td><td>472 B</td><td>NA</td>
+</tr><tr><td>Combine_AllSuccess</td><td>.NET 9.0</td><td>.NET 9.0</td><td>64</td><td>21.460 ns</td><td>0.85</td><td>-</td><td>-</td><td>NA</td>
+</tr><tr><td>Combine_OneFailure</td><td>.NET 9.0</td><td>.NET 9.0</td><td>64</td><td>22.691 ns</td><td>0.90</td><td>-</td><td>-</td><td>NA</td>
+</tr><tr><td>Combine_AllSuccess</td><td>.NET 8.0</td><td>.NET 8.0</td><td>64</td><td>25.217 ns</td><td>1.00</td><td>-</td><td>-</td><td>NA</td>
+</tr><tr><td>Combine_OneFailure</td><td>.NET 8.0</td><td>.NET 8.0</td><td>64</td><td>26.259 ns</td><td>1.04</td><td>-</td><td>-</td><td>NA</td>
+</tr><tr><td>Combine_OneFailure</td><td>.NET 10.0</td><td>.NET 10.0</td><td>64</td><td>35.347 ns</td><td>1.40</td><td>-</td><td>-</td><td>NA</td>
+</tr><tr><td>Combine_AllSuccess</td><td>.NET 10.0</td><td>.NET 10.0</td><td>64</td><td>35.376 ns</td><td>1.40</td><td>-</td><td>-</td><td>NA</td>
+</tr><tr><td>Combine_HalfFailures</td><td>.NET 10.0</td><td>.NET 10.0</td><td>64</td><td>179.449 ns</td><td>7.12</td><td>0.0434</td><td>728 B</td><td>NA</td>
+</tr><tr><td>Combine_HalfFailures</td><td>.NET 9.0</td><td>.NET 9.0</td><td>64</td><td>184.476 ns</td><td>7.32</td><td>0.0434</td><td>728 B</td><td>NA</td>
+</tr><tr><td>Combine_HalfFailures</td><td>.NET 8.0</td><td>.NET 8.0</td><td>64</td><td>201.577 ns</td><td>7.99</td><td>0.0434</td><td>728 B</td><td>NA</td>
+</tr><tr><td>Combine_AllFailures</td><td>.NET 10.0</td><td>.NET 10.0</td><td>64</td><td>246.036 ns</td><td>9.76</td><td>0.0739</td><td>1240 B</td><td>NA</td>
+</tr><tr><td>Combine_AllFailures</td><td>.NET 9.0</td><td>.NET 9.0</td><td>64</td><td>275.263 ns</td><td>10.92</td><td>0.0739</td><td>1240 B</td><td>NA</td>
+</tr><tr><td>Combine_AllFailures</td><td>.NET 8.0</td><td>.NET 8.0</td><td>64</td><td>276.899 ns</td><td>10.98</td><td>0.0739</td><td>1240 B</td><td>NA</td>
 </tr></tbody></table>
 </body>
 </html>
