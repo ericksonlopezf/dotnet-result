@@ -1,48 +1,48 @@
 
 BenchmarkDotNet v0.15.8, Linux Ubuntu 24.04.5 LTS (Noble Numbat)
-AMD EPYC 9V45 4.37GHz, 1 CPU, 4 logical and 2 physical cores
-.NET SDK 10.0.401
-  [Host]    : .NET 10.0.12 (10.0.12, 10.0.1226.42308), X64 RyuJIT x86-64-v4
-  .NET 10.0 : .NET 10.0.12 (10.0.12, 10.0.1226.42308), X64 RyuJIT x86-64-v4
-  .NET 9.0  : .NET 9.0.20 (9.0.20, 9.0.2026.41315), X64 RyuJIT x86-64-v4
-  .NET 8.0  : .NET 8.0.31 (8.0.31, 8.0.3126.42015), X64 RyuJIT x86-64-v4
+AMD EPYC 9V74 2.60GHz, 1 CPU, 4 logical and 2 physical cores
+.NET SDK 10.0.402
+  [Host]    : .NET 10.0.13 (10.0.13, 10.0.1326.50504), X64 RyuJIT x86-64-v4
+  .NET 10.0 : .NET 10.0.13 (10.0.13, 10.0.1326.50504), X64 RyuJIT x86-64-v4
+  .NET 9.0  : .NET 9.0.21 (9.0.21, 9.0.2126.50404), X64 RyuJIT x86-64-v4
+  .NET 8.0  : .NET 8.0.32 (8.0.32, 8.0.3226.50405), X64 RyuJIT x86-64-v4
 
 
  Method                  | Job       | Runtime   | Mean      | Ratio | Gen0   | Allocated | Alloc Ratio |
 ------------------------ |---------- |---------- |----------:|------:|-------:|----------:|------------:|
- Builder_Simple          | .NET 10.0 | .NET 10.0 |  12.30 ns |  0.82 | 0.0062 |     104 B |        1.00 |
- Factory_Failure         | .NET 10.0 | .NET 10.0 |  12.70 ns |  0.85 | 0.0062 |     104 B |        1.00 |
- Factory_Validation      | .NET 10.0 | .NET 10.0 |  12.88 ns |  0.86 | 0.0062 |     104 B |        1.00 |
- Factory_Validation      | .NET 9.0  | .NET 9.0  |  14.15 ns |  0.94 | 0.0062 |     104 B |        1.00 |
- Factory_Failure         | .NET 9.0  | .NET 9.0  |  14.25 ns |  0.95 | 0.0062 |     104 B |        1.00 |
- Factory_Failure         | .NET 8.0  | .NET 8.0  |  14.98 ns |  1.00 | 0.0062 |     104 B |        1.00 |
- Factory_Validation      | .NET 8.0  | .NET 8.0  |  15.10 ns |  1.01 | 0.0062 |     104 B |        1.00 |
- Builder_Simple          | .NET 9.0  | .NET 9.0  |  19.23 ns |  1.28 | 0.0062 |     104 B |        1.00 |
- Builder_Simple          | .NET 8.0  | .NET 8.0  |  19.78 ns |  1.32 | 0.0062 |     104 B |        1.00 |
- Error_Equality          | .NET 10.0 | .NET 10.0 |  24.35 ns |  1.63 | 0.0124 |     208 B |        2.00 |
- Error_GetHashCode       | .NET 10.0 | .NET 10.0 |  24.50 ns |  1.64 | 0.0062 |     104 B |        1.00 |
- Error_Equality          | .NET 9.0  | .NET 9.0  |  25.65 ns |  1.71 | 0.0124 |     208 B |        2.00 |
- Error_GetHashCode       | .NET 9.0  | .NET 9.0  |  25.88 ns |  1.73 | 0.0062 |     104 B |        1.00 |
- Error_GetHashCode       | .NET 8.0  | .NET 8.0  |  27.00 ns |  1.80 | 0.0062 |     104 B |        1.00 |
- Error_Equality          | .NET 8.0  | .NET 8.0  |  27.26 ns |  1.82 | 0.0124 |     208 B |        2.00 |
- Builder_Chain_5         | .NET 10.0 | .NET 10.0 |  35.04 ns |  2.34 | 0.0124 |     208 B |        2.00 |
- Builder_Chain_5         | .NET 9.0  | .NET 9.0  |  61.88 ns |  4.13 | 0.0124 |     208 B |        2.00 |
- Builder_Chain_7         | .NET 10.0 | .NET 10.0 |  69.54 ns |  4.64 | 0.0224 |     376 B |        3.62 |
- Builder_Full            | .NET 10.0 | .NET 10.0 |  73.49 ns |  4.91 | 0.0224 |     376 B |        3.62 |
- Builder_Chain_5         | .NET 8.0  | .NET 8.0  |  79.42 ns |  5.30 | 0.0124 |     208 B |        2.00 |
- Builder_Chain_7         | .NET 9.0  | .NET 9.0  | 113.06 ns |  7.55 | 0.0224 |     376 B |        3.62 |
- Builder_Full            | .NET 9.0  | .NET 9.0  | 117.97 ns |  7.88 | 0.0224 |     376 B |        3.62 |
- WithMetadata_Chain_3    | .NET 10.0 | .NET 10.0 | 152.13 ns | 10.16 | 0.0482 |     808 B |        7.77 |
- Builder_Full            | .NET 8.0  | .NET 8.0  | 152.30 ns | 10.17 | 0.0224 |     376 B |        3.62 |
- Builder_WithMetadata_3  | .NET 10.0 | .NET 10.0 | 152.85 ns | 10.20 | 0.0362 |     608 B |        5.85 |
- Builder_Chain_7         | .NET 8.0  | .NET 8.0  | 154.11 ns | 10.29 | 0.0224 |     376 B |        3.62 |
- Builder_WithMetadata_3  | .NET 9.0  | .NET 9.0  | 193.00 ns | 12.88 | 0.0362 |     608 B |        5.85 |
- Builder_BatchMetadata_5 | .NET 10.0 | .NET 10.0 | 198.15 ns | 13.23 | 0.0310 |     520 B |        5.00 |
- WithMetadata_Chain_3    | .NET 9.0  | .NET 9.0  | 214.87 ns | 14.34 | 0.0548 |     920 B |        8.85 |
- Builder_BatchMetadata_5 | .NET 9.0  | .NET 9.0  | 215.97 ns | 14.42 | 0.0310 |     520 B |        5.00 |
- WithMetadata_Chain_3    | .NET 8.0  | .NET 8.0  | 224.88 ns | 15.01 | 0.0610 |    1024 B |        9.85 |
- Builder_WithMetadata_3  | .NET 8.0  | .NET 8.0  | 233.73 ns | 15.60 | 0.0362 |     608 B |        5.85 |
- Builder_BatchMetadata_5 | .NET 8.0  | .NET 8.0  | 321.45 ns | 21.46 | 0.0310 |     520 B |        5.00 |
- Builder_Chain_10        | .NET 10.0 | .NET 10.0 | 337.45 ns | 22.53 | 0.0677 |    1136 B |       10.92 |
- Builder_Chain_10        | .NET 9.0  | .NET 9.0  | 394.81 ns | 26.36 | 0.0677 |    1136 B |       10.92 |
- Builder_Chain_10        | .NET 8.0  | .NET 8.0  | 523.06 ns | 34.92 | 0.0677 |    1136 B |       10.92 |
+ Builder_Simple          | .NET 10.0 | .NET 10.0 |  17.17 ns |  0.83 | 0.0062 |     104 B |        1.00 |
+ Factory_Validation      | .NET 10.0 | .NET 10.0 |  18.09 ns |  0.87 | 0.0062 |     104 B |        1.00 |
+ Factory_Failure         | .NET 10.0 | .NET 10.0 |  18.50 ns |  0.89 | 0.0062 |     104 B |        1.00 |
+ Factory_Validation      | .NET 9.0  | .NET 9.0  |  20.61 ns |  0.99 | 0.0062 |     104 B |        1.00 |
+ Factory_Failure         | .NET 9.0  | .NET 9.0  |  20.72 ns |  1.00 | 0.0062 |     104 B |        1.00 |
+ Factory_Failure         | .NET 8.0  | .NET 8.0  |  20.73 ns |  1.00 | 0.0062 |     104 B |        1.00 |
+ Factory_Validation      | .NET 8.0  | .NET 8.0  |  20.81 ns |  1.00 | 0.0062 |     104 B |        1.00 |
+ Builder_Simple          | .NET 8.0  | .NET 8.0  |  26.86 ns |  1.30 | 0.0062 |     104 B |        1.00 |
+ Builder_Simple          | .NET 9.0  | .NET 9.0  |  28.60 ns |  1.38 | 0.0062 |     104 B |        1.00 |
+ Error_GetHashCode       | .NET 9.0  | .NET 9.0  |  36.04 ns |  1.74 | 0.0062 |     104 B |        1.00 |
+ Error_Equality          | .NET 10.0 | .NET 10.0 |  36.36 ns |  1.75 | 0.0124 |     208 B |        2.00 |
+ Error_GetHashCode       | .NET 8.0  | .NET 8.0  |  36.94 ns |  1.78 | 0.0062 |     104 B |        1.00 |
+ Error_GetHashCode       | .NET 10.0 | .NET 10.0 |  38.03 ns |  1.84 | 0.0062 |     104 B |        1.00 |
+ Error_Equality          | .NET 9.0  | .NET 9.0  |  40.53 ns |  1.96 | 0.0124 |     208 B |        2.00 |
+ Error_Equality          | .NET 8.0  | .NET 8.0  |  42.68 ns |  2.06 | 0.0124 |     208 B |        2.00 |
+ Builder_Chain_5         | .NET 10.0 | .NET 10.0 |  50.75 ns |  2.45 | 0.0124 |     208 B |        2.00 |
+ Builder_Chain_5         | .NET 9.0  | .NET 9.0  |  87.25 ns |  4.21 | 0.0124 |     208 B |        2.00 |
+ Builder_Chain_7         | .NET 10.0 | .NET 10.0 | 107.02 ns |  5.16 | 0.0224 |     376 B |        3.62 |
+ Builder_Full            | .NET 10.0 | .NET 10.0 | 107.39 ns |  5.18 | 0.0224 |     376 B |        3.62 |
+ Builder_Chain_5         | .NET 8.0  | .NET 8.0  | 112.02 ns |  5.41 | 0.0124 |     208 B |        2.00 |
+ Builder_Full            | .NET 9.0  | .NET 9.0  | 170.20 ns |  8.21 | 0.0224 |     376 B |        3.62 |
+ Builder_Chain_7         | .NET 9.0  | .NET 9.0  | 172.43 ns |  8.32 | 0.0224 |     376 B |        3.62 |
+ Builder_WithMetadata_3  | .NET 10.0 | .NET 10.0 | 218.40 ns | 10.54 | 0.0324 |     544 B |        5.23 |
+ Builder_Full            | .NET 8.0  | .NET 8.0  | 222.34 ns | 10.73 | 0.0224 |     376 B |        3.62 |
+ Builder_Chain_7         | .NET 8.0  | .NET 8.0  | 222.93 ns | 10.76 | 0.0224 |     376 B |        3.62 |
+ Builder_WithMetadata_3  | .NET 9.0  | .NET 9.0  | 234.78 ns | 11.33 | 0.0324 |     544 B |        5.23 |
+ Builder_BatchMetadata_5 | .NET 10.0 | .NET 10.0 | 277.60 ns | 13.39 | 0.0310 |     520 B |        5.00 |
+ WithMetadata_Chain_3    | .NET 10.0 | .NET 10.0 | 281.98 ns | 13.61 | 0.0520 |     872 B |        8.38 |
+ Builder_WithMetadata_3  | .NET 8.0  | .NET 8.0  | 316.94 ns | 15.29 | 0.0324 |     544 B |        5.23 |
+ Builder_BatchMetadata_5 | .NET 9.0  | .NET 9.0  | 322.60 ns | 15.57 | 0.0310 |     520 B |        5.00 |
+ WithMetadata_Chain_3    | .NET 8.0  | .NET 8.0  | 336.39 ns | 16.23 | 0.0610 |    1024 B |        9.85 |
+ WithMetadata_Chain_3    | .NET 9.0  | .NET 9.0  | 341.80 ns | 16.49 | 0.0548 |     920 B |        8.85 |
+ Builder_BatchMetadata_5 | .NET 8.0  | .NET 8.0  | 424.35 ns | 20.48 | 0.0310 |     520 B |        5.00 |
+ Builder_Chain_10        | .NET 10.0 | .NET 10.0 | 473.14 ns | 22.83 | 0.0677 |    1136 B |       10.92 |
+ Builder_Chain_10        | .NET 9.0  | .NET 9.0  | 519.67 ns | 25.07 | 0.0639 |    1072 B |       10.31 |
+ Builder_Chain_10        | .NET 8.0  | .NET 8.0  | 834.22 ns | 40.25 | 0.0639 |    1072 B |       10.31 |

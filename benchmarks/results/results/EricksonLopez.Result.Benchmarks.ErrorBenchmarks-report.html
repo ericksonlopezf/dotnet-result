@@ -2,7 +2,7 @@
 <html lang='en'>
 <head>
 <meta charset='utf-8' />
-<title>EricksonLopez.Result.Benchmarks.ErrorBenchmarks-20261011-083414</title>
+<title>EricksonLopez.Result.Benchmarks.ErrorBenchmarks-20261018-070836</title>
 
 <style type="text/css">
 	table { border-collapse: collapse; display: block; width: 100%; overflow: auto; }
@@ -14,54 +14,54 @@
 <body>
 <pre><code>
 BenchmarkDotNet v0.15.8, Linux Ubuntu 24.04.5 LTS (Noble Numbat)
-AMD EPYC 9V45 4.37GHz, 1 CPU, 4 logical and 2 physical cores
-.NET SDK 10.0.401
-  [Host]    : .NET 10.0.12 (10.0.12, 10.0.1226.42308), X64 RyuJIT x86-64-v4
-  .NET 10.0 : .NET 10.0.12 (10.0.12, 10.0.1226.42308), X64 RyuJIT x86-64-v4
-  .NET 9.0  : .NET 9.0.20 (9.0.20, 9.0.2026.41315), X64 RyuJIT x86-64-v4
-  .NET 8.0  : .NET 8.0.31 (8.0.31, 8.0.3126.42015), X64 RyuJIT x86-64-v4
+AMD EPYC 9V74 2.60GHz, 1 CPU, 4 logical and 2 physical cores
+.NET SDK 10.0.402
+  [Host]    : .NET 10.0.13 (10.0.13, 10.0.1326.50504), X64 RyuJIT x86-64-v4
+  .NET 10.0 : .NET 10.0.13 (10.0.13, 10.0.1326.50504), X64 RyuJIT x86-64-v4
+  .NET 9.0  : .NET 9.0.21 (9.0.21, 9.0.2126.50404), X64 RyuJIT x86-64-v4
+  .NET 8.0  : .NET 8.0.32 (8.0.32, 8.0.3226.50405), X64 RyuJIT x86-64-v4
 </code></pre>
 <pre><code></code></pre>
 
 <table>
 <thead><tr><th>Method           </th><th>Job</th><th>Runtime</th><th>Mean</th><th>Ratio</th><th>Gen0</th><th>Allocated</th><th>Alloc Ratio</th>
 </tr>
-</thead><tbody><tr><td>Builder_Simple</td><td>.NET 10.0</td><td>.NET 10.0</td><td>12.30 ns</td><td>0.82</td><td>0.0062</td><td>104 B</td><td>1.00</td>
-</tr><tr><td>Factory_Failure</td><td>.NET 10.0</td><td>.NET 10.0</td><td>12.70 ns</td><td>0.85</td><td>0.0062</td><td>104 B</td><td>1.00</td>
-</tr><tr><td>Factory_Validation</td><td>.NET 10.0</td><td>.NET 10.0</td><td>12.88 ns</td><td>0.86</td><td>0.0062</td><td>104 B</td><td>1.00</td>
-</tr><tr><td>Factory_Validation</td><td>.NET 9.0</td><td>.NET 9.0</td><td>14.15 ns</td><td>0.94</td><td>0.0062</td><td>104 B</td><td>1.00</td>
-</tr><tr><td>Factory_Failure</td><td>.NET 9.0</td><td>.NET 9.0</td><td>14.25 ns</td><td>0.95</td><td>0.0062</td><td>104 B</td><td>1.00</td>
-</tr><tr><td>Factory_Failure</td><td>.NET 8.0</td><td>.NET 8.0</td><td>14.98 ns</td><td>1.00</td><td>0.0062</td><td>104 B</td><td>1.00</td>
-</tr><tr><td>Factory_Validation</td><td>.NET 8.0</td><td>.NET 8.0</td><td>15.10 ns</td><td>1.01</td><td>0.0062</td><td>104 B</td><td>1.00</td>
-</tr><tr><td>Builder_Simple</td><td>.NET 9.0</td><td>.NET 9.0</td><td>19.23 ns</td><td>1.28</td><td>0.0062</td><td>104 B</td><td>1.00</td>
-</tr><tr><td>Builder_Simple</td><td>.NET 8.0</td><td>.NET 8.0</td><td>19.78 ns</td><td>1.32</td><td>0.0062</td><td>104 B</td><td>1.00</td>
-</tr><tr><td>Error_Equality</td><td>.NET 10.0</td><td>.NET 10.0</td><td>24.35 ns</td><td>1.63</td><td>0.0124</td><td>208 B</td><td>2.00</td>
-</tr><tr><td>Error_GetHashCode</td><td>.NET 10.0</td><td>.NET 10.0</td><td>24.50 ns</td><td>1.64</td><td>0.0062</td><td>104 B</td><td>1.00</td>
-</tr><tr><td>Error_Equality</td><td>.NET 9.0</td><td>.NET 9.0</td><td>25.65 ns</td><td>1.71</td><td>0.0124</td><td>208 B</td><td>2.00</td>
-</tr><tr><td>Error_GetHashCode</td><td>.NET 9.0</td><td>.NET 9.0</td><td>25.88 ns</td><td>1.73</td><td>0.0062</td><td>104 B</td><td>1.00</td>
-</tr><tr><td>Error_GetHashCode</td><td>.NET 8.0</td><td>.NET 8.0</td><td>27.00 ns</td><td>1.80</td><td>0.0062</td><td>104 B</td><td>1.00</td>
-</tr><tr><td>Error_Equality</td><td>.NET 8.0</td><td>.NET 8.0</td><td>27.26 ns</td><td>1.82</td><td>0.0124</td><td>208 B</td><td>2.00</td>
-</tr><tr><td>Builder_Chain_5</td><td>.NET 10.0</td><td>.NET 10.0</td><td>35.04 ns</td><td>2.34</td><td>0.0124</td><td>208 B</td><td>2.00</td>
-</tr><tr><td>Builder_Chain_5</td><td>.NET 9.0</td><td>.NET 9.0</td><td>61.88 ns</td><td>4.13</td><td>0.0124</td><td>208 B</td><td>2.00</td>
-</tr><tr><td>Builder_Chain_7</td><td>.NET 10.0</td><td>.NET 10.0</td><td>69.54 ns</td><td>4.64</td><td>0.0224</td><td>376 B</td><td>3.62</td>
-</tr><tr><td>Builder_Full</td><td>.NET 10.0</td><td>.NET 10.0</td><td>73.49 ns</td><td>4.91</td><td>0.0224</td><td>376 B</td><td>3.62</td>
-</tr><tr><td>Builder_Chain_5</td><td>.NET 8.0</td><td>.NET 8.0</td><td>79.42 ns</td><td>5.30</td><td>0.0124</td><td>208 B</td><td>2.00</td>
-</tr><tr><td>Builder_Chain_7</td><td>.NET 9.0</td><td>.NET 9.0</td><td>113.06 ns</td><td>7.55</td><td>0.0224</td><td>376 B</td><td>3.62</td>
-</tr><tr><td>Builder_Full</td><td>.NET 9.0</td><td>.NET 9.0</td><td>117.97 ns</td><td>7.88</td><td>0.0224</td><td>376 B</td><td>3.62</td>
-</tr><tr><td>WithMetadata_Chain_3</td><td>.NET 10.0</td><td>.NET 10.0</td><td>152.13 ns</td><td>10.16</td><td>0.0482</td><td>808 B</td><td>7.77</td>
-</tr><tr><td>Builder_Full</td><td>.NET 8.0</td><td>.NET 8.0</td><td>152.30 ns</td><td>10.17</td><td>0.0224</td><td>376 B</td><td>3.62</td>
-</tr><tr><td>Builder_WithMetadata_3</td><td>.NET 10.0</td><td>.NET 10.0</td><td>152.85 ns</td><td>10.20</td><td>0.0362</td><td>608 B</td><td>5.85</td>
-</tr><tr><td>Builder_Chain_7</td><td>.NET 8.0</td><td>.NET 8.0</td><td>154.11 ns</td><td>10.29</td><td>0.0224</td><td>376 B</td><td>3.62</td>
-</tr><tr><td>Builder_WithMetadata_3</td><td>.NET 9.0</td><td>.NET 9.0</td><td>193.00 ns</td><td>12.88</td><td>0.0362</td><td>608 B</td><td>5.85</td>
-</tr><tr><td>Builder_BatchMetadata_5</td><td>.NET 10.0</td><td>.NET 10.0</td><td>198.15 ns</td><td>13.23</td><td>0.0310</td><td>520 B</td><td>5.00</td>
-</tr><tr><td>WithMetadata_Chain_3</td><td>.NET 9.0</td><td>.NET 9.0</td><td>214.87 ns</td><td>14.34</td><td>0.0548</td><td>920 B</td><td>8.85</td>
-</tr><tr><td>Builder_BatchMetadata_5</td><td>.NET 9.0</td><td>.NET 9.0</td><td>215.97 ns</td><td>14.42</td><td>0.0310</td><td>520 B</td><td>5.00</td>
-</tr><tr><td>WithMetadata_Chain_3</td><td>.NET 8.0</td><td>.NET 8.0</td><td>224.88 ns</td><td>15.01</td><td>0.0610</td><td>1024 B</td><td>9.85</td>
-</tr><tr><td>Builder_WithMetadata_3</td><td>.NET 8.0</td><td>.NET 8.0</td><td>233.73 ns</td><td>15.60</td><td>0.0362</td><td>608 B</td><td>5.85</td>
-</tr><tr><td>Builder_BatchMetadata_5</td><td>.NET 8.0</td><td>.NET 8.0</td><td>321.45 ns</td><td>21.46</td><td>0.0310</td><td>520 B</td><td>5.00</td>
-</tr><tr><td>Builder_Chain_10</td><td>.NET 10.0</td><td>.NET 10.0</td><td>337.45 ns</td><td>22.53</td><td>0.0677</td><td>1136 B</td><td>10.92</td>
-</tr><tr><td>Builder_Chain_10</td><td>.NET 9.0</td><td>.NET 9.0</td><td>394.81 ns</td><td>26.36</td><td>0.0677</td><td>1136 B</td><td>10.92</td>
-</tr><tr><td>Builder_Chain_10</td><td>.NET 8.0</td><td>.NET 8.0</td><td>523.06 ns</td><td>34.92</td><td>0.0677</td><td>1136 B</td><td>10.92</td>
+</thead><tbody><tr><td>Builder_Simple</td><td>.NET 10.0</td><td>.NET 10.0</td><td>17.17 ns</td><td>0.83</td><td>0.0062</td><td>104 B</td><td>1.00</td>
+</tr><tr><td>Factory_Validation</td><td>.NET 10.0</td><td>.NET 10.0</td><td>18.09 ns</td><td>0.87</td><td>0.0062</td><td>104 B</td><td>1.00</td>
+</tr><tr><td>Factory_Failure</td><td>.NET 10.0</td><td>.NET 10.0</td><td>18.50 ns</td><td>0.89</td><td>0.0062</td><td>104 B</td><td>1.00</td>
+</tr><tr><td>Factory_Validation</td><td>.NET 9.0</td><td>.NET 9.0</td><td>20.61 ns</td><td>0.99</td><td>0.0062</td><td>104 B</td><td>1.00</td>
+</tr><tr><td>Factory_Failure</td><td>.NET 9.0</td><td>.NET 9.0</td><td>20.72 ns</td><td>1.00</td><td>0.0062</td><td>104 B</td><td>1.00</td>
+</tr><tr><td>Factory_Failure</td><td>.NET 8.0</td><td>.NET 8.0</td><td>20.73 ns</td><td>1.00</td><td>0.0062</td><td>104 B</td><td>1.00</td>
+</tr><tr><td>Factory_Validation</td><td>.NET 8.0</td><td>.NET 8.0</td><td>20.81 ns</td><td>1.00</td><td>0.0062</td><td>104 B</td><td>1.00</td>
+</tr><tr><td>Builder_Simple</td><td>.NET 8.0</td><td>.NET 8.0</td><td>26.86 ns</td><td>1.30</td><td>0.0062</td><td>104 B</td><td>1.00</td>
+</tr><tr><td>Builder_Simple</td><td>.NET 9.0</td><td>.NET 9.0</td><td>28.60 ns</td><td>1.38</td><td>0.0062</td><td>104 B</td><td>1.00</td>
+</tr><tr><td>Error_GetHashCode</td><td>.NET 9.0</td><td>.NET 9.0</td><td>36.04 ns</td><td>1.74</td><td>0.0062</td><td>104 B</td><td>1.00</td>
+</tr><tr><td>Error_Equality</td><td>.NET 10.0</td><td>.NET 10.0</td><td>36.36 ns</td><td>1.75</td><td>0.0124</td><td>208 B</td><td>2.00</td>
+</tr><tr><td>Error_GetHashCode</td><td>.NET 8.0</td><td>.NET 8.0</td><td>36.94 ns</td><td>1.78</td><td>0.0062</td><td>104 B</td><td>1.00</td>
+</tr><tr><td>Error_GetHashCode</td><td>.NET 10.0</td><td>.NET 10.0</td><td>38.03 ns</td><td>1.84</td><td>0.0062</td><td>104 B</td><td>1.00</td>
+</tr><tr><td>Error_Equality</td><td>.NET 9.0</td><td>.NET 9.0</td><td>40.53 ns</td><td>1.96</td><td>0.0124</td><td>208 B</td><td>2.00</td>
+</tr><tr><td>Error_Equality</td><td>.NET 8.0</td><td>.NET 8.0</td><td>42.68 ns</td><td>2.06</td><td>0.0124</td><td>208 B</td><td>2.00</td>
+</tr><tr><td>Builder_Chain_5</td><td>.NET 10.0</td><td>.NET 10.0</td><td>50.75 ns</td><td>2.45</td><td>0.0124</td><td>208 B</td><td>2.00</td>
+</tr><tr><td>Builder_Chain_5</td><td>.NET 9.0</td><td>.NET 9.0</td><td>87.25 ns</td><td>4.21</td><td>0.0124</td><td>208 B</td><td>2.00</td>
+</tr><tr><td>Builder_Chain_7</td><td>.NET 10.0</td><td>.NET 10.0</td><td>107.02 ns</td><td>5.16</td><td>0.0224</td><td>376 B</td><td>3.62</td>
+</tr><tr><td>Builder_Full</td><td>.NET 10.0</td><td>.NET 10.0</td><td>107.39 ns</td><td>5.18</td><td>0.0224</td><td>376 B</td><td>3.62</td>
+</tr><tr><td>Builder_Chain_5</td><td>.NET 8.0</td><td>.NET 8.0</td><td>112.02 ns</td><td>5.41</td><td>0.0124</td><td>208 B</td><td>2.00</td>
+</tr><tr><td>Builder_Full</td><td>.NET 9.0</td><td>.NET 9.0</td><td>170.20 ns</td><td>8.21</td><td>0.0224</td><td>376 B</td><td>3.62</td>
+</tr><tr><td>Builder_Chain_7</td><td>.NET 9.0</td><td>.NET 9.0</td><td>172.43 ns</td><td>8.32</td><td>0.0224</td><td>376 B</td><td>3.62</td>
+</tr><tr><td>Builder_WithMetadata_3</td><td>.NET 10.0</td><td>.NET 10.0</td><td>218.40 ns</td><td>10.54</td><td>0.0324</td><td>544 B</td><td>5.23</td>
+</tr><tr><td>Builder_Full</td><td>.NET 8.0</td><td>.NET 8.0</td><td>222.34 ns</td><td>10.73</td><td>0.0224</td><td>376 B</td><td>3.62</td>
+</tr><tr><td>Builder_Chain_7</td><td>.NET 8.0</td><td>.NET 8.0</td><td>222.93 ns</td><td>10.76</td><td>0.0224</td><td>376 B</td><td>3.62</td>
+</tr><tr><td>Builder_WithMetadata_3</td><td>.NET 9.0</td><td>.NET 9.0</td><td>234.78 ns</td><td>11.33</td><td>0.0324</td><td>544 B</td><td>5.23</td>
+</tr><tr><td>Builder_BatchMetadata_5</td><td>.NET 10.0</td><td>.NET 10.0</td><td>277.60 ns</td><td>13.39</td><td>0.0310</td><td>520 B</td><td>5.00</td>
+</tr><tr><td>WithMetadata_Chain_3</td><td>.NET 10.0</td><td>.NET 10.0</td><td>281.98 ns</td><td>13.61</td><td>0.0520</td><td>872 B</td><td>8.38</td>
+</tr><tr><td>Builder_WithMetadata_3</td><td>.NET 8.0</td><td>.NET 8.0</td><td>316.94 ns</td><td>15.29</td><td>0.0324</td><td>544 B</td><td>5.23</td>
+</tr><tr><td>Builder_BatchMetadata_5</td><td>.NET 9.0</td><td>.NET 9.0</td><td>322.60 ns</td><td>15.57</td><td>0.0310</td><td>520 B</td><td>5.00</td>
+</tr><tr><td>WithMetadata_Chain_3</td><td>.NET 8.0</td><td>.NET 8.0</td><td>336.39 ns</td><td>16.23</td><td>0.0610</td><td>1024 B</td><td>9.85</td>
+</tr><tr><td>WithMetadata_Chain_3</td><td>.NET 9.0</td><td>.NET 9.0</td><td>341.80 ns</td><td>16.49</td><td>0.0548</td><td>920 B</td><td>8.85</td>
+</tr><tr><td>Builder_BatchMetadata_5</td><td>.NET 8.0</td><td>.NET 8.0</td><td>424.35 ns</td><td>20.48</td><td>0.0310</td><td>520 B</td><td>5.00</td>
+</tr><tr><td>Builder_Chain_10</td><td>.NET 10.0</td><td>.NET 10.0</td><td>473.14 ns</td><td>22.83</td><td>0.0677</td><td>1136 B</td><td>10.92</td>
+</tr><tr><td>Builder_Chain_10</td><td>.NET 9.0</td><td>.NET 9.0</td><td>519.67 ns</td><td>25.07</td><td>0.0639</td><td>1072 B</td><td>10.31</td>
+</tr><tr><td>Builder_Chain_10</td><td>.NET 8.0</td><td>.NET 8.0</td><td>834.22 ns</td><td>40.25</td><td>0.0639</td><td>1072 B</td><td>10.31</td>
 </tr></tbody></table>
 </body>
 </html>

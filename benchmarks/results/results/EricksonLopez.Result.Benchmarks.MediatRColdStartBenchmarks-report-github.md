@@ -1,29 +1,29 @@
 ```
 
 BenchmarkDotNet v0.15.8, Linux Ubuntu 24.04.5 LTS (Noble Numbat)
-AMD EPYC 9V45 4.37GHz, 1 CPU, 4 logical and 2 physical cores
-.NET SDK 10.0.401
-  [Host]    : .NET 10.0.12 (10.0.12, 10.0.1226.42308), X64 RyuJIT x86-64-v4
-  .NET 10.0 : .NET 10.0.12 (10.0.12, 10.0.1226.42308), X64 RyuJIT x86-64-v4
-  .NET 8.0  : .NET 8.0.31 (8.0.31, 8.0.3126.42015), X64 RyuJIT x86-64-v4
-  .NET 9.0  : .NET 9.0.20 (9.0.20, 9.0.2026.41315), X64 RyuJIT x86-64-v4
-  ShortRun  : .NET 10.0.12 (10.0.12, 10.0.1226.42308), X64 RyuJIT x86-64-v4
+AMD EPYC 9V74 2.60GHz, 1 CPU, 4 logical and 2 physical cores
+.NET SDK 10.0.402
+  [Host]    : .NET 10.0.13 (10.0.13, 10.0.1326.50504), X64 RyuJIT x86-64-v4
+  .NET 10.0 : .NET 10.0.13 (10.0.13, 10.0.1326.50504), X64 RyuJIT x86-64-v4
+  .NET 8.0  : .NET 8.0.32 (8.0.32, 8.0.3226.50405), X64 RyuJIT x86-64-v4
+  .NET 9.0  : .NET 9.0.21 (9.0.21, 9.0.2126.50404), X64 RyuJIT x86-64-v4
+  ShortRun  : .NET 10.0.13 (10.0.13, 10.0.1326.50504), X64 RyuJIT x86-64-v4
 
 
 ```
-| Method                                    | Job       | Runtime   | IterationCount | LaunchCount | WarmupCount | TypesCount | Mean       | Error       | StdDev   | Ratio | RatioSD | Gen0    | Gen1    | Allocated | Alloc Ratio |
-|------------------------------------------ |---------- |---------- |--------------- |------------ |------------ |----------- |-----------:|------------:|---------:|------:|--------:|--------:|--------:|----------:|------------:|
-| **&#39;Expression.Compile Cold Start (N types)&#39;** | **.NET 10.0** | **.NET 10.0** | **Default**        | **Default**     | **Default**     | **10**         |   **694.8 μs** |    **13.45 μs** | **13.81 μs** |  **1.13** |    **0.03** |  **2.9297** |  **1.9531** |  **52.19 KB** |        **1.01** |
-| &#39;Expression.Compile Cold Start (N types)&#39; | .NET 8.0  | .NET 8.0  | Default        | Default     | Default     | 10         |   616.5 μs |    12.26 μs | 14.59 μs |  1.00 |    0.03 |  2.9297 |  1.9531 |   51.9 KB |        1.00 |
-| &#39;Expression.Compile Cold Start (N types)&#39; | .NET 9.0  | .NET 9.0  | Default        | Default     | Default     | 10         |   568.1 μs |    10.04 μs |  8.39 μs |  0.92 |    0.02 |  2.9297 |  1.9531 |   51.9 KB |        1.00 |
-| &#39;Expression.Compile Cold Start (N types)&#39; | ShortRun  | .NET 10.0 | 3              | 1           | 3           | 10         |   716.0 μs | 1,813.24 μs | 99.39 μs |  1.16 |    0.14 |  1.9531 |       - |  51.76 KB |        1.00 |
-|                                           |           |           |                |             |             |            |            |             |          |       |         |         |         |           |             |
-| **&#39;Expression.Compile Cold Start (N types)&#39;** | **.NET 10.0** | **.NET 10.0** | **Default**        | **Default**     | **Default**     | **25**         | **1,627.0 μs** |    **21.88 μs** | **18.27 μs** |  **1.10** |    **0.03** |  **7.8125** |  **3.9063** | **130.99 KB** |        **1.00** |
-| &#39;Expression.Compile Cold Start (N types)&#39; | .NET 8.0  | .NET 8.0  | Default        | Default     | Default     | 25         | 1,481.5 μs |    28.23 μs | 32.51 μs |  1.00 |    0.03 |  7.8125 |  3.9063 | 130.99 KB |        1.00 |
-| &#39;Expression.Compile Cold Start (N types)&#39; | .NET 9.0  | .NET 9.0  | Default        | Default     | Default     | 25         | 1,372.3 μs |    26.39 μs | 30.39 μs |  0.93 |    0.03 |  7.8125 |  5.8594 | 131.09 KB |        1.00 |
-| &#39;Expression.Compile Cold Start (N types)&#39; | ShortRun  | .NET 10.0 | 3              | 1           | 3           | 25         | 1,650.6 μs | 1,087.85 μs | 59.63 μs |  1.11 |    0.04 |  7.8125 |  3.9063 | 131.01 KB |        1.00 |
-|                                           |           |           |                |             |             |            |            |             |          |       |         |         |         |           |             |
-| **&#39;Expression.Compile Cold Start (N types)&#39;** | **.NET 10.0** | **.NET 10.0** | **Default**        | **Default**     | **Default**     | **50**         | **3,379.4 μs** |    **63.90 μs** | **56.64 μs** |  **1.09** |    **0.02** | **15.6250** |  **7.8125** | **267.64 KB** |        **1.00** |
-| &#39;Expression.Compile Cold Start (N types)&#39; | .NET 8.0  | .NET 8.0  | Default        | Default     | Default     | 50         | 3,109.3 μs |    49.23 μs | 46.05 μs |  1.00 |    0.02 | 15.6250 |  7.8125 | 267.13 KB |        1.00 |
-| &#39;Expression.Compile Cold Start (N types)&#39; | .NET 9.0  | .NET 9.0  | Default        | Default     | Default     | 50         | 2,820.2 μs |    55.23 μs | 56.72 μs |  0.91 |    0.02 | 15.6250 | 11.7188 | 266.55 KB |        1.00 |
-| &#39;Expression.Compile Cold Start (N types)&#39; | ShortRun  | .NET 10.0 | 3              | 1           | 3           | 50         | 3,523.4 μs | 1,022.78 μs | 56.06 μs |  1.13 |    0.02 | 15.6250 |  7.8125 | 266.62 KB |        1.00 |
+| Method                                    | Job       | Runtime   | IterationCount | LaunchCount | WarmupCount | TypesCount | Mean     | Error     | StdDev    | Ratio | RatioSD | Gen0    | Allocated | Alloc Ratio |
+|------------------------------------------ |---------- |---------- |--------------- |------------ |------------ |----------- |---------:|----------:|----------:|------:|--------:|--------:|----------:|------------:|
+| **&#39;Expression.Compile Cold Start (N types)&#39;** | **.NET 10.0** | **.NET 10.0** | **Default**        | **Default**     | **Default**     | **10**         | **1.472 ms** | **0.0021 ms** | **0.0016 ms** |  **1.14** |    **0.00** |  **1.9531** |  **51.97 KB** |        **1.00** |
+| &#39;Expression.Compile Cold Start (N types)&#39; | .NET 8.0  | .NET 8.0  | Default        | Default     | Default     | 10         | 1.292 ms | 0.0033 ms | 0.0029 ms |  1.00 |    0.00 |  1.9531 |  51.97 KB |        1.00 |
+| &#39;Expression.Compile Cold Start (N types)&#39; | .NET 9.0  | .NET 9.0  | Default        | Default     | Default     | 10         | 1.229 ms | 0.0040 ms | 0.0036 ms |  0.95 |    0.00 |  1.9531 |  51.83 KB |        1.00 |
+| &#39;Expression.Compile Cold Start (N types)&#39; | ShortRun  | .NET 10.0 | 3              | 1           | 3           | 10         | 1.466 ms | 0.0445 ms | 0.0024 ms |  1.14 |    0.00 |  1.9531 |  51.76 KB |        1.00 |
+|                                           |           |           |                |             |             |            |          |           |           |       |         |         |           |             |
+| **&#39;Expression.Compile Cold Start (N types)&#39;** | **.NET 10.0** | **.NET 10.0** | **Default**        | **Default**     | **Default**     | **25**         | **3.740 ms** | **0.0089 ms** | **0.0070 ms** |  **1.16** |    **0.01** |  **7.8125** | **130.89 KB** |        **1.00** |
+| &#39;Expression.Compile Cold Start (N types)&#39; | .NET 8.0  | .NET 8.0  | Default        | Default     | Default     | 25         | 3.216 ms | 0.0256 ms | 0.0213 ms |  1.00 |    0.01 |  7.8125 | 130.61 KB |        1.00 |
+| &#39;Expression.Compile Cold Start (N types)&#39; | .NET 9.0  | .NET 9.0  | Default        | Default     | Default     | 25         | 3.094 ms | 0.0208 ms | 0.0194 ms |  0.96 |    0.01 |  7.8125 | 130.89 KB |        1.00 |
+| &#39;Expression.Compile Cold Start (N types)&#39; | ShortRun  | .NET 10.0 | 3              | 1           | 3           | 25         | 3.759 ms | 0.5521 ms | 0.0303 ms |  1.17 |    0.01 |  7.8125 | 130.75 KB |        1.00 |
+|                                           |           |           |                |             |             |            |          |           |           |       |         |         |           |             |
+| **&#39;Expression.Compile Cold Start (N types)&#39;** | **.NET 10.0** | **.NET 10.0** | **Default**        | **Default**     | **Default**     | **50**         | **7.715 ms** | **0.0899 ms** | **0.0797 ms** |  **1.12** |    **0.03** | **15.6250** | **267.43 KB** |        **1.00** |
+| &#39;Expression.Compile Cold Start (N types)&#39; | .NET 8.0  | .NET 8.0  | Default        | Default     | Default     | 50         | 6.872 ms | 0.1361 ms | 0.1457 ms |  1.00 |    0.03 | 15.6250 | 267.44 KB |        1.00 |
+| &#39;Expression.Compile Cold Start (N types)&#39; | .NET 9.0  | .NET 9.0  | Default        | Default     | Default     | 50         | 6.539 ms | 0.1285 ms | 0.1626 ms |  0.95 |    0.03 | 15.6250 | 267.79 KB |        1.00 |
+| &#39;Expression.Compile Cold Start (N types)&#39; | ShortRun  | .NET 10.0 | 3              | 1           | 3           | 50         | 7.870 ms | 2.1520 ms | 0.1180 ms |  1.15 |    0.03 | 15.6250 | 267.65 KB |        1.00 |
