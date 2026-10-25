@@ -2,7 +2,7 @@
 <html lang='en'>
 <head>
 <meta charset='utf-8' />
-<title>EricksonLopez.Result.Benchmarks.ValidationBenchmarks-20261018-082933</title>
+<title>EricksonLopez.Result.Benchmarks.ValidationBenchmarks-20261025-084832</title>
 
 <style type="text/css">
 	table { border-collapse: collapse; display: block; width: 100%; overflow: auto; }
@@ -14,36 +14,36 @@
 <body>
 <pre><code>
 BenchmarkDotNet v0.15.8, Linux Ubuntu 24.04.5 LTS (Noble Numbat)
-AMD EPYC 9V74 2.60GHz, 1 CPU, 4 logical and 2 physical cores
+AMD EPYC 7763 2.45GHz, 1 CPU, 4 logical and 2 physical cores
 .NET SDK 10.0.402
-  [Host]    : .NET 10.0.13 (10.0.13, 10.0.1326.50504), X64 RyuJIT x86-64-v4
-  .NET 9.0  : .NET 9.0.21 (9.0.21, 9.0.2126.50404), X64 RyuJIT x86-64-v4
-  .NET 10.0 : .NET 10.0.13 (10.0.13, 10.0.1326.50504), X64 RyuJIT x86-64-v4
-  .NET 8.0  : .NET 8.0.32 (8.0.32, 8.0.3226.50405), X64 RyuJIT x86-64-v4
+  [Host]    : .NET 10.0.13 (10.0.13, 10.0.1326.50504), X64 RyuJIT x86-64-v3
+  .NET 9.0  : .NET 9.0.21 (9.0.21, 9.0.2126.50404), X64 RyuJIT x86-64-v3
+  .NET 10.0 : .NET 10.0.13 (10.0.13, 10.0.1326.50504), X64 RyuJIT x86-64-v3
+  .NET 8.0  : .NET 8.0.32 (8.0.32, 8.0.3226.50405), X64 RyuJIT x86-64-v3
 </code></pre>
 <pre><code></code></pre>
 
 <table>
 <thead><tr><th>Method                </th><th>Job</th><th>Runtime</th><th>FieldCount</th><th>Mean</th><th>Ratio</th><th>Gen0</th><th>Allocated</th><th>Alloc Ratio</th>
 </tr>
-</thead><tbody><tr><td>ValidateAll_AllSuccess</td><td>.NET 9.0</td><td>.NET 9.0</td><td>4</td><td>7.070 ns</td><td>0.62</td><td>-</td><td>-</td><td>NA</td>
-</tr><tr><td>ValidateAll_AllSuccess</td><td>.NET 10.0</td><td>.NET 10.0</td><td>4</td><td>10.834 ns</td><td>0.96</td><td>-</td><td>-</td><td>NA</td>
-</tr><tr><td>ValidateAll_AllSuccess</td><td>.NET 8.0</td><td>.NET 8.0</td><td>4</td><td>11.322 ns</td><td>1.00</td><td>-</td><td>-</td><td>NA</td>
-</tr><tr><td>ValidateAll_OneFailure</td><td>.NET 9.0</td><td>.NET 9.0</td><td>4</td><td>52.349 ns</td><td>4.62</td><td>0.0086</td><td>144 B</td><td>NA</td>
-</tr><tr><td>ValidateAll_OneFailure</td><td>.NET 10.0</td><td>.NET 10.0</td><td>4</td><td>59.494 ns</td><td>5.25</td><td>0.0086</td><td>144 B</td><td>NA</td>
-</tr><tr><td>ValidateAll_OneFailure</td><td>.NET 8.0</td><td>.NET 8.0</td><td>4</td><td>78.568 ns</td><td>6.94</td><td>0.0086</td><td>144 B</td><td>NA</td>
-</tr><tr><td>ValidateAll_MultipleFailures</td><td>.NET 9.0</td><td>.NET 9.0</td><td>4</td><td>212.508 ns</td><td>18.77</td><td>0.0329</td><td>552 B</td><td>NA</td>
-</tr><tr><td>ValidateAll_MultipleFailures</td><td>.NET 10.0</td><td>.NET 10.0</td><td>4</td><td>245.029 ns</td><td>21.64</td><td>0.0329</td><td>552 B</td><td>NA</td>
-</tr><tr><td>ValidateAll_MultipleFailures</td><td>.NET 8.0</td><td>.NET 8.0</td><td>4</td><td>308.136 ns</td><td>27.22</td><td>0.0329</td><td>552 B</td><td>NA</td>
-</tr><tr><td>ValidateAll_AllSuccess</td><td>.NET 9.0</td><td>.NET 9.0</td><td>10</td><td>10.928 ns</td><td>0.73</td><td>-</td><td>-</td><td>NA</td>
-</tr><tr><td>ValidateAll_AllSuccess</td><td>.NET 8.0</td><td>.NET 8.0</td><td>10</td><td>14.907 ns</td><td>1.00</td><td>-</td><td>-</td><td>NA</td>
-</tr><tr><td>ValidateAll_AllSuccess</td><td>.NET 10.0</td><td>.NET 10.0</td><td>10</td><td>15.338 ns</td><td>1.03</td><td>-</td><td>-</td><td>NA</td>
-</tr><tr><td>ValidateAll_OneFailure</td><td>.NET 10.0</td><td>.NET 10.0</td><td>10</td><td>68.608 ns</td><td>4.60</td><td>0.0086</td><td>144 B</td><td>NA</td>
-</tr><tr><td>ValidateAll_OneFailure</td><td>.NET 9.0</td><td>.NET 9.0</td><td>10</td><td>73.721 ns</td><td>4.95</td><td>0.0086</td><td>144 B</td><td>NA</td>
-</tr><tr><td>ValidateAll_OneFailure</td><td>.NET 8.0</td><td>.NET 8.0</td><td>10</td><td>95.372 ns</td><td>6.40</td><td>0.0086</td><td>144 B</td><td>NA</td>
-</tr><tr><td>ValidateAll_MultipleFailures</td><td>.NET 10.0</td><td>.NET 10.0</td><td>10</td><td>397.931 ns</td><td>26.69</td><td>0.0615</td><td>1032 B</td><td>NA</td>
-</tr><tr><td>ValidateAll_MultipleFailures</td><td>.NET 9.0</td><td>.NET 9.0</td><td>10</td><td>399.481 ns</td><td>26.80</td><td>0.0615</td><td>1032 B</td><td>NA</td>
-</tr><tr><td>ValidateAll_MultipleFailures</td><td>.NET 8.0</td><td>.NET 8.0</td><td>10</td><td>556.844 ns</td><td>37.36</td><td>0.0610</td><td>1032 B</td><td>NA</td>
+</thead><tbody><tr><td>ValidateAll_AllSuccess</td><td>.NET 9.0</td><td>.NET 9.0</td><td>4</td><td>9.665 ns</td><td>0.64</td><td>-</td><td>-</td><td>NA</td>
+</tr><tr><td>ValidateAll_AllSuccess</td><td>.NET 10.0</td><td>.NET 10.0</td><td>4</td><td>12.424 ns</td><td>0.82</td><td>-</td><td>-</td><td>NA</td>
+</tr><tr><td>ValidateAll_AllSuccess</td><td>.NET 8.0</td><td>.NET 8.0</td><td>4</td><td>15.164 ns</td><td>1.00</td><td>-</td><td>-</td><td>NA</td>
+</tr><tr><td>ValidateAll_OneFailure</td><td>.NET 9.0</td><td>.NET 9.0</td><td>4</td><td>70.428 ns</td><td>4.64</td><td>0.0086</td><td>144 B</td><td>NA</td>
+</tr><tr><td>ValidateAll_OneFailure</td><td>.NET 10.0</td><td>.NET 10.0</td><td>4</td><td>74.485 ns</td><td>4.91</td><td>0.0086</td><td>144 B</td><td>NA</td>
+</tr><tr><td>ValidateAll_OneFailure</td><td>.NET 8.0</td><td>.NET 8.0</td><td>4</td><td>95.049 ns</td><td>6.27</td><td>0.0086</td><td>144 B</td><td>NA</td>
+</tr><tr><td>ValidateAll_MultipleFailures</td><td>.NET 10.0</td><td>.NET 10.0</td><td>4</td><td>302.620 ns</td><td>19.96</td><td>0.0329</td><td>552 B</td><td>NA</td>
+</tr><tr><td>ValidateAll_MultipleFailures</td><td>.NET 8.0</td><td>.NET 8.0</td><td>4</td><td>363.980 ns</td><td>24.00</td><td>0.0329</td><td>552 B</td><td>NA</td>
+</tr><tr><td>ValidateAll_MultipleFailures</td><td>.NET 9.0</td><td>.NET 9.0</td><td>4</td><td>398.959 ns</td><td>26.31</td><td>0.0329</td><td>552 B</td><td>NA</td>
+</tr><tr><td>ValidateAll_AllSuccess</td><td>.NET 9.0</td><td>.NET 9.0</td><td>10</td><td>15.641 ns</td><td>0.74</td><td>-</td><td>-</td><td>NA</td>
+</tr><tr><td>ValidateAll_AllSuccess</td><td>.NET 8.0</td><td>.NET 8.0</td><td>10</td><td>21.207 ns</td><td>1.00</td><td>-</td><td>-</td><td>NA</td>
+</tr><tr><td>ValidateAll_AllSuccess</td><td>.NET 10.0</td><td>.NET 10.0</td><td>10</td><td>24.727 ns</td><td>1.17</td><td>-</td><td>-</td><td>NA</td>
+</tr><tr><td>ValidateAll_OneFailure</td><td>.NET 9.0</td><td>.NET 9.0</td><td>10</td><td>80.597 ns</td><td>3.80</td><td>0.0086</td><td>144 B</td><td>NA</td>
+</tr><tr><td>ValidateAll_OneFailure</td><td>.NET 10.0</td><td>.NET 10.0</td><td>10</td><td>91.788 ns</td><td>4.33</td><td>0.0086</td><td>144 B</td><td>NA</td>
+</tr><tr><td>ValidateAll_OneFailure</td><td>.NET 8.0</td><td>.NET 8.0</td><td>10</td><td>116.768 ns</td><td>5.51</td><td>0.0086</td><td>144 B</td><td>NA</td>
+</tr><tr><td>ValidateAll_MultipleFailures</td><td>.NET 9.0</td><td>.NET 9.0</td><td>10</td><td>503.709 ns</td><td>23.75</td><td>0.0610</td><td>1032 B</td><td>NA</td>
+</tr><tr><td>ValidateAll_MultipleFailures</td><td>.NET 10.0</td><td>.NET 10.0</td><td>10</td><td>525.586 ns</td><td>24.78</td><td>0.0610</td><td>1032 B</td><td>NA</td>
+</tr><tr><td>ValidateAll_MultipleFailures</td><td>.NET 8.0</td><td>.NET 8.0</td><td>10</td><td>653.739 ns</td><td>30.83</td><td>0.0610</td><td>1032 B</td><td>NA</td>
 </tr></tbody></table>
 </body>
 </html>
