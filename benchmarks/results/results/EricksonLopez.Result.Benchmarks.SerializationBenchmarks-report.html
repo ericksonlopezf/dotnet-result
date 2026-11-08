@@ -2,7 +2,7 @@
 <html lang='en'>
 <head>
 <meta charset='utf-8' />
-<title>EricksonLopez.Result.Benchmarks.SerializationBenchmarks-20261101-101245</title>
+<title>EricksonLopez.Result.Benchmarks.SerializationBenchmarks-20261108-095908</title>
 
 <style type="text/css">
 	table { border-collapse: collapse; display: block; width: 100%; overflow: auto; }
@@ -13,49 +13,49 @@
 </head>
 <body>
 <pre><code>
-BenchmarkDotNet v0.15.8, Linux Ubuntu 24.04.5 LTS (Noble Numbat)
-AMD EPYC 9V45 4.21GHz, 1 CPU, 4 logical and 2 physical cores
+BenchmarkDotNet v0.15.8, Linux Ubuntu 26.04.1 LTS (Resolute Raccoon)
+AMD EPYC 9V74 3.63GHz, 1 CPU, 4 logical and 2 physical cores
 .NET SDK 10.0.403
   [Host]    : .NET 10.0.14 (10.0.14, 10.0.1426.52326), X64 RyuJIT x86-64-v4
   .NET 10.0 : .NET 10.0.14 (10.0.14, 10.0.1426.52326), X64 RyuJIT x86-64-v4
-  .NET 9.0  : .NET 9.0.22 (9.0.22, 9.0.2226.52218), X64 RyuJIT x86-64-v4
   .NET 8.0  : .NET 8.0.33 (8.0.33, 8.0.3326.52219), X64 RyuJIT x86-64-v4
+  .NET 9.0  : .NET 9.0.22 (9.0.22, 9.0.2226.52218), X64 RyuJIT x86-64-v4
 </code></pre>
 <pre><code></code></pre>
 
 <table>
 <thead><tr><th>Method                   </th><th>Job</th><th>Runtime</th><th>Mean </th><th>Ratio</th><th>Gen0</th><th>Allocated</th><th>Alloc Ratio</th>
 </tr>
-</thead><tbody><tr><td>Serialize_Result_Success</td><td>.NET 10.0</td><td>.NET 10.0</td><td>63.13 ns</td><td>0.36</td><td>0.0038</td><td>64 B</td><td>0.42</td>
-</tr><tr><td>Serialize_Result_Success</td><td>.NET 9.0</td><td>.NET 9.0</td><td>73.81 ns</td><td>0.42</td><td>0.0038</td><td>64 B</td><td>0.42</td>
-</tr><tr><td>Serialize_Result_Success</td><td>.NET 8.0</td><td>.NET 8.0</td><td>79.55 ns</td><td>0.45</td><td>0.0038</td><td>64 B</td><td>0.42</td>
-</tr><tr><td>Serialize_ResultOfT_Success</td><td>.NET 10.0</td><td>.NET 10.0</td><td>99.78 ns</td><td>0.57</td><td>0.0043</td><td>72 B</td><td>0.47</td>
-</tr><tr><td>Serialize_Error_NoMetadata</td><td>.NET 10.0</td><td>.NET 10.0</td><td>125.14 ns</td><td>0.71</td><td>0.0091</td><td>152 B</td><td>1.00</td>
-</tr><tr><td>Serialize_ResultOfT_Success</td><td>.NET 8.0</td><td>.NET 8.0</td><td>136.72 ns</td><td>0.78</td><td>0.0043</td><td>72 B</td><td>0.47</td>
-</tr><tr><td>Serialize_ResultOfT_Success</td><td>.NET 9.0</td><td>.NET 9.0</td><td>139.78 ns</td><td>0.80</td><td>0.0043</td><td>72 B</td><td>0.47</td>
-</tr><tr><td>Serialize_Error_NoMetadata</td><td>.NET 9.0</td><td>.NET 9.0</td><td>173.65 ns</td><td>0.99</td><td>0.0091</td><td>152 B</td><td>1.00</td>
-</tr><tr><td>Serialize_Error_NoMetadata</td><td>.NET 8.0</td><td>.NET 8.0</td><td>175.31 ns</td><td>1.00</td><td>0.0091</td><td>152 B</td><td>1.00</td>
-</tr><tr><td>Serialize_Error_StringMetadata</td><td>.NET 10.0</td><td>.NET 10.0</td><td>297.48 ns</td><td>1.70</td><td>0.0224</td><td>376 B</td><td>2.47</td>
-</tr><tr><td>Serialize_Error_InnerErrors</td><td>.NET 10.0</td><td>.NET 10.0</td><td>340.24 ns</td><td>1.94</td><td>0.0243</td><td>408 B</td><td>2.68</td>
-</tr><tr><td>Serialize_Error_StringMetadata</td><td>.NET 9.0</td><td>.NET 9.0</td><td>364.18 ns</td><td>2.08</td><td>0.0224</td><td>376 B</td><td>2.47</td>
-</tr><tr><td>Serialize_Error_StringMetadata</td><td>.NET 8.0</td><td>.NET 8.0</td><td>372.97 ns</td><td>2.13</td><td>0.0224</td><td>376 B</td><td>2.47</td>
-</tr><tr><td>Serialize_Error_MixedMetadata</td><td>.NET 10.0</td><td>.NET 10.0</td><td>401.77 ns</td><td>2.29</td><td>0.0305</td><td>512 B</td><td>3.37</td>
-</tr><tr><td>Serialize_Error_InnerErrors</td><td>.NET 8.0</td><td>.NET 8.0</td><td>456.30 ns</td><td>2.60</td><td>0.0243</td><td>408 B</td><td>2.68</td>
-</tr><tr><td>Serialize_Error_InnerErrors</td><td>.NET 9.0</td><td>.NET 9.0</td><td>471.16 ns</td><td>2.69</td><td>0.0243</td><td>408 B</td><td>2.68</td>
-</tr><tr><td>Serialize_ResultOfT_Failure</td><td>.NET 10.0</td><td>.NET 10.0</td><td>477.86 ns</td><td>2.73</td><td>0.0334</td><td>560 B</td><td>3.68</td>
-</tr><tr><td>Serialize_Result_Failure</td><td>.NET 10.0</td><td>.NET 10.0</td><td>505.62 ns</td><td>2.88</td><td>0.0334</td><td>560 B</td><td>3.68</td>
-</tr><tr><td>Serialize_Error_MixedMetadata</td><td>.NET 9.0</td><td>.NET 9.0</td><td>515.72 ns</td><td>2.94</td><td>0.0305</td><td>512 B</td><td>3.37</td>
-</tr><tr><td>Serialize_Error_MixedMetadata</td><td>.NET 8.0</td><td>.NET 8.0</td><td>565.23 ns</td><td>3.22</td><td>0.0305</td><td>512 B</td><td>3.37</td>
-</tr><tr><td>Serialize_ResultOfT_Failure</td><td>.NET 9.0</td><td>.NET 9.0</td><td>588.24 ns</td><td>3.36</td><td>0.0334</td><td>560 B</td><td>3.68</td>
-</tr><tr><td>Serialize_Result_Failure</td><td>.NET 9.0</td><td>.NET 9.0</td><td>590.07 ns</td><td>3.37</td><td>0.0334</td><td>560 B</td><td>3.68</td>
-</tr><tr><td>Serialize_Result_Failure</td><td>.NET 8.0</td><td>.NET 8.0</td><td>644.21 ns</td><td>3.67</td><td>0.0334</td><td>560 B</td><td>3.68</td>
-</tr><tr><td>Serialize_ResultOfT_Failure</td><td>.NET 8.0</td><td>.NET 8.0</td><td>650.86 ns</td><td>3.71</td><td>0.0334</td><td>560 B</td><td>3.68</td>
-</tr><tr><td>Deserialize_Error_MixedMetadata</td><td>.NET 10.0</td><td>.NET 10.0</td><td>769.06 ns</td><td>4.39</td><td>0.1087</td><td>1832 B</td><td>12.05</td>
-</tr><tr><td>Deserialize_Error_MixedMetadata</td><td>.NET 9.0</td><td>.NET 9.0</td><td>1,031.39 ns</td><td>5.88</td><td>0.1087</td><td>1832 B</td><td>12.05</td>
-</tr><tr><td>Deserialize_Error_MixedMetadata</td><td>.NET 8.0</td><td>.NET 8.0</td><td>1,047.44 ns</td><td>5.98</td><td>0.1087</td><td>1832 B</td><td>12.05</td>
-</tr><tr><td>RoundTrip_Result</td><td>.NET 10.0</td><td>.NET 10.0</td><td>1,531.56 ns</td><td>8.74</td><td>0.1488</td><td>2504 B</td><td>16.47</td>
-</tr><tr><td>RoundTrip_Result</td><td>.NET 9.0</td><td>.NET 9.0</td><td>1,853.97 ns</td><td>10.58</td><td>0.1488</td><td>2504 B</td><td>16.47</td>
-</tr><tr><td>RoundTrip_Result</td><td>.NET 8.0</td><td>.NET 8.0</td><td>2,056.89 ns</td><td>11.73</td><td>0.1488</td><td>2504 B</td><td>16.47</td>
+</thead><tbody><tr><td>Serialize_Result_Success</td><td>.NET 10.0</td><td>.NET 10.0</td><td>96.26 ns</td><td>0.35</td><td>0.0038</td><td>64 B</td><td>0.42</td>
+</tr><tr><td>Serialize_Result_Success</td><td>.NET 8.0</td><td>.NET 8.0</td><td>120.30 ns</td><td>0.44</td><td>0.0038</td><td>64 B</td><td>0.42</td>
+</tr><tr><td>Serialize_Result_Success</td><td>.NET 9.0</td><td>.NET 9.0</td><td>128.27 ns</td><td>0.47</td><td>0.0038</td><td>64 B</td><td>0.42</td>
+</tr><tr><td>Serialize_ResultOfT_Success</td><td>.NET 10.0</td><td>.NET 10.0</td><td>159.97 ns</td><td>0.59</td><td>0.0043</td><td>72 B</td><td>0.47</td>
+</tr><tr><td>Serialize_Error_NoMetadata</td><td>.NET 10.0</td><td>.NET 10.0</td><td>196.51 ns</td><td>0.72</td><td>0.0091</td><td>152 B</td><td>1.00</td>
+</tr><tr><td>Serialize_ResultOfT_Success</td><td>.NET 8.0</td><td>.NET 8.0</td><td>198.21 ns</td><td>0.73</td><td>0.0043</td><td>72 B</td><td>0.47</td>
+</tr><tr><td>Serialize_ResultOfT_Success</td><td>.NET 9.0</td><td>.NET 9.0</td><td>207.78 ns</td><td>0.77</td><td>0.0043</td><td>72 B</td><td>0.47</td>
+</tr><tr><td>Serialize_Error_NoMetadata</td><td>.NET 9.0</td><td>.NET 9.0</td><td>255.66 ns</td><td>0.94</td><td>0.0091</td><td>152 B</td><td>1.00</td>
+</tr><tr><td>Serialize_Error_NoMetadata</td><td>.NET 8.0</td><td>.NET 8.0</td><td>271.16 ns</td><td>1.00</td><td>0.0091</td><td>152 B</td><td>1.00</td>
+</tr><tr><td>Serialize_Error_StringMetadata</td><td>.NET 10.0</td><td>.NET 10.0</td><td>433.96 ns</td><td>1.60</td><td>0.0224</td><td>376 B</td><td>2.47</td>
+</tr><tr><td>Serialize_Error_InnerErrors</td><td>.NET 10.0</td><td>.NET 10.0</td><td>510.28 ns</td><td>1.88</td><td>0.0238</td><td>408 B</td><td>2.68</td>
+</tr><tr><td>Serialize_Error_StringMetadata</td><td>.NET 9.0</td><td>.NET 9.0</td><td>525.24 ns</td><td>1.94</td><td>0.0219</td><td>376 B</td><td>2.47</td>
+</tr><tr><td>Serialize_Error_StringMetadata</td><td>.NET 8.0</td><td>.NET 8.0</td><td>567.36 ns</td><td>2.09</td><td>0.0219</td><td>376 B</td><td>2.47</td>
+</tr><tr><td>Serialize_Error_MixedMetadata</td><td>.NET 10.0</td><td>.NET 10.0</td><td>617.92 ns</td><td>2.28</td><td>0.0305</td><td>512 B</td><td>3.37</td>
+</tr><tr><td>Serialize_Error_InnerErrors</td><td>.NET 9.0</td><td>.NET 9.0</td><td>661.22 ns</td><td>2.44</td><td>0.0238</td><td>408 B</td><td>2.68</td>
+</tr><tr><td>Serialize_ResultOfT_Failure</td><td>.NET 10.0</td><td>.NET 10.0</td><td>662.15 ns</td><td>2.44</td><td>0.0334</td><td>560 B</td><td>3.68</td>
+</tr><tr><td>Serialize_Error_InnerErrors</td><td>.NET 8.0</td><td>.NET 8.0</td><td>693.47 ns</td><td>2.56</td><td>0.0238</td><td>408 B</td><td>2.68</td>
+</tr><tr><td>Serialize_Result_Failure</td><td>.NET 10.0</td><td>.NET 10.0</td><td>694.43 ns</td><td>2.56</td><td>0.0334</td><td>560 B</td><td>3.68</td>
+</tr><tr><td>Serialize_Error_MixedMetadata</td><td>.NET 9.0</td><td>.NET 9.0</td><td>731.95 ns</td><td>2.70</td><td>0.0305</td><td>512 B</td><td>3.37</td>
+</tr><tr><td>Serialize_Error_MixedMetadata</td><td>.NET 8.0</td><td>.NET 8.0</td><td>786.54 ns</td><td>2.90</td><td>0.0305</td><td>512 B</td><td>3.37</td>
+</tr><tr><td>Serialize_Result_Failure</td><td>.NET 9.0</td><td>.NET 9.0</td><td>803.48 ns</td><td>2.96</td><td>0.0334</td><td>560 B</td><td>3.68</td>
+</tr><tr><td>Serialize_ResultOfT_Failure</td><td>.NET 9.0</td><td>.NET 9.0</td><td>808.36 ns</td><td>2.98</td><td>0.0334</td><td>560 B</td><td>3.68</td>
+</tr><tr><td>Serialize_Result_Failure</td><td>.NET 8.0</td><td>.NET 8.0</td><td>843.54 ns</td><td>3.11</td><td>0.0334</td><td>560 B</td><td>3.68</td>
+</tr><tr><td>Serialize_ResultOfT_Failure</td><td>.NET 8.0</td><td>.NET 8.0</td><td>862.06 ns</td><td>3.18</td><td>0.0334</td><td>560 B</td><td>3.68</td>
+</tr><tr><td>Deserialize_Error_MixedMetadata</td><td>.NET 10.0</td><td>.NET 10.0</td><td>1,021.08 ns</td><td>3.77</td><td>0.1087</td><td>1832 B</td><td>12.05</td>
+</tr><tr><td>Deserialize_Error_MixedMetadata</td><td>.NET 9.0</td><td>.NET 9.0</td><td>1,362.17 ns</td><td>5.02</td><td>0.1087</td><td>1832 B</td><td>12.05</td>
+</tr><tr><td>Deserialize_Error_MixedMetadata</td><td>.NET 8.0</td><td>.NET 8.0</td><td>1,481.58 ns</td><td>5.46</td><td>0.1087</td><td>1832 B</td><td>12.05</td>
+</tr><tr><td>RoundTrip_Result</td><td>.NET 10.0</td><td>.NET 10.0</td><td>2,071.39 ns</td><td>7.64</td><td>0.1488</td><td>2504 B</td><td>16.47</td>
+</tr><tr><td>RoundTrip_Result</td><td>.NET 9.0</td><td>.NET 9.0</td><td>2,545.56 ns</td><td>9.39</td><td>0.1488</td><td>2504 B</td><td>16.47</td>
+</tr><tr><td>RoundTrip_Result</td><td>.NET 8.0</td><td>.NET 8.0</td><td>2,777.34 ns</td><td>10.24</td><td>0.1488</td><td>2504 B</td><td>16.47</td>
 </tr></tbody></table>
 </body>
 </html>
