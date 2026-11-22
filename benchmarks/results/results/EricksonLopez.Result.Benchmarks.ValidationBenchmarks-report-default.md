@@ -10,22 +10,22 @@ AMD EPYC 9V74 3.68GHz, 1 CPU, 4 logical and 2 physical cores
 
  Method                       | Job       | Runtime   | FieldCount | Mean       | Ratio | Gen0   | Allocated | Alloc Ratio |
 ----------------------------- |---------- |---------- |----------- |-----------:|------:|-------:|----------:|------------:|
- ValidateAll_AllSuccess       | .NET 9.0  | .NET 9.0  | 4          |   7.073 ns |  0.62 |      - |         - |          NA |
- ValidateAll_AllSuccess       | .NET 10.0 | .NET 10.0 | 4          |  10.770 ns |  0.94 |      - |         - |          NA |
- ValidateAll_AllSuccess       | .NET 8.0  | .NET 8.0  | 4          |  11.428 ns |  1.00 |      - |         - |          NA |
- ValidateAll_OneFailure       | .NET 9.0  | .NET 9.0  | 4          |  51.852 ns |  4.54 | 0.0086 |     144 B |          NA |
- ValidateAll_OneFailure       | .NET 10.0 | .NET 10.0 | 4          |  58.533 ns |  5.12 | 0.0086 |     144 B |          NA |
- ValidateAll_OneFailure       | .NET 8.0  | .NET 8.0  | 4          |  82.420 ns |  7.21 | 0.0086 |     144 B |          NA |
- ValidateAll_MultipleFailures | .NET 9.0  | .NET 9.0  | 4          | 211.856 ns | 18.54 | 0.0329 |     552 B |          NA |
- ValidateAll_MultipleFailures | .NET 10.0 | .NET 10.0 | 4          | 292.459 ns | 25.59 | 0.0329 |     552 B |          NA |
- ValidateAll_MultipleFailures | .NET 8.0  | .NET 8.0  | 4          | 309.571 ns | 27.09 | 0.0329 |     552 B |          NA |
+ ValidateAll_AllSuccess       | .NET 9.0  | .NET 9.0  | 4          |   7.094 ns |  0.62 |      - |         - |          NA |
+ ValidateAll_AllSuccess       | .NET 10.0 | .NET 10.0 | 4          |   9.972 ns |  0.87 |      - |         - |          NA |
+ ValidateAll_AllSuccess       | .NET 8.0  | .NET 8.0  | 4          |  11.491 ns |  1.00 |      - |         - |          NA |
+ ValidateAll_OneFailure       | .NET 9.0  | .NET 9.0  | 4          |  52.987 ns |  4.61 | 0.0086 |     144 B |          NA |
+ ValidateAll_OneFailure       | .NET 10.0 | .NET 10.0 | 4          |  61.346 ns |  5.34 | 0.0086 |     144 B |          NA |
+ ValidateAll_OneFailure       | .NET 8.0  | .NET 8.0  | 4          |  85.566 ns |  7.45 | 0.0086 |     144 B |          NA |
+ ValidateAll_MultipleFailures | .NET 9.0  | .NET 9.0  | 4          | 220.009 ns | 19.15 | 0.0329 |     552 B |          NA |
+ ValidateAll_MultipleFailures | .NET 10.0 | .NET 10.0 | 4          | 246.162 ns | 21.42 | 0.0329 |     552 B |          NA |
+ ValidateAll_MultipleFailures | .NET 8.0  | .NET 8.0  | 4          | 318.101 ns | 27.68 | 0.0329 |     552 B |          NA |
                               |           |           |            |            |       |        |           |             |
- ValidateAll_AllSuccess       | .NET 9.0  | .NET 9.0  | 10         |  10.951 ns |  0.73 |      - |         - |          NA |
- ValidateAll_AllSuccess       | .NET 8.0  | .NET 8.0  | 10         |  14.935 ns |  1.00 |      - |         - |          NA |
- ValidateAll_AllSuccess       | .NET 10.0 | .NET 10.0 | 10         |  15.615 ns |  1.05 |      - |         - |          NA |
- ValidateAll_OneFailure       | .NET 9.0  | .NET 9.0  | 10         |  57.057 ns |  3.82 | 0.0086 |     144 B |          NA |
- ValidateAll_OneFailure       | .NET 10.0 | .NET 10.0 | 10         |  66.657 ns |  4.46 | 0.0086 |     144 B |          NA |
- ValidateAll_OneFailure       | .NET 8.0  | .NET 8.0  | 10         |  92.852 ns |  6.22 | 0.0086 |     144 B |          NA |
- ValidateAll_MultipleFailures | .NET 9.0  | .NET 9.0  | 10         | 386.903 ns | 25.91 | 0.0615 |    1032 B |          NA |
- ValidateAll_MultipleFailures | .NET 10.0 | .NET 10.0 | 10         | 390.749 ns | 26.16 | 0.0615 |    1032 B |          NA |
- ValidateAll_MultipleFailures | .NET 8.0  | .NET 8.0  | 10         | 525.017 ns | 35.15 | 0.0610 |    1032 B |          NA |
+ ValidateAll_AllSuccess       | .NET 9.0  | .NET 9.0  | 10         |  11.027 ns |  0.74 |      - |         - |          NA |
+ ValidateAll_AllSuccess       | .NET 8.0  | .NET 8.0  | 10         |  14.949 ns |  1.00 |      - |         - |          NA |
+ ValidateAll_AllSuccess       | .NET 10.0 | .NET 10.0 | 10         |  15.614 ns |  1.04 |      - |         - |          NA |
+ ValidateAll_OneFailure       | .NET 10.0 | .NET 10.0 | 10         |  69.050 ns |  4.62 | 0.0086 |     144 B |          NA |
+ ValidateAll_OneFailure       | .NET 8.0  | .NET 8.0  | 10         |  94.249 ns |  6.30 | 0.0086 |     144 B |          NA |
+ ValidateAll_OneFailure       | .NET 9.0  | .NET 9.0  | 10         | 140.307 ns |  9.39 | 0.0086 |     144 B |          NA |
+ ValidateAll_MultipleFailures | .NET 9.0  | .NET 9.0  | 10         | 390.451 ns | 26.12 | 0.0615 |    1032 B |          NA |
+ ValidateAll_MultipleFailures | .NET 10.0 | .NET 10.0 | 10         | 416.547 ns | 27.86 | 0.0615 |    1032 B |          NA |
+ ValidateAll_MultipleFailures | .NET 8.0  | .NET 8.0  | 10         | 564.969 ns | 37.79 | 0.0610 |    1032 B |          NA |
